@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
 import com.freelance.hores.data.db.dao.RangHorariDao
@@ -33,7 +34,14 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "hores_database"
-                ).build()
+                )
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        db.execSQL("PRAGMA foreign_keys=ON;")
+                    }
+                })
+                .build()
                 Instance = instance
                 instance
             }

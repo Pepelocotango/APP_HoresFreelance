@@ -42,17 +42,3 @@ object DatabaseModule {
         return database.rangHorariDao()
     }
 }
-
-@Module
-@InstallIn(SingletonComponent::class)
-object RepositoryModule {
-    @Singleton
-    @Provides
-    fun provideRegistreRepository(
-        diaDao: DiaDao,
-        concepteDao: ConcepteDao,
-        rangHorariDao: RangHorariDao
-    ): RegistreRepository {
-        return RegistreRepository(diaDao, concepteDao, rangHorariDao)
-    }
-}

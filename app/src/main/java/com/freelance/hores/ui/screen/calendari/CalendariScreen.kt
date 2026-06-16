@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -51,7 +52,8 @@ fun CalendariScreen(
 ) {
     val currentMonth by viewModel.currentMonth.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val diasWithRecords = viewModel.getDiasWithRecords()
+    val dias by viewModel.dias.collectAsState()
+    val diasWithRecords = remember(dias) { dias.map { it.data } }
 
     Scaffold(
         topBar = {

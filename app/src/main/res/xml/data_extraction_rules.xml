@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">example.com</domain>
-    </domain-config>
+    <cloud-backup>
+        <include domain="file" path="."/>
+        <exclude domain="file" path="cache"/>
+    </cloud-backup>
+    <device-transfer>
+        <include domain="file" path="."/>
+        <exclude domain="file" path="cache"/>
+    </device-transfer>
 </data-extraction-rules>

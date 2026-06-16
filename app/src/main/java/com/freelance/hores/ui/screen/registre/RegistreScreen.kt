@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,7 +54,7 @@ import com.freelance.hores.domain.model.RangHorari
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,9 +72,11 @@ fun RegistreScreen(
     val savedMessage = stringResource(R.string.common_saved)
     val defaultErrorMessage = stringResource(R.string.common_error)
 
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = formState.data.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    )
+    val datePickerState = key(formState.data) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = formState.data.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        )
+    }
 
     LaunchedEffect(diaId, initialDate) {
         if (diaId > 0) {
@@ -114,7 +117,7 @@ fun RegistreScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.setData(date)
                         }

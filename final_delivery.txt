@@ -1,3 +1,33 @@
+# Documentació del Projecte: HoresFreelance
+
+## Resum del Projecte
+HoresFreelance és una aplicació Android nativa dissenyada per a que els treballadors autònoms puguin registrar les seves hores de treball, organitzar-les per projectes (conceptes) i generar informes (CSV/PDF) per a la facturació.
+
+## Stack Tecnològic i Eines
+- **Llenguatge:** Kotlin
+- **Arquitectura:** MVVM (Model-View-ViewModel) + Repository Pattern
+- **UI:** Jetpack Compose (Material Design 3)
+- **Persistència:** Room Database (SQLite)
+- **Injecció de Dependències:** Hilt
+- **Asincronia:** Kotlin Coroutines & Flow
+- **Navegació:** Navigation Compose
+- **Eines de build:** Gradle (Kotlin DSL)
+- **CI/CD:** GitHub Actions (automatitza testos, linting i compilació d'APKs)
+
+## Estructura de Treball
+Treballem seguint un cicle rigorós de:
+1. **Recerca:** Mapeig del codi i identificació de dependències.
+2. **Estratègia:** Planificació dels canvis.
+3. **Execució:** Implementació quirúrgica (evitant hacks, seguint patrons idiomaticament correctes).
+4. **Validació:** Compilació local (`./gradlew assembleDebug`), execució de testos unitaris (`./gradlew test`) i verificació de regles de linting.
+
+## CI/CD (GitHub Actions)
+El projecte compta amb una pipeline automatitzada a `.github/workflows/android.yml` que s'encarrega de:
+- Compilar l'app.
+- Executar tests unitaris.
+- Executar tests instrumentats en emulador (API 31, x86_64).
+- Generar artefactes (APKs Debug/Release).
+- Verificar l'estat del codi amb linting.
 --- FILE: AndroidManifest.xml ---
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -171,6 +201,19 @@ dependencyResolutionManagement {
 
 rootProject.name = "HoresFreelance"
 include(":app")
+\n
+--- FILE: data_extraction_rules.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="file" path="."/>
+        <exclude domain="file" path="cache"/>
+    </cloud-backup>
+    <device-transfer>
+        <include domain="file" path="."/>
+        <exclude domain="file" path="cache"/>
+    </device-transfer>
+</data-extraction-rules>
 \n
 --- FILE: file_paths.xml ---
 <?xml version="1.0" encoding="utf-8"?>
@@ -1847,6 +1890,7 @@ import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Dia
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -1858,6 +1902,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CalendariViewModel @Inject constructor(
     private val repository: RegistreRepository
@@ -3225,6 +3270,7 @@ import com.freelance.hores.data.export.ExportService
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Dia
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -3233,8 +3279,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.YearMonth
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 data class ResumState(
@@ -3245,6 +3289,7 @@ data class ResumState(
     val error: String? = null
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ResumViewModel @Inject constructor(
     private val repository: RegistreRepository,
