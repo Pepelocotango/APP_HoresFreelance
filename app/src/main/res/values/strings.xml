@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoresFreelance</string>
+
+    <!-- Navigation -->
+    <string name="nav_calendari">Calendar</string>
+    <string name="nav_resum">Summary</string>
+    <string name="nav_new_record">New Record</string>
+
+    <!-- Calendar days -->
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+
+    <!-- Calendari Screen -->
+    <string name="calendari_title">Work Calendar</string>
+    <string name="calendari_empty">No records yet</string>
+
+    <!-- Dia Detall Screen -->
+    <string name="dia_detall_title">Day Details</string>
+    <string name="dia_detall_notes">Notes</string>
+    <string name="dia_detall_conceptes">Concepts</string>
+    <string name="dia_detall_total_hours">Total Hours: %s</string>
+    <string name="dia_detall_add_concepte">Add Concept</string>
+    <string name="dia_detall_edit">Edit</string>
+    <string name="dia_detall_delete">Delete</string>
+
+    <!-- Registre Screen -->
+    <string name="registre_title">Record Hours</string>
+    <string name="registre_date">Date</string>
+    <string name="registre_notes">Notes (optional)</string>
+    <string name="registre_concepte_name">Concept Name</string>
+    <string name="registre_hora_inici">Start Time</string>
+    <string name="registre_hora_fi">End Time</string>
+    <string name="registre_duracio">Duration: %s</string>
+    <string name="registre_add_rang">Add Time Range</string>
+    <string name="registre_add_concepte">Add Concept</string>
+    <string name="registre_save">Save</string>
+    <string name="registre_cancel">Cancel</string>
+    <string name="registre_error_concepte_empty">Concept name cannot be empty</string>
+    <string name="registre_error_no_rangs">At least one time range per concept</string>
+    <string name="registre_error_hora_invalid">End time must be after start time</string>
+
+    <!-- Resum Screen -->
+    <string name="resum_title">Hours Summary</string>
+    <string name="resum_this_week">This Week</string>
+    <string name="resum_this_month">This Month</string>
+    <string name="resum_last_month">Last Month</string>
+    <string name="resum_custom">Custom Range</string>
+    <string name="resum_total">Total: %s hours</string>
+    <string name="resum_export_csv">Export CSV</string>
+    <string name="resum_export_pdf">Export PDF</string>
+    <string name="resum_empty">No records for this period</string>
+    <string name="resum_from">From</string>
+    <string name="resum_to">To</string>
+    <string name="resum_summary_by_concept">Summary by Concept</string>
+
+    <!-- Common -->
+    <string name="common_save">Save</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_add">Add</string>
+    <string name="common_close">Close</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_confirm_delete">Are you sure you want to delete?</string>
+    <string name="common_saved">Saved successfully</string>
+    <string name="common_deleted">Deleted successfully</string>
+    <string name="common_error">An error occurred</string>
+</resources>
