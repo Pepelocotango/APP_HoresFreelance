@@ -21,5 +21,6 @@ import androidx.room.PrimaryKey
 data class ConcepteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val diaId: Long,
-    val nom: String
+    val nom: String,
+    val preuHora: Double = 0.0
 )

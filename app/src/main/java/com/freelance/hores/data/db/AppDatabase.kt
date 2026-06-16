@@ -15,7 +15,7 @@ import com.freelance.hores.data.db.entity.RangHorariEntity
 
 @Database(
     entities = [DiaEntity::class, ConcepteEntity::class, RangHorariEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -35,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "hores_database"
                 )
+                .fallbackToDestructiveMigration() // Esborrarà dades velles en fase beta
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         super.onOpen(db)

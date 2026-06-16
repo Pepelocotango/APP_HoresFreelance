@@ -118,8 +118,8 @@ fun DiaDetallScreen(
                 items(dia!!.conceptes) { concepte ->
                     ConcepteCard(
                         concepte = concepte,
-                        onEdit = { },
-                        onDelete = { }
+                        onEdit = { navController.navigate("registre?diaId=${dia!!.id}") },
+                        onDelete = { viewModel.deleteConcepte(concepte) }
                     )
                 }
 

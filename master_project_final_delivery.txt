@@ -1,34 +1,31 @@
-# Documentació del Projecte: HoresFreelance
+# Documentació Final del Projecte: HoresFreelance
 
 ## Resum del Projecte
-HoresFreelance és una aplicació Android nativa dissenyada per a que els treballadors autònoms puguin registrar les seves hores de treball, organitzar-les per projectes (conceptes) i generar informes (CSV/PDF) per a la facturació.
+HoresFreelance és una aplicació Android nativa per a autònoms per registrar hores de treball, organitzar-les per "Bolos" (projectes/clients) amb preus individuals, i generar informes (CSV/PDF) per a la facturació.
 
-## Stack Tecnològic i Eines
+## Stack Tecnològic
 - **Llenguatge:** Kotlin
-- **Arquitectura:** MVVM (Model-View-ViewModel) + Repository Pattern
 - **UI:** Jetpack Compose (Material Design 3)
+- **Arquitectura:** MVVM + Repository Pattern
 - **Persistència:** Room Database (SQLite)
 - **Injecció de Dependències:** Hilt
 - **Asincronia:** Kotlin Coroutines & Flow
 - **Navegació:** Navigation Compose
-- **Eines de build:** Gradle (Kotlin DSL)
-- **CI/CD:** GitHub Actions (automatitza testos, linting i compilació d'APKs)
 
-## Estructura de Treball
-Treballem seguint un cicle rigorós de:
-1. **Recerca:** Mapeig del codi i identificació de dependències.
-2. **Estratègia:** Planificació dels canvis.
-3. **Execució:** Implementació quirúrgica (evitant hacks, seguint patrons idiomaticament correctes).
-4. **Validació:** Compilació local (`./gradlew assembleDebug`), execució de testos unitaris (`./gradlew test`) i verificació de regles de linting.
+## Evolució i Correccions (Històric Final)
+1. **Correcció de Hilt:** Eliminació de duplicitat de Bindings.
+2. **Integritat BD:** Activació de claus foranes (foreign keys) a SQLite.
+3. **UI/UX:** Marcador dia actual, terminologia "Bolo", suport preu/hora, accions bolo individual.
+4. **Exportació:** CSV/PDF inclouen preus i totals monetaris.
+5. **Localització:** Correcció strings multilingües (format posicional).
+6. **Entrada de dades:** Correcció bug decimals al registre.
 
-## CI/CD (GitHub Actions)
-El projecte compta amb una pipeline automatitzada a `.github/workflows/android.yml` que s'encarrega de:
-- Compilar l'app.
-- Executar tests unitaris.
-- Executar tests instrumentats en emulador (API 31, x86_64).
-- Generar artefactes (APKs Debug/Release).
-- Verificar l'estat del codi amb linting.
---- FILE: AndroidManifest.xml ---
+
+
+--- Codi del Projecte i Configuració ---
+
+
+--- FILE: app/src/main/AndroidManifest.xml ---
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -66,7 +63,7 @@ El projecte compta amb una pipeline automatitzada a `.github/workflows/android.y
 
 </manifest>
 \n
---- FILE: build.gradle.kts (app) ---
+--- FILE: app/build.gradle.kts ---
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -159,9 +156,6 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Calendar Compose
-    implementation("com.kizitonwose.calendar:compose:2.5.0")
-
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
@@ -202,7 +196,7 @@ dependencyResolutionManagement {
 rootProject.name = "HoresFreelance"
 include(":app")
 \n
---- FILE: data_extraction_rules.xml ---
+--- FILE: app/src/main/res/xml/data_extraction_rules.xml ---
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
@@ -215,7 +209,7 @@ include(":app")
     </device-transfer>
 </data-extraction-rules>
 \n
---- FILE: file_paths.xml ---
+--- FILE: app/src/main/res/xml/file_paths.xml ---
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <cache-path
@@ -232,7 +226,7 @@ include(":app")
         path="/" />
 </paths>
 \n
---- FILE: colors.xml ---
+--- FILE: app/src/main/res/values/colors.xml ---
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="seed">#1F88E5</color>
@@ -295,82 +289,23 @@ target/
 --- FILE: README.md ---
 # HoresFreelance
 
-A native Android app for freelancers to track their work hours and generate invoices.
+A native Android app for freelancers to track their work hours, manage projects ("Bolos"), and generate invoices.
 
-## Features
+---
 
-- 📅 **Calendar View**: Visual calendar showing work days
-- ⏱️ **Time Tracking**: Record work hours by concept/project
-- 📊 **Hours Summary**: View work hours by week, month, or custom range
-- 💾 **Local Storage**: All data stored offline on device
-- 📥 **Export**: Export hours as CSV and PDF for invoicing
+## 🇬🇧 English
 
-## Requirements
+HoresFreelance is a native Android application designed to help freelancers track their work hours, organize them by "Bolos" (projects/clients) with individual hourly rates, and generate invoices in CSV or PDF formats.
 
-- Android 8.0+ (API level 26)
-- JDK 17
-- Android SDK 35
-- Gradle 8.0+
+### Features
+- 📅 **Calendar View**: Visual calendar showing work days.
+- ⏱️ **Time Tracking**: Record work hours by "Bolo" (concept) and define an individual price per hour.
+- 📊 **Hours Summary**: View work hours and earnings by week, month, or custom range.
+- 💾 **Local Storage**: All data stored offline on device using Room.
+- 📥 **Export**: Export reports as CSV and PDF.
 
-## Building the App
-
-### Prerequisites
-
-1. Clone the repository:
-```bash
-git clone https://github.com/peplx/hores-freelance-android.git
-cd hores-freelance-android
-```
-
-2. Ensure you have Android SDK installed and `ANDROID_SDK_ROOT` configured
-
-### Build Debug APK
-
-```bash
-./gradlew assembleDebug
-```
-
-The debug APK will be located at: `app/build/outputs/apk/debug/app-debug.apk`
-
-### Build Release APK
-
-```bash
-./gradlew assembleRelease
-```
-
-The release APK will be located at: `app/build/outputs/apk/release/app-release-unsigned.apk`
-
-## Installation
-
-### Via Android Studio
-
-1. Open the project in Android Studio
-2. Connect an Android device or start an emulator
-3. Click "Run" or press `Shift + F10`
-
-### Via Command Line
-
-```bash
-# Install debug APK
-adb install app/build/outputs/apk/debug/app-debug.apk
-
-# Or install release APK
-adb install app/build/outputs/apk/release/app-release-unsigned.apk
-```
-
-## Running Tests
-
-```bash
-# Run unit tests
-./gradlew test
-
-# Run instrumented tests
-./gradlew connectedAndroidTest
-```
-
-## Project Structure
-
-```
+### Project Structure
+```text
 HoresFreelance/
 ├── app/
 │   ├── src/
@@ -379,7 +314,7 @@ HoresFreelance/
 │   │   │   │   ├── HoresApp.kt              # Application class
 │   │   │   │   ├── MainActivity.kt
 │   │   │   │   ├── data/
-│   │   │   │   │   ├── db/                 # Room database
+│   │   │   │   │   ├── db/                 # Room database & Entities
 │   │   │   │   │   ├── repository/         # Data layer
 │   │   │   │   │   └── export/             # CSV/PDF exporters
 │   │   │   │   ├── domain/
@@ -388,70 +323,165 @@ HoresFreelance/
 │   │   │   │       ├── screen/             # UI screens
 │   │   │   │       ├── component/          # Reusable components
 │   │   │   │       └── theme/              # Material 3 theme
-│   │   │   └── res/                        # Resources
+│   │   │   └── res/                        # Resources (XML, values, mipmap)
 │   │   ├── test/                           # Unit tests
 │   │   └── androidTest/                    # Instrumented tests
 │   └── build.gradle.kts
+├── .github/workflows/
+│   └── android.yml                         # CI/CD workflow
 ├── build.gradle.kts
-├── settings.gradle.kts
-└── .github/workflows/
-    └── android.yml                         # CI/CD workflow
+└── settings.gradle.kts
 ```
 
-## Architecture
+---
 
-The app uses **MVVM + Repository Pattern**:
+## [CAT] Català
 
-- **Data Layer**: Room database, DAOs, Repository
-- **Domain Layer**: Business models
-- **UI Layer**: Jetpack Compose screens with ViewModels
+HoresFreelance és una aplicació Android nativa dissenyada per ajudar els treballadors autònoms a registrar les seves hores de treball, organitzar-les per "Bolos" (projectes/clients) amb preus per hora individuals, i generar informes en format CSV o PDF per a la facturació.
 
-## Technologies
+### Funcionalitats
+- 📅 **Vista Calendari**: Calendari visual per veure els dies de treball.
+- ⏱️ **Registre d'Hores**: Registra hores de treball per "Bolo" (concepte) i defineix un preu per hora individual.
+- 📊 **Resum d'Hores**: Consulta les hores treballades i els guanys per setmana, mes o període personalitzat.
+- 💾 **Emmagatzematge Local**: Totes les dades s'emmagatzemen offline al dispositiu mitjançant Room.
+- 📥 **Exportació**: Exporta informes en format CSV i PDF.
 
-- **UI**: Jetpack Compose with Material Design 3
-- **Database**: Room 2.6
-- **Architecture**: MVVM + Repository Pattern
-- **DI**: Hilt
-- **Navigation**: Navigation Compose
-- **Coroutines**: Kotlin Coroutines + StateFlow
+### Estructura del Projecte
+(Vegeu l'arbre de fitxers a la secció en anglès superior)
 
-## CI/CD
+---
 
-GitHub Actions automatically:
-- Runs unit tests on push/PR
-- Builds debug and release APKs
-- Uploads APK artifacts
+## ⚙️ CI/CD (GitHub Actions)
+The project includes an automated pipeline in `.github/workflows/android.yml` that handles:
+- Compiling the app (`assembleDebug`).
+- Running unit tests (`test`).
+- Running instrumented tests in an emulator (API 31, `x86_64`).
+- Generating installable artifacts (APKs).
 
-Workflow file: `.github/workflows/android.yml`
+El projecte inclou una pipeline automatitzada a `.github/workflows/android.yml` que s'encarrega de:
+- Compilar l'app (`assembleDebug`).
+- Executar tests unitaris (`test`).
+- Executar tests instrumentats en emulador (API 31, `x86_64`).
+- Generar artefactes d'instal·lació (APKs).
 
-## Usage
+## 🚀 Building & Running
 
-1. **Add Work Day**: Tap the "+" button to record a new work day
-2. **Enter Hours**: Add concepts (projects) and time ranges
-3. **View Summary**: Navigate to Summary tab to view hours by period
-4. **Export**: Export work hours as CSV or PDF for invoicing
+### Requirements
+- Android 8.0+ (API level 26)
+- JDK 17
+- Android SDK 35
+- Gradle 8.0+
+
+### Build
+```bash
+./gradlew assembleDebug
+```
 
 ## License
+MIT License
+\n
+--- FILE: .github/workflows/android.yml ---
+name: Android CI/CD
 
-MIT License - See LICENSE file for details
+on:
+  workflow_dispatch:
 
-## Contributing
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      checks: write
 
-Contributions are welcome! Please:
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-## Author
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
-Created as a freelance hours tracking solution.
+      - name: Run unit tests
+        run: ./gradlew test --stacktrace
 
-## Support
+      - name: Run linter
+        run: ./gradlew lint --stacktrace || true
 
-For issues, questions, or suggestions, please open an issue on GitHub.
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: ignore
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: app/build/reports/
+          if-no-files-found: ignore
+
+  instrumented-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission
+        run: chmod +x ./gradlew
+
+      - name: Run instrumented tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 31
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: ./gradlew connectedAndroidTest --stacktrace || true
+
+      - name: Upload instrumented test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: instrumented-test-results
+          path: app/build/outputs/androidTest-results/
+          if-no-files-found: ignore
+\n
+--- FILE: gradle.properties ---
+org.gradle.jvmargs=-Xmx2048m
+org.gradle.parallel=true
+android.useAndroidX=true
+kotlin.code.style=official
+android.enableJetifier=true
+android.suppressUnsupportedCompileSdk=35
 \n
 --- FILE: app/src/main/java/com/freelance/hores/data/db/AppDatabase.kt ---
 package com.freelance.hores.data.db
@@ -461,6 +491,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
 import com.freelance.hores.data.db.dao.RangHorariDao
@@ -470,7 +501,7 @@ import com.freelance.hores.data.db.entity.RangHorariEntity
 
 @Database(
     entities = [DiaEntity::class, ConcepteEntity::class, RangHorariEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -489,7 +520,15 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "hores_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration() // Esborrarà dades velles en fase beta
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        db.execSQL("PRAGMA foreign_keys=ON;")
+                    }
+                })
+                .build()
                 Instance = instance
                 instance
             }
@@ -658,7 +697,8 @@ import androidx.room.PrimaryKey
 data class ConcepteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val diaId: Long,
-    val nom: String
+    val nom: String,
+    val preuHora: Double = 0.0
 )
 
 
@@ -715,6 +755,7 @@ import com.freelance.hores.R
 import com.freelance.hores.domain.model.Dia
 import java.io.File
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class CsvExporter(private val context: Context) {
     fun exportToCsv(dias: List<Dia>, filename: String = "hores_freelance.csv"): File {
@@ -724,6 +765,7 @@ class CsvExporter(private val context: Context) {
             val headers = listOf(
                 context.getString(R.string.csv_header_date),
                 context.getString(R.string.csv_header_concept),
+                context.getString(R.string.csv_header_price),
                 context.getString(R.string.csv_header_start),
                 context.getString(R.string.csv_header_end),
                 context.getString(R.string.csv_header_duration),
@@ -733,17 +775,20 @@ class CsvExporter(private val context: Context) {
 
             // Rows
             var totalHoras = 0.0
+            var totalDiners = 0.0
             for (dia in dias) {
                 for (concepte in dia.conceptes) {
                     for ((index, rang) in concepte.rangsHoraris.withIndex()) {
                         val duracio = rang.getDuracionaEnHoras()
                         totalHoras += duracio
+                        totalDiners += duracio * concepte.preuHora
                         writer.write(
                             "${dia.data}," +
                             "${concepte.nom.replace(",", " ")}," +
+                            "${String.format(Locale.US, "%.2f", concepte.preuHora)}," +
                             "${rang.horaInici}," +
                             "${rang.horaFi}," +
-                            "${"%.2f".format(duracio)}," +
+                            "${String.format(Locale.US, "%.2f", duracio)}," +
                             "${if (index == 0) dia.notes.replace(",", " ").replace("\n", " ") else ""}\n"
                         )
                     }
@@ -751,7 +796,7 @@ class CsvExporter(private val context: Context) {
             }
 
             // Total
-            writer.write(",,,,${"%.2f".format(totalHoras)},${context.getString(R.string.csv_header_total)}\n")
+            writer.write(",,,,,${String.format(Locale.US, "%.2f", totalHoras)},${String.format(Locale.US, "%.2f", totalDiners)},${context.getString(R.string.csv_header_total)}\n")
         }
         return file
     }
@@ -850,12 +895,12 @@ class PdfExporter(private val context: Context) {
         }
 
         val headerPaint = Paint().apply {
-            textSize = 12f
+            textSize = 10f // Reduced
             isFakeBoldText = true
         }
 
         val textPaint = Paint().apply {
-            textSize = 10f
+            textSize = 9f // Reduced
         }
 
         val footerPaint = Paint().apply {
@@ -870,7 +915,7 @@ class PdfExporter(private val context: Context) {
 
         var y = 50f
         val margin = 40f
-        val lineHeight = 20f
+        val lineHeight = 18f // Slightly tighter
 
         // Title
         val periodTitle = if (startDate != null && endDate != null) {
@@ -884,15 +929,18 @@ class PdfExporter(private val context: Context) {
         // Headers
         canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
         canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_start), margin + 250, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_end), margin + 320, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 400, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
+        canvas.drawText("Total €", margin + 480, y, headerPaint)
 
         y += lineHeight
         canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
         y += 10f
 
         var totalHoras = 0.0
+        var totalDiners = 0.0
         for (dia in dias) {
             for (concepte in dia.conceptes) {
                 for (rang in concepte.rangsHoraris) {
@@ -907,26 +955,30 @@ class PdfExporter(private val context: Context) {
                         // Redraw headers on new page
                         canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
                         canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 250, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 320, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 400, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
+                        canvas.drawText("Total €", margin + 480, y, headerPaint)
                         y += lineHeight
                         canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
                         y += 10f
                     }
 
                     val duracion = rang.getDuracionaEnHoras()
+                    val cost = duracion * concepte.preuHora
                     totalHoras += duracion
+                    totalDiners += cost
 
                     canvas.drawText(dia.data.toString(), margin, y, textPaint)
                     
-                    // Truncate concept name if too long
-                    val conceptName = if (concepte.nom.length > 30) concepte.nom.substring(0, 27) + "..." else concepte.nom
+                    val conceptName = if (concepte.nom.length > 20) concepte.nom.substring(0, 17) + "..." else concepte.nom
                     canvas.drawText(conceptName, margin + 80, y, textPaint)
-                    
-                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 250, y, textPaint)
-                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 320, y, textPaint)
-                    canvas.drawText("%.2f".format(duracion), margin + 400, y, textPaint)
+                    canvas.drawText("%.2f".format(concepte.preuHora), margin + 220, y, textPaint)
+                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 290, y, textPaint)
+                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 350, y, textPaint)
+                    canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
+                    canvas.drawText("%.2f".format(cost), margin + 480, y, textPaint)
 
                     y += lineHeight
                 }
@@ -936,7 +988,7 @@ class PdfExporter(private val context: Context) {
         // Total
         y += lineHeight
         canvas.drawLine(margin, y - 15, pageWidth - margin.toFloat(), y - 15, textPaint)
-        canvas.drawText(context.getString(R.string.resum_total, "%.2f".format(totalHoras)), margin, y, footerPaint)
+        canvas.drawText(context.getString(R.string.resum_total_diners, "%.2f".format(totalHoras), "%.2f".format(totalDiners)), margin, y, footerPaint)
 
         pdfDocument.finishPage(page)
         pdfDocument.writeTo(file.outputStream())
@@ -1005,6 +1057,7 @@ class RegistreRepository @Inject constructor(
                 id = concepteEntity.id,
                 diaId = concepteEntity.diaId,
                 nom = concepteEntity.nom,
+                preuHora = concepteEntity.preuHora,
                 rangsHoraris = rangsHoraris
             )
         }
@@ -1063,7 +1116,8 @@ class RegistreRepository @Inject constructor(
         for (concepte in dia.conceptes) {
             val concepteEntity = ConcepteEntity(
                 diaId = actualDiaId,
-                nom = concepte.nom
+                nom = concepte.nom,
+                preuHora = concepte.preuHora
             )
             val concepteId = concepteDao.insert(concepteEntity)
 
@@ -1086,7 +1140,7 @@ class RegistreRepository @Inject constructor(
 
     // Delete a concepte
     suspend fun deleteConcepte(concepte: Concepte) {
-        concepteDao.delete(ConcepteEntity(id = concepte.id, diaId = concepte.diaId, nom = concepte.nom))
+        concepteDao.delete(ConcepteEntity(id = concepte.id, diaId = concepte.diaId, nom = concepte.nom, preuHora = concepte.preuHora))
     }
 
     // Delete a rang horari
@@ -1161,34 +1215,23 @@ object DatabaseModule {
     }
 }
 
-@Module
-@InstallIn(SingletonComponent::class)
-object RepositoryModule {
-    @Singleton
-    @Provides
-    fun provideRegistreRepository(
-        diaDao: DiaDao,
-        concepteDao: ConcepteDao,
-        rangHorariDao: RangHorariDao
-    ): RegistreRepository {
-        return RegistreRepository(diaDao, concepteDao, rangHorariDao)
-    }
-}
-
 
 --- FILE: app/src/main/java/com/freelance/hores/domain/model/Concepte.kt ---
 package com.freelance.hores.domain.model
-
-import java.time.LocalTime
 
 data class Concepte(
     val id: Long = 0,
     val diaId: Long,
     val nom: String,
+    val preuHora: Double = 0.0,
     val rangsHoraris: List<RangHorari> = emptyList()
 ) {
     fun getTotalHoras(): Double {
         return rangsHoraris.sumOf { it.getDuracionaEnHoras() }
+    }
+
+    fun getTotalDiners(): Double {
+        return getTotalHoras() * preuHora
     }
 }
 
@@ -1206,6 +1249,10 @@ data class Dia(
 ) {
     fun getTotalHoras(): Double {
         return conceptes.sumOf { it.getTotalHoras() }
+    }
+
+    fun getTotalDiners(): Double {
+        return conceptes.sumOf { it.getTotalDiners() }
     }
 }
 
@@ -1286,8 +1333,10 @@ class MainActivity : ComponentActivity() {
 --- FILE: app/src/main/java/com/freelance/hores/ui/component/Cards.kt ---
 package com.freelance.hores.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -1318,6 +1367,7 @@ fun DiaCard(
     data: LocalDate,
     conceptes: List<Concepte>,
     totalHoras: Double,
+    totalDiners: Double,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1351,7 +1401,7 @@ fun DiaCard(
                 ) {
                     conceptes.forEach { concepte ->
                         Text(
-                            text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h",
+                            text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h | ${String.format("%.2f", concepte.getTotalDiners())}€",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1360,7 +1410,7 @@ fun DiaCard(
             }
 
             Text(
-                text = stringResource(R.string.resum_total, String.format("%.2f", totalHoras)),
+                text = stringResource(R.string.resum_total_diners, String.format("%.2f", totalHoras), String.format("%.2f", totalDiners)),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -1401,7 +1451,7 @@ fun ConcepteCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${String.format("%.2f", concepte.getTotalHoras())}h",
+                        text = "${String.format("%.2f", concepte.getTotalHoras())}h | ${String.format("%.2f", concepte.getTotalDiners())}€",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(end = 8.dp)
@@ -1694,6 +1744,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -1715,7 +1766,8 @@ fun CalendariScreen(
 ) {
     val currentMonth by viewModel.currentMonth.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val diasWithRecords = viewModel.getDiasWithRecords()
+    val dias by viewModel.dias.collectAsState()
+    val diasWithRecords = remember(dias) { dias.map { it.data } }
 
     Scaffold(
         topBar = {
@@ -2087,8 +2139,8 @@ fun DiaDetallScreen(
                 items(dia!!.conceptes) { concepte ->
                     ConcepteCard(
                         concepte = concepte,
-                        onEdit = { },
-                        onDelete = { }
+                        onEdit = { navController.navigate("registre?diaId=${dia!!.id}") },
+                        onDelete = { viewModel.deleteConcepte(concepte) }
                     )
                 }
 
@@ -2211,6 +2263,19 @@ class DiaDetallViewModel @Inject constructor(
         }
     }
 
+    fun deleteConcepte(concepte: com.freelance.hores.domain.model.Concepte) {
+        val currentDia = _dia.value ?: return
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                repository.deleteConcepte(concepte)
+                loadDia(currentDia.id)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error deleting bolo"
+            }
+        }
+    }
+
     fun clearError() {
         _error.value = null
     }
@@ -2230,6 +2295,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -2258,6 +2324,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -2265,6 +2332,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -2273,7 +2341,7 @@ import com.freelance.hores.domain.model.RangHorari
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -2291,9 +2359,11 @@ fun RegistreScreen(
     val savedMessage = stringResource(R.string.common_saved)
     val defaultErrorMessage = stringResource(R.string.common_error)
 
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = formState.data.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    )
+    val datePickerState = key(formState.data) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = formState.data.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        )
+    }
 
     LaunchedEffect(diaId, initialDate) {
         if (diaId > 0) {
@@ -2334,7 +2404,7 @@ fun RegistreScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.setData(date)
                         }
@@ -2418,6 +2488,7 @@ fun RegistreScreen(
                 ConcepteFormItem(
                     concepte = formState.conceptes[concepteIndex],
                     onNameChange = { viewModel.updateConcepteName(concepteIndex, it) },
+                    onPreuChange = { viewModel.updateConceptePreu(concepteIndex, it) },
                     onAddRang = { viewModel.addRangHorariToConcepte(concepteIndex) },
                     onRemoveRang = { rangIndex -> viewModel.removeRangHorari(concepteIndex, rangIndex) },
                     onUpdateHoraInici = { rangIndex, hora ->
@@ -2477,6 +2548,7 @@ fun RegistreScreen(
 fun ConcepteFormItem(
     concepte: ConcepteForm,
     onNameChange: (String) -> Unit,
+    onPreuChange: (Double) -> Unit,
     onAddRang: () -> Unit,
     onRemoveRang: (Int) -> Unit,
     onUpdateHoraInici: (Int, LocalTime) -> Unit,
@@ -2510,6 +2582,22 @@ fun ConcepteFormItem(
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete))
             }
         }
+
+        OutlinedTextField(
+            value = if (concepte.preuHora > 0) concepte.preuHora.toString() else "",
+            onValueChange = { input ->
+                val normalized = input.replace(',', '.')
+                if (normalized.isEmpty()) {
+                    onPreuChange(0.0)
+                } else if (normalized.toDoubleOrNull() != null) {
+                    onPreuChange(normalized.toDouble())
+                }
+                // Si és un punt sol o una coma sola, no actualitzem el ViewModel, deixem que l'usuari continuï escrivint
+            },
+            label = { Text(stringResource(R.string.registre_preu_hora)) },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+        )
 
         concepte.rangsHoraris.forEachIndexed { rangIndex, rang ->
             RangHorariFormItem(
@@ -2704,6 +2792,7 @@ data class RegistreFormState(
 data class ConcepteForm(
     val id: Long = 0,
     val nom: String = "",
+    val preuHora: Double = 0.0,
     val rangsHoraris: List<RangHorariForm> = emptyList()
 )
 
@@ -2728,11 +2817,12 @@ class RegistreViewModel @Inject constructor(
         _formState.value = _formState.value.copy(notes = notes)
     }
 
-    fun addConcepte(concepteName: String = "") {
+    fun addConcepte(concepteName: String = "", preu: Double = 0.0) {
         val currentConceptes = _formState.value.conceptes.toMutableList()
         currentConceptes.add(
             ConcepteForm(
                 nom = concepteName,
+                preuHora = preu,
                 rangsHoraris = listOf(RangHorariForm())
             )
         )
@@ -2743,6 +2833,14 @@ class RegistreViewModel @Inject constructor(
         val currentConceptes = _formState.value.conceptes.toMutableList()
         if (index >= 0 && index < currentConceptes.size) {
             currentConceptes[index] = currentConceptes[index].copy(nom = nom)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConceptePreu(index: Int, preu: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(preuHora = preu)
             _formState.value = _formState.value.copy(conceptes = currentConceptes)
         }
     }
@@ -2861,6 +2959,7 @@ class RegistreViewModel @Inject constructor(
                         id = concepteForm.id,
                         diaId = state.diaId,
                         nom = concepteForm.nom,
+                        preuHora = concepteForm.preuHora,
                         rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
                             RangHorari(
                                 id = rangForm.id,
@@ -2911,6 +3010,7 @@ class RegistreViewModel @Inject constructor(
                     ConcepteForm(
                         id = concepte.id,
                         nom = concepte.nom,
+                        preuHora = concepte.preuHora,
                         rangsHoraris = concepte.rangsHoraris.map { rang ->
                             RangHorariForm(
                                 id = rang.id,
@@ -2983,6 +3083,7 @@ import com.freelance.hores.R
 import com.freelance.hores.ui.component.DiaCard
 import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -2997,7 +3098,7 @@ fun ResumScreen(
 
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         )
         DatePickerDialog(
             onDismissRequest = { showStartDatePicker = false },
@@ -3006,7 +3107,7 @@ fun ResumScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.loadCustomPeriod(date, resumState.endDate)
                         }
@@ -3028,7 +3129,7 @@ fun ResumScreen(
 
     if (showEndDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         )
         DatePickerDialog(
             onDismissRequest = { showEndDatePicker = false },
@@ -3037,7 +3138,7 @@ fun ResumScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.loadCustomPeriod(resumState.startDate, date)
                         }
@@ -3150,7 +3251,7 @@ fun ResumScreen(
 
                 item {
                     Text(
-                        text = stringResource(R.string.resum_total, String.format("%.2f", viewModel.getTotalHoras())),
+                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", viewModel.getTotalHoras()), String.format("%.2f", viewModel.getTotalDiners())),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -3162,6 +3263,7 @@ fun ResumScreen(
                             data = dia.data,
                             conceptes = dia.conceptes,
                             totalHoras = dia.getTotalHoras(),
+                            totalDiners = dia.getTotalDiners(),
                             onClick = { navController.navigate("dia/${dia.id}") }
                         )
                     }
@@ -3350,6 +3452,10 @@ class ResumViewModel @Inject constructor(
 
     fun getTotalHoras(): Double {
         return _resumState.value.dias.sumOf { it.getTotalHoras() }
+    }
+
+    fun getTotalDiners(): Double {
+        return _resumState.value.dias.sumOf { dia -> dia.conceptes.sumOf { it.getTotalDiners() } }
     }
 
     fun getConceptesSummary(): Map<String, Double> {
@@ -3649,40 +3755,42 @@ sealed class UiEvent {
 
     <string name="dia_detall_title">Detall del dia</string>
     <string name="dia_detall_notes">Notes</string>
-    <string name="dia_detall_conceptes">Conceptes</string>
-    <string name="dia_detall_total_hours">Total d\'hores: %s</string>
-    <string name="dia_detall_add_concepte">Afegir concepte</string>
+    <string name="dia_detall_conceptes">Bolos</string>
+    <string name="dia_detall_total_hours">Total d\'hores: %1$s</string>
+    <string name="dia_detall_add_concepte">Afegir bolo</string>
     <string name="dia_detall_edit">Editar</string>
     <string name="dia_detall_delete">Esborrar</string>
 
     <string name="registre_title">Registrar hores</string>
     <string name="registre_date">Data</string>
     <string name="registre_notes">Notes (opcional)</string>
-    <string name="registre_concepte_name">Nom del concepte</string>
+    <string name="registre_concepte_name">Nom del bolo</string>
+    <string name="registre_preu_hora">Preu / hora</string>
     <string name="registre_hora_inici">Hora d\'inici</string>
     <string name="registre_hora_fi">Hora de fi</string>
-    <string name="registre_duracio">Durada: %s</string>
+    <string name="registre_duracio">Durada: %1$s</string>
     <string name="registre_add_rang">Afegir rang horari</string>
-    <string name="registre_add_concepte">Afegir concepte</string>
+    <string name="registre_add_concepte">Afegir bolo</string>
     <string name="registre_save">Desa</string>
     <string name="registre_cancel">Cancel·la</string>
-    <string name="registre_error_concepte_empty">El nom del concepte no pot estar buit</string>
-    <string name="registre_error_no_rangs">Almenys un rang horari per concepte</string>
+    <string name="registre_error_concepte_empty">El nom del bolo no pot estar buit</string>
+    <string name="registre_error_no_rangs">Almenys un rang horari per bolo</string>
     <string name="registre_error_hora_invalid">L\'hora de fi ha de ser posterior a l\'inici</string>
-    <string name="registre_error_overlapping_ranges">Els rangs horaris es solapen per al mateix concepte</string>
+    <string name="registre_error_overlapping_ranges">Els rangs horaris es solapen per al mateix bolo</string>
 
     <string name="resum_title">Resum d\'hores</string>
     <string name="resum_this_week">Aquesta setmana</string>
     <string name="resum_this_month">Aquest mes</string>
     <string name="resum_last_month">Mes anterior</string>
     <string name="resum_custom">Rang personalitzat</string>
-    <string name="resum_total">Total: %s hores</string>
+    <string name="resum_total">Total: %1$s hores</string>
+    <string name="resum_total_diners">Total: %1$s hores | %2$s €</string>
     <string name="resum_export_csv">Exportar CSV</string>
     <string name="resum_export_pdf">Exportar PDF</string>
     <string name="resum_empty">No hi ha registres per aquest període</string>
     <string name="resum_from">Des de</string>
     <string name="resum_to">Fins a</string>
-    <string name="resum_summary_by_concept">Resum per concepte</string>
+    <string name="resum_summary_by_concept">Resum per bolo</string>
 
     <string name="common_save">Desa</string>
     <string name="common_cancel">Cancel·la</string>
@@ -3696,7 +3804,8 @@ sealed class UiEvent {
     <string name="common_deleted">Esborrat correctament</string>
     <string name="common_error">S\'ha produït un error</string>
     <string name="csv_header_date">Data</string>
-    <string name="csv_header_concept">Concepte</string>
+    <string name="csv_header_concept">Bolo</string>
+    <string name="csv_header_price">Preu/h</string>
     <string name="csv_header_start">Hora inici</string>
     <string name="csv_header_end">Hora fi</string>
     <string name="csv_header_duration">Durada (h)</string>
@@ -3727,54 +3836,57 @@ sealed class UiEvent {
 
     <string name="dia_detall_title">Detalle del día</string>
     <string name="dia_detall_notes">Notas</string>
-    <string name="dia_detall_conceptes">Conceptos</string>
-    <string name="dia_detall_total_hours">Total de horas: %s</string>
-    <string name="dia_detall_add_concepte">Añadir concepto</string>
+    <string name="dia_detall_conceptes">Bolos</string>
+    <string name="dia_detall_total_hours">Total de horas: %1$s</string>
+    <string name="dia_detall_add_concepte">Añadir bolo</string>
     <string name="dia_detall_edit">Editar</string>
-    <string name="dia_detall_delete">Eliminar</string>
+    <string name="dia_detall_delete">Borrar</string>
 
     <string name="registre_title">Registrar horas</string>
     <string name="registre_date">Fecha</string>
     <string name="registre_notes">Notas (opcional)</string>
-    <string name="registre_concepte_name">Nombre del concepto</string>
+    <string name="registre_concepte_name">Nombre del bolo</string>
+    <string name="registre_preu_hora">Precio / hora</string>
     <string name="registre_hora_inici">Hora de inicio</string>
     <string name="registre_hora_fi">Hora de fin</string>
-    <string name="registre_duracio">Duración: %s</string>
+    <string name="registre_duracio">Duración: %1$s</string>
     <string name="registre_add_rang">Añadir rango horario</string>
-    <string name="registre_add_concepte">Añadir concepto</string>
+    <string name="registre_add_concepte">Añadir bolo</string>
     <string name="registre_save">Guardar</string>
     <string name="registre_cancel">Cancelar</string>
-    <string name="registre_error_concepte_empty">El nombre del concepto no puede estar vacío</string>
-    <string name="registre_error_no_rangs">Al menos un rango horario por concepto</string>
+    <string name="registre_error_concepte_empty">El nombre del bolo no puede estar vacío</string>
+    <string name="registre_error_no_rangs">Al menos un rango horario por bolo</string>
     <string name="registre_error_hora_invalid">La hora de fin debe ser posterior a la de inicio</string>
-    <string name="registre_error_overlapping_ranges">Los rangos horarios se solapan para el mismo concepto</string>
+    <string name="registre_error_overlapping_ranges">Los rangos horarios se solapan para el mismo bolo</string>
 
     <string name="resum_title">Resumen de horas</string>
     <string name="resum_this_week">Esta semana</string>
     <string name="resum_this_month">Este mes</string>
     <string name="resum_last_month">Mes anterior</string>
     <string name="resum_custom">Rango personalizado</string>
-    <string name="resum_total">Total: %s horas</string>
+    <string name="resum_total">Total: %1$s horas</string>
+    <string name="resum_total_diners">Total: %1$s horas | %2$s €</string>
     <string name="resum_export_csv">Exportar CSV</string>
     <string name="resum_export_pdf">Exportar PDF</string>
-    <string name="resum_empty">No hay registros para este período</string>
+    <string name="resum_empty">No hay registros para este periodo</string>
     <string name="resum_from">Desde</string>
     <string name="resum_to">Hasta</string>
-    <string name="resum_summary_by_concept">Resumen por concepto</string>
+    <string name="resum_summary_by_concept">Resumen por bolo</string>
 
     <string name="common_save">Guardar</string>
     <string name="common_cancel">Cancelar</string>
-    <string name="common_delete">Eliminar</string>
+    <string name="common_delete">Borrar</string>
     <string name="common_edit">Editar</string>
     <string name="common_add">Añadir</string>
     <string name="common_close">Cerrar</string>
     <string name="common_confirm">Confirmar</string>
-    <string name="common_confirm_delete">¿Seguro que quieres eliminar?</string>
+    <string name="common_confirm_delete">¿Estás seguro de que quieres borrarlo?</string>
     <string name="common_saved">Guardado correctamente</string>
-    <string name="common_deleted">Eliminado correctamente</string>
+    <string name="common_deleted">Borrado correctamente</string>
     <string name="common_error">Se ha producido un error</string>
     <string name="csv_header_date">Fecha</string>
-    <string name="csv_header_concept">Concepto</string>
+    <string name="csv_header_concept">Bolo</string>
+    <string name="csv_header_price">Precio/h</string>
     <string name="csv_header_start">Hora inicio</string>
     <string name="csv_header_end">Hora fin</string>
     <string name="csv_header_duration">Duración (h)</string>
@@ -3809,9 +3921,9 @@ sealed class UiEvent {
     <!-- Dia Detall Screen -->
     <string name="dia_detall_title">Day Details</string>
     <string name="dia_detall_notes">Notes</string>
-    <string name="dia_detall_conceptes">Concepts</string>
-    <string name="dia_detall_total_hours">Total Hours: %s</string>
-    <string name="dia_detall_add_concepte">Add Concept</string>
+    <string name="dia_detall_conceptes">Bolos</string>
+    <string name="dia_detall_total_hours">Total Hours: %1$s</string>
+    <string name="dia_detall_add_concepte">Add Bolo</string>
     <string name="dia_detall_edit">Edit</string>
     <string name="dia_detall_delete">Delete</string>
 
@@ -3819,18 +3931,19 @@ sealed class UiEvent {
     <string name="registre_title">Record Hours</string>
     <string name="registre_date">Date</string>
     <string name="registre_notes">Notes (optional)</string>
-    <string name="registre_concepte_name">Concept Name</string>
+    <string name="registre_concepte_name">Bolo Name</string>
+    <string name="registre_preu_hora">Price / hour</string>
     <string name="registre_hora_inici">Start Time</string>
     <string name="registre_hora_fi">End Time</string>
-    <string name="registre_duracio">Duration: %s</string>
+    <string name="registre_duracio">Duration: %1$s</string>
     <string name="registre_add_rang">Add Time Range</string>
-    <string name="registre_add_concepte">Add Concept</string>
+    <string name="registre_add_concepte">Add Bolo</string>
     <string name="registre_save">Save</string>
     <string name="registre_cancel">Cancel</string>
-    <string name="registre_error_concepte_empty">Concept name cannot be empty</string>
-    <string name="registre_error_no_rangs">At least one time range per concept</string>
+    <string name="registre_error_concepte_empty">Bolo name cannot be empty</string>
+    <string name="registre_error_no_rangs">At least one time range per bolo</string>
     <string name="registre_error_hora_invalid">End time must be after start time</string>
-    <string name="registre_error_overlapping_ranges">Time ranges overlap for the same concept</string>
+    <string name="registre_error_overlapping_ranges">Time ranges overlap for the same bolo</string>
 
     <!-- Resum Screen -->
     <string name="resum_title">Hours Summary</string>
@@ -3838,13 +3951,14 @@ sealed class UiEvent {
     <string name="resum_this_month">This Month</string>
     <string name="resum_last_month">Last Month</string>
     <string name="resum_custom">Custom Range</string>
-    <string name="resum_total">Total: %s hours</string>
+    <string name="resum_total">Total: %1$s hours</string>
+    <string name="resum_total_diners">Total: %1$s hours | %2$s €</string>
     <string name="resum_export_csv">Export CSV</string>
     <string name="resum_export_pdf">Export PDF</string>
     <string name="resum_empty">No records for this period</string>
     <string name="resum_from">From</string>
     <string name="resum_to">To</string>
-    <string name="resum_summary_by_concept">Summary by Concept</string>
+    <string name="resum_summary_by_concept">Summary by Bolo</string>
 
     <!-- Common -->
     <string name="common_save">Save</string>
@@ -3859,7 +3973,8 @@ sealed class UiEvent {
     <string name="common_deleted">Deleted successfully</string>
     <string name="common_error">An error occurred</string>
     <string name="csv_header_date">Date</string>
-    <string name="csv_header_concept">Concept</string>
+    <string name="csv_header_concept">Bolo</string>
+    <string name="csv_header_price">Price/h</string>
     <string name="csv_header_start">Start Time</string>
     <string name="csv_header_end">End Time</string>
     <string name="csv_header_duration">Duration (h)</string>

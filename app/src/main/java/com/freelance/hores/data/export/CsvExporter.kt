@@ -15,6 +15,7 @@ class CsvExporter(private val context: Context) {
             val headers = listOf(
                 context.getString(R.string.csv_header_date),
                 context.getString(R.string.csv_header_concept),
+                context.getString(R.string.csv_header_price),
                 context.getString(R.string.csv_header_start),
                 context.getString(R.string.csv_header_end),
                 context.getString(R.string.csv_header_duration),
@@ -24,14 +25,17 @@ class CsvExporter(private val context: Context) {
 
             // Rows
             var totalHoras = 0.0
+            var totalDiners = 0.0
             for (dia in dias) {
                 for (concepte in dia.conceptes) {
                     for ((index, rang) in concepte.rangsHoraris.withIndex()) {
                         val duracio = rang.getDuracionaEnHoras()
                         totalHoras += duracio
+                        totalDiners += duracio * concepte.preuHora
                         writer.write(
                             "${dia.data}," +
                             "${concepte.nom.replace(",", " ")}," +
+                            "${String.format(Locale.US, "%.2f", concepte.preuHora)}," +
                             "${rang.horaInici}," +
                             "${rang.horaFi}," +
                             "${String.format(Locale.US, "%.2f", duracio)}," +
@@ -42,7 +46,7 @@ class CsvExporter(private val context: Context) {
             }
 
             // Total
-            writer.write(",,,,${String.format(Locale.US, "%.2f", totalHoras)},${context.getString(R.string.csv_header_total)}\n")
+            writer.write(",,,,,${String.format(Locale.US, "%.2f", totalHoras)},${String.format(Locale.US, "%.2f", totalDiners)},${context.getString(R.string.csv_header_total)}\n")
         }
         return file
     }

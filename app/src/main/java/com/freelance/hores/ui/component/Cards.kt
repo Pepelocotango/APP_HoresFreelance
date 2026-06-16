@@ -1,7 +1,9 @@
 package com.freelance.hores.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +34,7 @@ fun DiaCard(
     data: LocalDate,
     conceptes: List<Concepte>,
     totalHoras: Double,
+    totalDiners: Double,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -65,7 +68,7 @@ fun DiaCard(
                 ) {
                     conceptes.forEach { concepte ->
                         Text(
-                            text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h",
+                            text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h | ${String.format("%.2f", concepte.getTotalDiners())}€",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -74,7 +77,7 @@ fun DiaCard(
             }
 
             Text(
-                text = stringResource(R.string.resum_total, String.format("%.2f", totalHoras)),
+                text = stringResource(R.string.resum_total_diners, String.format("%.2f", totalHoras), String.format("%.2f", totalDiners)),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -115,7 +118,7 @@ fun ConcepteCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${String.format("%.2f", concepte.getTotalHoras())}h",
+                        text = "${String.format("%.2f", concepte.getTotalHoras())}h | ${String.format("%.2f", concepte.getTotalDiners())}€",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(end = 8.dp)

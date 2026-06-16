@@ -88,6 +88,10 @@ class ResumViewModel @Inject constructor(
         return _resumState.value.dias.sumOf { it.getTotalHoras() }
     }
 
+    fun getTotalDiners(): Double {
+        return _resumState.value.dias.sumOf { dia -> dia.conceptes.sumOf { it.getTotalDiners() } }
+    }
+
     fun getConceptesSummary(): Map<String, Double> {
         val summary = mutableMapOf<String, Double>()
         for (dia in _resumState.value.dias) {

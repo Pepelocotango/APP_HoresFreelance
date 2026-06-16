@@ -55,6 +55,7 @@ class RegistreRepository @Inject constructor(
                 id = concepteEntity.id,
                 diaId = concepteEntity.diaId,
                 nom = concepteEntity.nom,
+                preuHora = concepteEntity.preuHora,
                 rangsHoraris = rangsHoraris
             )
         }
@@ -113,7 +114,8 @@ class RegistreRepository @Inject constructor(
         for (concepte in dia.conceptes) {
             val concepteEntity = ConcepteEntity(
                 diaId = actualDiaId,
-                nom = concepte.nom
+                nom = concepte.nom,
+                preuHora = concepte.preuHora
             )
             val concepteId = concepteDao.insert(concepteEntity)
 
@@ -136,7 +138,7 @@ class RegistreRepository @Inject constructor(
 
     // Delete a concepte
     suspend fun deleteConcepte(concepte: Concepte) {
-        concepteDao.delete(ConcepteEntity(id = concepte.id, diaId = concepte.diaId, nom = concepte.nom))
+        concepteDao.delete(ConcepteEntity(id = concepte.id, diaId = concepte.diaId, nom = concepte.nom, preuHora = concepte.preuHora))
     }
 
     // Delete a rang horari

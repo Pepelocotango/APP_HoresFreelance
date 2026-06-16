@@ -23,9 +23,9 @@
     <!-- Dia Detall Screen -->
     <string name="dia_detall_title">Day Details</string>
     <string name="dia_detall_notes">Notes</string>
-    <string name="dia_detall_conceptes">Concepts</string>
-    <string name="dia_detall_total_hours">Total Hours: %s</string>
-    <string name="dia_detall_add_concepte">Add Concept</string>
+    <string name="dia_detall_conceptes">Bolos</string>
+    <string name="dia_detall_total_hours">Total Hours: %1$s</string>
+    <string name="dia_detall_add_concepte">Add Bolo</string>
     <string name="dia_detall_edit">Edit</string>
     <string name="dia_detall_delete">Delete</string>
 
@@ -33,18 +33,19 @@
     <string name="registre_title">Record Hours</string>
     <string name="registre_date">Date</string>
     <string name="registre_notes">Notes (optional)</string>
-    <string name="registre_concepte_name">Concept Name</string>
+    <string name="registre_concepte_name">Bolo Name</string>
+    <string name="registre_preu_hora">Price / hour</string>
     <string name="registre_hora_inici">Start Time</string>
     <string name="registre_hora_fi">End Time</string>
-    <string name="registre_duracio">Duration: %s</string>
+    <string name="registre_duracio">Duration: %1$s</string>
     <string name="registre_add_rang">Add Time Range</string>
-    <string name="registre_add_concepte">Add Concept</string>
+    <string name="registre_add_concepte">Add Bolo</string>
     <string name="registre_save">Save</string>
     <string name="registre_cancel">Cancel</string>
-    <string name="registre_error_concepte_empty">Concept name cannot be empty</string>
-    <string name="registre_error_no_rangs">At least one time range per concept</string>
+    <string name="registre_error_concepte_empty">Bolo name cannot be empty</string>
+    <string name="registre_error_no_rangs">At least one time range per bolo</string>
     <string name="registre_error_hora_invalid">End time must be after start time</string>
-    <string name="registre_error_overlapping_ranges">Time ranges overlap for the same concept</string>
+    <string name="registre_error_overlapping_ranges">Time ranges overlap for the same bolo</string>
 
     <!-- Resum Screen -->
     <string name="resum_title">Hours Summary</string>
@@ -52,13 +53,14 @@
     <string name="resum_this_month">This Month</string>
     <string name="resum_last_month">Last Month</string>
     <string name="resum_custom">Custom Range</string>
-    <string name="resum_total">Total: %s hours</string>
+    <string name="resum_total">Total: %1$s hours</string>
+    <string name="resum_total_diners">Total: %1$s hours | %2$s €</string>
     <string name="resum_export_csv">Export CSV</string>
     <string name="resum_export_pdf">Export PDF</string>
     <string name="resum_empty">No records for this period</string>
     <string name="resum_from">From</string>
     <string name="resum_to">To</string>
-    <string name="resum_summary_by_concept">Summary by Concept</string>
+    <string name="resum_summary_by_concept">Summary by Bolo</string>
 
     <!-- Common -->
     <string name="common_save">Save</string>
@@ -73,7 +75,8 @@
     <string name="common_deleted">Deleted successfully</string>
     <string name="common_error">An error occurred</string>
     <string name="csv_header_date">Date</string>
-    <string name="csv_header_concept">Concept</string>
+    <string name="csv_header_concept">Bolo</string>
+    <string name="csv_header_price">Price/h</string>
     <string name="csv_header_start">Start Time</string>
     <string name="csv_header_end">End Time</string>
     <string name="csv_header_duration">Duration (h)</string>

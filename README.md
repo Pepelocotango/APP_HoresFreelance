@@ -1,81 +1,22 @@
 # HoresFreelance
 
-A native Android app for freelancers to track their work hours and generate invoices.
+A native Android app for freelancers to track their work hours, manage projects ("Bolos"), and generate invoices.
 
-## Features
+---
 
-- 📅 **Calendar View**: Visual calendar showing work days
-- ⏱️ **Time Tracking**: Record work hours by concept/project
-- 📊 **Hours Summary**: View work hours by week, month, or custom range
-- 💾 **Local Storage**: All data stored offline on device
-- 📥 **Export**: Export hours as CSV and PDF for invoicing
+## 🇬🇧 English
 
-## Requirements
+HoresFreelance is a native Android application designed to help freelancers track their work hours, organize them by "Bolos" (projects/clients) with individual hourly rates, and generate invoices in CSV or PDF formats.
 
-- Android 8.0+ (API level 26)
-- JDK 17
-- Android SDK 35
-- Gradle 8.0+
+### Features
+- 📅 **Calendar View**: Visual calendar showing work days.
+- ⏱️ **Time Tracking**: Record work hours by "Bolo" (concept) and define an individual price per hour.
+- 📊 **Hours Summary**: View work hours and earnings by week, month, or custom range.
+- 💾 **Local Storage**: All data stored offline on device using Room.
+- 📥 **Export**: Export reports as CSV and PDF.
 
-## Building the App
-
-### Prerequisites
-
-1. Clone the repository:
-```bash
-git clone https://github.com/peplx/hores-freelance-android.git
-cd hores-freelance-android
-```
-
-2. Ensure you have Android SDK installed and `ANDROID_SDK_ROOT` configured
-
-### Build Debug APK
-
-```bash
-./gradlew assembleDebug
-```
-
-The debug APK will be located at: `app/build/outputs/apk/debug/app-debug.apk`
-
-### Build Release APK
-
-```bash
-./gradlew assembleRelease
-```
-
-The release APK will be located at: `app/build/outputs/apk/release/app-release-unsigned.apk`
-
-## Installation
-
-### Via Android Studio
-
-1. Open the project in Android Studio
-2. Connect an Android device or start an emulator
-3. Click "Run" or press `Shift + F10`
-
-### Via Command Line
-
-```bash
-# Install debug APK
-adb install app/build/outputs/apk/debug/app-debug.apk
-
-# Or install release APK
-adb install app/build/outputs/apk/release/app-release-unsigned.apk
-```
-
-## Running Tests
-
-```bash
-# Run unit tests
-./gradlew test
-
-# Run instrumented tests
-./gradlew connectedAndroidTest
-```
-
-## Project Structure
-
-```
+### Project Structure
+```text
 HoresFreelance/
 ├── app/
 │   ├── src/
@@ -84,7 +25,7 @@ HoresFreelance/
 │   │   │   │   ├── HoresApp.kt              # Application class
 │   │   │   │   ├── MainActivity.kt
 │   │   │   │   ├── data/
-│   │   │   │   │   ├── db/                 # Room database
+│   │   │   │   │   ├── db/                 # Room database & Entities
 │   │   │   │   │   ├── repository/         # Data layer
 │   │   │   │   │   └── export/             # CSV/PDF exporters
 │   │   │   │   ├── domain/
@@ -93,67 +34,59 @@ HoresFreelance/
 │   │   │   │       ├── screen/             # UI screens
 │   │   │   │       ├── component/          # Reusable components
 │   │   │   │       └── theme/              # Material 3 theme
-│   │   │   └── res/                        # Resources
+│   │   │   └── res/                        # Resources (XML, values, mipmap)
 │   │   ├── test/                           # Unit tests
 │   │   └── androidTest/                    # Instrumented tests
 │   └── build.gradle.kts
+├── .github/workflows/
+│   └── android.yml                         # CI/CD workflow
 ├── build.gradle.kts
-├── settings.gradle.kts
-└── .github/workflows/
-    └── android.yml                         # CI/CD workflow
+└── settings.gradle.kts
 ```
 
-## Architecture
+---
 
-The app uses **MVVM + Repository Pattern**:
+## [CAT] Català
 
-- **Data Layer**: Room database, DAOs, Repository
-- **Domain Layer**: Business models
-- **UI Layer**: Jetpack Compose screens with ViewModels
+HoresFreelance és una aplicació Android nativa dissenyada per ajudar els treballadors autònoms a registrar les seves hores de treball, organitzar-les per "Bolos" (projectes/clients) amb preus per hora individuals, i generar informes en format CSV o PDF per a la facturació.
 
-## Technologies
+### Funcionalitats
+- 📅 **Vista Calendari**: Calendari visual per veure els dies de treball.
+- ⏱️ **Registre d'Hores**: Registra hores de treball per "Bolo" (concepte) i defineix un preu per hora individual.
+- 📊 **Resum d'Hores**: Consulta les hores treballades i els guanys per setmana, mes o període personalitzat.
+- 💾 **Emmagatzematge Local**: Totes les dades s'emmagatzemen offline al dispositiu mitjançant Room.
+- 📥 **Exportació**: Exporta informes en format CSV i PDF.
 
-- **UI**: Jetpack Compose with Material Design 3
-- **Database**: Room 2.6
-- **Architecture**: MVVM + Repository Pattern
-- **DI**: Hilt
-- **Navigation**: Navigation Compose
-- **Coroutines**: Kotlin Coroutines + StateFlow
+### Estructura del Projecte
+(Vegeu l'arbre de fitxers a la secció en anglès superior)
 
-## CI/CD
+---
 
-GitHub Actions automatically:
-- Runs unit tests on push/PR
-- Builds debug and release APKs
-- Uploads APK artifacts
+## ⚙️ CI/CD (GitHub Actions)
+The project includes an automated pipeline in `.github/workflows/android.yml` that handles:
+- Compiling the app (`assembleDebug`).
+- Running unit tests (`test`).
+- Running instrumented tests in an emulator (API 31, `x86_64`).
+- Generating installable artifacts (APKs).
 
-Workflow file: `.github/workflows/android.yml`
+El projecte inclou una pipeline automatitzada a `.github/workflows/android.yml` que s'encarrega de:
+- Compilar l'app (`assembleDebug`).
+- Executar tests unitaris (`test`).
+- Executar tests instrumentats en emulador (API 31, `x86_64`).
+- Generar artefactes d'instal·lació (APKs).
 
-## Usage
+## 🚀 Building & Running
 
-1. **Add Work Day**: Tap the "+" button to record a new work day
-2. **Enter Hours**: Add concepts (projects) and time ranges
-3. **View Summary**: Navigate to Summary tab to view hours by period
-4. **Export**: Export work hours as CSV or PDF for invoicing
+### Requirements
+- Android 8.0+ (API level 26)
+- JDK 17
+- Android SDK 35
+- Gradle 8.0+
+
+### Build
+```bash
+./gradlew assembleDebug
+```
 
 ## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Author
-
-Created as a freelance hours tracking solution.
-
-## Support
-
-For issues, questions, or suggestions, please open an issue on GitHub.
+MIT License

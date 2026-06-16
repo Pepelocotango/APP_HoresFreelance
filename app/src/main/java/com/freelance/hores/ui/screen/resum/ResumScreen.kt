@@ -46,6 +46,7 @@ import com.freelance.hores.R
 import com.freelance.hores.ui.component.DiaCard
 import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +61,7 @@ fun ResumScreen(
 
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         )
         DatePickerDialog(
             onDismissRequest = { showStartDatePicker = false },
@@ -69,7 +70,7 @@ fun ResumScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.loadCustomPeriod(date, resumState.endDate)
                         }
@@ -91,7 +92,7 @@ fun ResumScreen(
 
     if (showEndDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         )
         DatePickerDialog(
             onDismissRequest = { showEndDatePicker = false },
@@ -100,7 +101,7 @@ fun ResumScreen(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.loadCustomPeriod(resumState.startDate, date)
                         }
@@ -213,7 +214,7 @@ fun ResumScreen(
 
                 item {
                     Text(
-                        text = stringResource(R.string.resum_total, String.format("%.2f", viewModel.getTotalHoras())),
+                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", viewModel.getTotalHoras()), String.format("%.2f", viewModel.getTotalDiners())),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -225,6 +226,7 @@ fun ResumScreen(
                             data = dia.data,
                             conceptes = dia.conceptes,
                             totalHoras = dia.getTotalHoras(),
+                            totalDiners = dia.getTotalDiners(),
                             onClick = { navController.navigate("dia/${dia.id}") }
                         )
                     }

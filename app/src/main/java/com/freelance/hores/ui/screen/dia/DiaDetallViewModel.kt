@@ -65,6 +65,19 @@ class DiaDetallViewModel @Inject constructor(
         }
     }
 
+    fun deleteConcepte(concepte: com.freelance.hores.domain.model.Concepte) {
+        val currentDia = _dia.value ?: return
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                repository.deleteConcepte(concepte)
+                loadDia(currentDia.id)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error deleting bolo"
+            }
+        }
+    }
+
     fun clearError() {
         _error.value = null
     }

@@ -32,6 +32,7 @@ data class RegistreFormState(
 data class ConcepteForm(
     val id: Long = 0,
     val nom: String = "",
+    val preuHora: Double = 0.0,
     val rangsHoraris: List<RangHorariForm> = emptyList()
 )
 
@@ -56,11 +57,12 @@ class RegistreViewModel @Inject constructor(
         _formState.value = _formState.value.copy(notes = notes)
     }
 
-    fun addConcepte(concepteName: String = "") {
+    fun addConcepte(concepteName: String = "", preu: Double = 0.0) {
         val currentConceptes = _formState.value.conceptes.toMutableList()
         currentConceptes.add(
             ConcepteForm(
                 nom = concepteName,
+                preuHora = preu,
                 rangsHoraris = listOf(RangHorariForm())
             )
         )
@@ -71,6 +73,14 @@ class RegistreViewModel @Inject constructor(
         val currentConceptes = _formState.value.conceptes.toMutableList()
         if (index >= 0 && index < currentConceptes.size) {
             currentConceptes[index] = currentConceptes[index].copy(nom = nom)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConceptePreu(index: Int, preu: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(preuHora = preu)
             _formState.value = _formState.value.copy(conceptes = currentConceptes)
         }
     }
@@ -189,6 +199,7 @@ class RegistreViewModel @Inject constructor(
                         id = concepteForm.id,
                         diaId = state.diaId,
                         nom = concepteForm.nom,
+                        preuHora = concepteForm.preuHora,
                         rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
                             RangHorari(
                                 id = rangForm.id,
@@ -239,6 +250,7 @@ class RegistreViewModel @Inject constructor(
                     ConcepteForm(
                         id = concepte.id,
                         nom = concepte.nom,
+                        preuHora = concepte.preuHora,
                         rangsHoraris = concepte.rangsHoraris.map { rang ->
                             RangHorariForm(
                                 id = rang.id,

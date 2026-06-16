@@ -11,4 +11,8 @@ data class Dia(
     fun getTotalHoras(): Double {
         return conceptes.sumOf { it.getTotalHoras() }
     }
+
+    fun getTotalDiners(): Double {
+        return conceptes.sumOf { it.getTotalDiners() }
+    }
 }

@@ -30,12 +30,12 @@ class PdfExporter(private val context: Context) {
         }
 
         val headerPaint = Paint().apply {
-            textSize = 12f
+            textSize = 10f // Reduced
             isFakeBoldText = true
         }
 
         val textPaint = Paint().apply {
-            textSize = 10f
+            textSize = 9f // Reduced
         }
 
         val footerPaint = Paint().apply {
@@ -50,7 +50,7 @@ class PdfExporter(private val context: Context) {
 
         var y = 50f
         val margin = 40f
-        val lineHeight = 20f
+        val lineHeight = 18f // Slightly tighter
 
         // Title
         val periodTitle = if (startDate != null && endDate != null) {
@@ -64,15 +64,18 @@ class PdfExporter(private val context: Context) {
         // Headers
         canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
         canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_start), margin + 250, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_end), margin + 320, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 400, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
+        canvas.drawText("Total €", margin + 480, y, headerPaint)
 
         y += lineHeight
         canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
         y += 10f
 
         var totalHoras = 0.0
+        var totalDiners = 0.0
         for (dia in dias) {
             for (concepte in dia.conceptes) {
                 for (rang in concepte.rangsHoraris) {
@@ -87,26 +90,30 @@ class PdfExporter(private val context: Context) {
                         // Redraw headers on new page
                         canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
                         canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 250, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 320, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 400, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
+                        canvas.drawText("Total €", margin + 480, y, headerPaint)
                         y += lineHeight
                         canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
                         y += 10f
                     }
 
                     val duracion = rang.getDuracionaEnHoras()
+                    val cost = duracion * concepte.preuHora
                     totalHoras += duracion
+                    totalDiners += cost
 
                     canvas.drawText(dia.data.toString(), margin, y, textPaint)
                     
-                    // Truncate concept name if too long
-                    val conceptName = if (concepte.nom.length > 30) concepte.nom.substring(0, 27) + "..." else concepte.nom
+                    val conceptName = if (concepte.nom.length > 20) concepte.nom.substring(0, 17) + "..." else concepte.nom
                     canvas.drawText(conceptName, margin + 80, y, textPaint)
-                    
-                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 250, y, textPaint)
-                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 320, y, textPaint)
-                    canvas.drawText("%.2f".format(duracion), margin + 400, y, textPaint)
+                    canvas.drawText("%.2f".format(concepte.preuHora), margin + 220, y, textPaint)
+                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 290, y, textPaint)
+                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 350, y, textPaint)
+                    canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
+                    canvas.drawText("%.2f".format(cost), margin + 480, y, textPaint)
 
                     y += lineHeight
                 }
@@ -116,7 +123,7 @@ class PdfExporter(private val context: Context) {
         // Total
         y += lineHeight
         canvas.drawLine(margin, y - 15, pageWidth - margin.toFloat(), y - 15, textPaint)
-        canvas.drawText(context.getString(R.string.resum_total, "%.2f".format(totalHoras)), margin, y, footerPaint)
+        canvas.drawText(context.getString(R.string.resum_total_diners, "%.2f".format(totalHoras), "%.2f".format(totalDiners)), margin, y, footerPaint)
 
         pdfDocument.finishPage(page)
         pdfDocument.writeTo(file.outputStream())

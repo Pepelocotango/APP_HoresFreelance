@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -201,6 +203,7 @@ fun RegistreScreen(
                 ConcepteFormItem(
                     concepte = formState.conceptes[concepteIndex],
                     onNameChange = { viewModel.updateConcepteName(concepteIndex, it) },
+                    onPreuChange = { viewModel.updateConceptePreu(concepteIndex, it) },
                     onAddRang = { viewModel.addRangHorariToConcepte(concepteIndex) },
                     onRemoveRang = { rangIndex -> viewModel.removeRangHorari(concepteIndex, rangIndex) },
                     onUpdateHoraInici = { rangIndex, hora ->
@@ -260,6 +263,7 @@ fun RegistreScreen(
 fun ConcepteFormItem(
     concepte: ConcepteForm,
     onNameChange: (String) -> Unit,
+    onPreuChange: (Double) -> Unit,
     onAddRang: () -> Unit,
     onRemoveRang: (Int) -> Unit,
     onUpdateHoraInici: (Int, LocalTime) -> Unit,
@@ -293,6 +297,22 @@ fun ConcepteFormItem(
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete))
             }
         }
+
+        OutlinedTextField(
+            value = if (concepte.preuHora > 0) concepte.preuHora.toString() else "",
+            onValueChange = { input ->
+                val normalized = input.replace(',', '.')
+                if (normalized.isEmpty()) {
+                    onPreuChange(0.0)
+                } else if (normalized.toDoubleOrNull() != null) {
+                    onPreuChange(normalized.toDouble())
+                }
+                // Si és un punt sol o una coma sola, no actualitzem el ViewModel, deixem que l'usuari continuï escrivint
+            },
+            label = { Text(stringResource(R.string.registre_preu_hora)) },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+        )
 
         concepte.rangsHoraris.forEachIndexed { rangIndex, rang ->
             RangHorariFormItem(
