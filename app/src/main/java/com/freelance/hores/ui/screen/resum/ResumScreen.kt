@@ -1,6 +1,7 @@
 package com.freelance.hores.ui.screen.resum
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,20 +24,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
 import com.freelance.hores.ui.component.DiaCard
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,19 +55,84 @@ fun ResumScreen(
     viewModel: ResumViewModel = hiltViewModel()
 ) {
     val resumState by viewModel.resumState.collectAsState()
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+
+    if (showStartDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val date = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            viewModel.loadCustomPeriod(date, resumState.endDate)
+                        }
+                        showStartDatePicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showEndDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val date = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            viewModel.loadCustomPeriod(resumState.startDate, date)
+                        }
+                        showEndDatePicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hours Summary") },
+                title = { Text(stringResource(R.string.resum_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_cancel))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -79,43 +155,65 @@ fun ResumScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { viewModel.loadThisWeek() },
-                            modifier = Modifier.weight(1f)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text("This Week", fontSize = MaterialTheme.typography.labelSmall.fontSize)
+                            OutlinedButton(
+                                onClick = { viewModel.loadThisWeek() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.resum_this_week), style = MaterialTheme.typography.labelSmall)
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.loadThisMonth() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.resum_this_month), style = MaterialTheme.typography.labelSmall)
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.loadLastMonth() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.resum_last_month), style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                         OutlinedButton(
-                            onClick = { viewModel.loadThisMonth() },
-                            modifier = Modifier.weight(1f)
+                            onClick = { showStartDatePicker = true },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("This Month", fontSize = MaterialTheme.typography.labelSmall.fontSize)
-                        }
-                        OutlinedButton(
-                            onClick = { viewModel.loadLastMonth() },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Last Month", fontSize = MaterialTheme.typography.labelSmall.fontSize)
+                            Text(stringResource(R.string.resum_custom), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
 
                 item {
-                    Text(
-                        text = "${resumState.startDate} to ${resumState.endDate}",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${resumState.startDate}",
+                            modifier = Modifier.clickable { showStartDatePicker = true },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = " ${stringResource(R.string.resum_to)} ",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "${resumState.endDate}",
+                            modifier = Modifier.clickable { showEndDatePicker = true },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
 
                 item {
                     Text(
-                        text = "Total: ${String.format("%.2f", viewModel.getTotalHoras())}h",
+                        text = stringResource(R.string.resum_total, String.format("%.2f", viewModel.getTotalHoras())),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -133,7 +231,7 @@ fun ResumScreen(
                 } else {
                     item {
                         Text(
-                            text = "No records for this period",
+                            text = stringResource(R.string.resum_empty),
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
@@ -152,6 +250,7 @@ fun ResumScreen(
                 }
 
                 item {
+                    val context = LocalContext.current
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -159,13 +258,19 @@ fun ResumScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { viewModel.exportCsv() },
+                            onClick = { 
+                                val intent = viewModel.exportCsv()
+                                context.startActivity(intent)
+                            },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(stringResource(R.string.resum_export_csv))
                         }
                         Button(
-                            onClick = { viewModel.exportPdf() },
+                            onClick = { 
+                                val intent = viewModel.exportPdf()
+                                context.startActivity(intent)
+                            },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(stringResource(R.string.resum_export_pdf))

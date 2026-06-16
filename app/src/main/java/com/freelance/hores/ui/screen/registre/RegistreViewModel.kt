@@ -2,10 +2,13 @@ package com.freelance.hores.ui.screen.registre
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.freelance.hores.R
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
+import com.freelance.hores.ui.util.FormValidator
+import com.freelance.hores.ui.util.ValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +24,7 @@ data class RegistreFormState(
     val notes: String = "",
     val conceptes: List<ConcepteForm> = emptyList(),
     val isSaving: Boolean = false,
+    val errorResId: Int? = null,
     val error: String? = null,
     val success: Boolean = false
 )
@@ -132,39 +136,63 @@ class RegistreViewModel @Inject constructor(
     fun saveDia() {
         viewModelScope.launch {
             val state = _formState.value
-            if (state.conceptes.isEmpty()) {
-                _formState.value = state.copy(error = "At least one concept is required")
+            
+            // 1. Validació bàsica de conceptes
+            val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
+            if (countValidation is ValidationResult.Error) {
+                _formState.value = state.copy(errorResId = countValidation.resId)
                 return@launch
             }
 
             for (concepte in state.conceptes) {
-                if (concepte.nom.isBlank()) {
-                    _formState.value = state.copy(error = "Concept name cannot be empty")
+                // 2. Validació nom concepte
+                val nameValidation = FormValidator.validateConcepteName(concepte.nom)
+                if (nameValidation is ValidationResult.Error) {
+                    _formState.value = state.copy(errorResId = nameValidation.resId)
                     return@launch
                 }
-                if (concepte.rangsHoraris.isEmpty()) {
-                    _formState.value = state.copy(error = "Each concept needs at least one time range")
+
+                // 3. Validació rangs horaris
+                val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
+                if (rangsCountValidation is ValidationResult.Error) {
+                    _formState.value = state.copy(errorResId = rangsCountValidation.resId)
                     return@launch
                 }
-                for (rang in concepte.rangsHoraris) {
-                    if (rang.horaFi <= rang.horaInici) {
-                        _formState.value = state.copy(error = "End time must be after start time")
+                
+                // Sort ranges by start time to check for overlaps
+                val sortedRangs = concepte.rangsHoraris.sortedBy { it.horaInici }
+                for (i in sortedRangs.indices) {
+                    val current = sortedRangs[i]
+                    
+                    // 4. Validació hora inici < hora fi
+                    val rangeValidation = FormValidator.validateTimeRange(current.horaInici, current.horaFi)
+                    if (rangeValidation is ValidationResult.Error) {
+                        _formState.value = state.copy(errorResId = rangeValidation.resId)
                         return@launch
+                    }
+
+                    // 5. Validació solapaments
+                    if (i > 0) {
+                        val previous = sortedRangs[i - 1]
+                        if (current.horaInici < previous.horaFi) {
+                            _formState.value = state.copy(errorResId = R.string.registre_error_overlapping_ranges)
+                            return@launch
+                        }
                     }
                 }
             }
 
-            _formState.value = state.copy(isSaving = true, error = null)
+            _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
             try {
                 val conceptesForSave = state.conceptes.map { concepteForm ->
                     Concepte(
                         id = concepteForm.id,
-                        diaId = 0,
+                        diaId = state.diaId,
                         nom = concepteForm.nom,
                         rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
                             RangHorari(
                                 id = rangForm.id,
-                                concepteId = 0,
+                                concepteId = concepteForm.id,
                                 horaInici = rangForm.horaInici,
                                 horaFi = rangForm.horaFi
                             )
@@ -183,6 +211,7 @@ class RegistreViewModel @Inject constructor(
                 _formState.value = state.copy(
                     isSaving = false,
                     success = true,
+                    errorResId = null,
                     error = null
                 )
             } catch (e: Exception) {
@@ -192,6 +221,10 @@ class RegistreViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun clearError() {
+        _formState.value = _formState.value.copy(errorResId = null, error = null)
     }
 
     fun resetSuccess() {

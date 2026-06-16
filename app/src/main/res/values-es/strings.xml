@@ -38,7 +38,8 @@
     <string name="registre_cancel">Cancelar</string>
     <string name="registre_error_concepte_empty">El nombre del concepto no puede estar vacío</string>
     <string name="registre_error_no_rangs">Al menos un rango horario por concepto</string>
-    <string name="registre_error_hora_invalid">La hora de fin debe ser posterior al inicio</string>
+    <string name="registre_error_hora_invalid">La hora de fin debe ser posterior a la de inicio</string>
+    <string name="registre_error_overlapping_ranges">Los rangos horarios se solapan para el mismo concepto</string>
 
     <string name="resum_title">Resumen de horas</string>
     <string name="resum_this_week">Esta semana</string>
@@ -64,4 +65,11 @@
     <string name="common_saved">Guardado correctamente</string>
     <string name="common_deleted">Eliminado correctamente</string>
     <string name="common_error">Se ha producido un error</string>
+    <string name="csv_header_date">Fecha</string>
+    <string name="csv_header_concept">Concepto</string>
+    <string name="csv_header_start">Hora inicio</string>
+    <string name="csv_header_end">Hora fin</string>
+    <string name="csv_header_duration">Duración (h)</string>
+    <string name="csv_header_notes">Notas día</string>
+    <string name="csv_header_total">TOTAL</string>
 </resources>

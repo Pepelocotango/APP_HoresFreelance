@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,12 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.freelance.hores.R
 import com.freelance.hores.ui.component.ConcepteCard
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,15 +60,16 @@ fun DiaDetallScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Day Details") },
+                title = { Text(stringResource(R.string.dia_detall_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_cancel))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -91,12 +94,12 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = dia!!.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy")),
+                            text = dia!!.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
                             style = MaterialTheme.typography.headlineSmall
                         )
                         if (dia!!.notes.isNotEmpty()) {
                             Text(
-                                text = "Notes: ${dia!!.notes}",
+                                text = "${stringResource(R.string.dia_detall_notes)}: ${dia!!.notes}",
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
@@ -106,7 +109,7 @@ fun DiaDetallScreen(
 
                 item {
                     Text(
-                        text = "Total: ${String.format("%.2f", dia!!.getTotalHoras())}h",
+                        text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", dia!!.getTotalHoras())),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -129,15 +132,15 @@ fun DiaDetallScreen(
                             onClick = { navController.navigate("registre?diaId=${dia!!.id}") },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit")
-                            Text("Edit")
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                            Text(stringResource(R.string.dia_detall_edit))
                         }
                         Button(
                             onClick = { showDeleteDialog = true },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete")
-                            Text("Delete")
+                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Text(stringResource(R.string.dia_detall_delete))
                         }
                     }
                 }
@@ -146,8 +149,8 @@ fun DiaDetallScreen(
             if (showDeleteDialog && dia != null) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
-                    title = { Text("Delete Day?") },
-                    text = { Text("Are you sure you want to delete this day and all its records?") },
+                    title = { Text(stringResource(R.string.common_confirm)) },
+                    text = { Text(stringResource(R.string.common_confirm_delete)) },
                     confirmButton = {
                         Button(
                             onClick = {
@@ -156,12 +159,12 @@ fun DiaDetallScreen(
                                 navController.popBackStack()
                             }
                         ) {
-                            Text("Delete")
+                            Text(stringResource(R.string.common_delete))
                         }
                     },
                     dismissButton = {
                         Button(onClick = { showDeleteDialog = false }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.common_cancel))
                         }
                     }
                 )

@@ -39,6 +39,7 @@
     <string name="registre_error_concepte_empty">El nom del concepte no pot estar buit</string>
     <string name="registre_error_no_rangs">Almenys un rang horari per concepte</string>
     <string name="registre_error_hora_invalid">L\'hora de fi ha de ser posterior a l\'inici</string>
+    <string name="registre_error_overlapping_ranges">Els rangs horaris es solapen per al mateix concepte</string>
 
     <string name="resum_title">Resum d\'hores</string>
     <string name="resum_this_week">Aquesta setmana</string>
@@ -64,4 +65,11 @@
     <string name="common_saved">Desat correctament</string>
     <string name="common_deleted">Esborrat correctament</string>
     <string name="common_error">S\'ha produït un error</string>
+    <string name="csv_header_date">Data</string>
+    <string name="csv_header_concept">Concepte</string>
+    <string name="csv_header_start">Hora inici</string>
+    <string name="csv_header_end">Hora fi</string>
+    <string name="csv_header_duration">Durada (h)</string>
+    <string name="csv_header_notes">Notes dia</string>
+    <string name="csv_header_total">TOTAL</string>
 </resources>

@@ -1,0 +1,3825 @@
+--- FILE: AndroidManifest.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:name=".HoresApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.HoresFreelance">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.HoresFreelance">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>
+\n
+--- FILE: build.gradle.kts (app) ---
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
+}
+
+android {
+    namespace = "com.freelance.hores"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.freelance.hores"
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.11"
+    }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+dependencies {
+    // Compose BOM
+    val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    // Compose UI
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Activity and Lifecycle
+    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.5")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.5")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+
+    // Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+
+    // Room Database
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    // Hilt DI
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    ksp("com.google.dagger:hilt-compiler:2.51.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Calendar Compose
+    implementation("com.kizitonwose.calendar:compose:2.5.0")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+
+    // Core
+    implementation("androidx.core:core-ktx:1.15.0")
+
+    // Testing - Unit
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation("io.mockk:mockk:1.13.12")
+
+    // Testing - Instrumented
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.room:room-testing:$roomVersion")
+}
+\n
+--- FILE: settings.gradle.kts ---
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "HoresFreelance"
+include(":app")
+\n
+--- FILE: file_paths.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path
+        name="cache"
+        path="/" />
+    <files-path
+        name="files"
+        path="/" />
+    <external-files-path
+        name="external_files"
+        path="/" />
+    <external-cache-path
+        name="external_cache"
+        path="/" />
+</paths>
+\n
+--- FILE: colors.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="seed">#1F88E5</color>
+</resources>
+\n
+--- FILE: .gitignore ---
+# Gradle files
+.gradle/
+build/
+
+# Keep Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+local.properties
+
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle cache
+.gradle
+
+# Maven
+target/
+
+# Xcode
+.xcodeproj/
+.xcworkspace/
+
+# Environment files
+.env
+.env.local
+
+# Keystores
+*.jks
+*.keystore
+*.pem
+*.key
+\n
+--- FILE: README.md ---
+# HoresFreelance
+
+A native Android app for freelancers to track their work hours and generate invoices.
+
+## Features
+
+- 📅 **Calendar View**: Visual calendar showing work days
+- ⏱️ **Time Tracking**: Record work hours by concept/project
+- 📊 **Hours Summary**: View work hours by week, month, or custom range
+- 💾 **Local Storage**: All data stored offline on device
+- 📥 **Export**: Export hours as CSV and PDF for invoicing
+
+## Requirements
+
+- Android 8.0+ (API level 26)
+- JDK 17
+- Android SDK 35
+- Gradle 8.0+
+
+## Building the App
+
+### Prerequisites
+
+1. Clone the repository:
+```bash
+git clone https://github.com/peplx/hores-freelance-android.git
+cd hores-freelance-android
+```
+
+2. Ensure you have Android SDK installed and `ANDROID_SDK_ROOT` configured
+
+### Build Debug APK
+
+```bash
+./gradlew assembleDebug
+```
+
+The debug APK will be located at: `app/build/outputs/apk/debug/app-debug.apk`
+
+### Build Release APK
+
+```bash
+./gradlew assembleRelease
+```
+
+The release APK will be located at: `app/build/outputs/apk/release/app-release-unsigned.apk`
+
+## Installation
+
+### Via Android Studio
+
+1. Open the project in Android Studio
+2. Connect an Android device or start an emulator
+3. Click "Run" or press `Shift + F10`
+
+### Via Command Line
+
+```bash
+# Install debug APK
+adb install app/build/outputs/apk/debug/app-debug.apk
+
+# Or install release APK
+adb install app/build/outputs/apk/release/app-release-unsigned.apk
+```
+
+## Running Tests
+
+```bash
+# Run unit tests
+./gradlew test
+
+# Run instrumented tests
+./gradlew connectedAndroidTest
+```
+
+## Project Structure
+
+```
+HoresFreelance/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/freelance/hores/
+│   │   │   │   ├── HoresApp.kt              # Application class
+│   │   │   │   ├── MainActivity.kt
+│   │   │   │   ├── data/
+│   │   │   │   │   ├── db/                 # Room database
+│   │   │   │   │   ├── repository/         # Data layer
+│   │   │   │   │   └── export/             # CSV/PDF exporters
+│   │   │   │   ├── domain/
+│   │   │   │   │   └── model/              # Domain models
+│   │   │   │   └── ui/
+│   │   │   │       ├── screen/             # UI screens
+│   │   │   │       ├── component/          # Reusable components
+│   │   │   │       └── theme/              # Material 3 theme
+│   │   │   └── res/                        # Resources
+│   │   ├── test/                           # Unit tests
+│   │   └── androidTest/                    # Instrumented tests
+│   └── build.gradle.kts
+├── build.gradle.kts
+├── settings.gradle.kts
+└── .github/workflows/
+    └── android.yml                         # CI/CD workflow
+```
+
+## Architecture
+
+The app uses **MVVM + Repository Pattern**:
+
+- **Data Layer**: Room database, DAOs, Repository
+- **Domain Layer**: Business models
+- **UI Layer**: Jetpack Compose screens with ViewModels
+
+## Technologies
+
+- **UI**: Jetpack Compose with Material Design 3
+- **Database**: Room 2.6
+- **Architecture**: MVVM + Repository Pattern
+- **DI**: Hilt
+- **Navigation**: Navigation Compose
+- **Coroutines**: Kotlin Coroutines + StateFlow
+
+## CI/CD
+
+GitHub Actions automatically:
+- Runs unit tests on push/PR
+- Builds debug and release APKs
+- Uploads APK artifacts
+
+Workflow file: `.github/workflows/android.yml`
+
+## Usage
+
+1. **Add Work Day**: Tap the "+" button to record a new work day
+2. **Enter Hours**: Add concepts (projects) and time ranges
+3. **View Summary**: Navigate to Summary tab to view hours by period
+4. **Export**: Export work hours as CSV or PDF for invoicing
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Author
+
+Created as a freelance hours tracking solution.
+
+## Support
+
+For issues, questions, or suggestions, please open an issue on GitHub.
+\n
+--- FILE: app/src/main/java/com/freelance/hores/data/db/AppDatabase.kt ---
+package com.freelance.hores.data.db
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.freelance.hores.data.db.dao.ConcepteDao
+import com.freelance.hores.data.db.dao.DiaDao
+import com.freelance.hores.data.db.dao.RangHorariDao
+import com.freelance.hores.data.db.entity.ConcepteEntity
+import com.freelance.hores.data.db.entity.DiaEntity
+import com.freelance.hores.data.db.entity.RangHorariEntity
+
+@Database(
+    entities = [DiaEntity::class, ConcepteEntity::class, RangHorariEntity::class],
+    version = 1,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun diaDao(): DiaDao
+    abstract fun concepteDao(): ConcepteDao
+    abstract fun rangHorariDao(): RangHorariDao
+
+    companion object {
+        @Volatile
+        private var Instance: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return Instance ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "hores_database"
+                ).build()
+                Instance = instance
+                instance
+            }
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/Converters.kt ---
+package com.freelance.hores.data.db
+
+import androidx.room.TypeConverter
+import java.time.LocalDate
+import java.time.LocalTime
+
+// TypeConverters for Room database
+class Converters {
+    @TypeConverter
+    fun fromEpochDayToLocalDate(epochDay: Long): LocalDate {
+        return LocalDate.ofEpochDay(epochDay)
+    }
+
+    @TypeConverter
+    fun localDateToEpochDay(date: LocalDate): Long {
+        return date.toEpochDay()
+    }
+
+    @TypeConverter
+    fun fromSecondsOfDayToLocalTime(secondsOfDay: Long): LocalTime {
+        return LocalTime.ofSecondOfDay(secondsOfDay)
+    }
+
+    @TypeConverter
+    fun localTimeToSecondsOfDay(time: LocalTime): Long {
+        return time.toSecondOfDay().toLong()
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/dao/ConcepteDao.kt ---
+package com.freelance.hores.data.db.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.freelance.hores.data.db.entity.ConcepteEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ConcepteDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(concepte: ConcepteEntity): Long
+
+    @Update
+    suspend fun update(concepte: ConcepteEntity)
+
+    @Delete
+    suspend fun delete(concepte: ConcepteEntity)
+
+    @Query("SELECT * FROM conceptes WHERE id = :id")
+    suspend fun getById(id: Long): ConcepteEntity?
+
+    @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
+    fun getByDiaId(diaId: Long): Flow<List<ConcepteEntity>>
+
+    @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
+    suspend fun getByDiaIdSync(diaId: Long): List<ConcepteEntity>
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/dao/DiaDao.kt ---
+package com.freelance.hores.data.db.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.freelance.hores.data.db.entity.DiaEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface DiaDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(dia: DiaEntity): Long
+
+    @Update
+    suspend fun update(dia: DiaEntity)
+
+    @Delete
+    suspend fun delete(dia: DiaEntity)
+
+    @Query("SELECT * FROM dies WHERE id = :id")
+    suspend fun getById(id: Long): DiaEntity?
+
+    @Query("SELECT * FROM dies ORDER BY data DESC")
+    fun getAllDias(): Flow<List<DiaEntity>>
+
+    @Query("SELECT * FROM dies WHERE data = :epochDay")
+    suspend fun getByDate(epochDay: Long): DiaEntity?
+
+    @Query("SELECT * FROM dies WHERE data BETWEEN :startEpochDay AND :endEpochDay ORDER BY data DESC")
+    fun getDiasByDateRange(startEpochDay: Long, endEpochDay: Long): Flow<List<DiaEntity>>
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/dao/RangHorariDao.kt ---
+package com.freelance.hores.data.db.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.freelance.hores.data.db.entity.RangHorariEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface RangHorariDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(rangHorari: RangHorariEntity): Long
+
+    @Update
+    suspend fun update(rangHorari: RangHorariEntity)
+
+    @Delete
+    suspend fun delete(rangHorari: RangHorariEntity)
+
+    @Query("SELECT * FROM rangs_horaris WHERE id = :id")
+    suspend fun getById(id: Long): RangHorariEntity?
+
+    @Query("SELECT * FROM rangs_horaris WHERE concepteId = :concepteId ORDER BY horaInici ASC")
+    fun getByConcepteId(concepteId: Long): Flow<List<RangHorariEntity>>
+
+    @Query("SELECT * FROM rangs_horaris WHERE concepteId = :concepteId ORDER BY horaInici ASC")
+    suspend fun getByConcepteIdSync(concepteId: Long): List<RangHorariEntity>
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/entity/ConcepteEntity.kt ---
+package com.freelance.hores.data.db.entity
+
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+// Entity for work concepts (e.g., "Client Meeting", "Web Development")
+@Entity(
+    tableName = "conceptes",
+    foreignKeys = [
+        ForeignKey(
+            entity = DiaEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["diaId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("diaId")]
+)
+data class ConcepteEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val diaId: Long,
+    val nom: String
+)
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/entity/DiaEntity.kt ---
+package com.freelance.hores.data.db.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.time.LocalDate
+
+// Entity for workdays
+@Entity(tableName = "dies")
+data class DiaEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val data: Long,  // Stored as epoch day (LocalDate.toEpochDay())
+    val notes: String = ""
+)
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/db/entity/RangHorariEntity.kt ---
+package com.freelance.hores.data.db.entity
+
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+// Entity for time ranges within a concept
+@Entity(
+    tableName = "rangs_horaris",
+    foreignKeys = [
+        ForeignKey(
+            entity = ConcepteEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["concepteId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("concepteId")]
+)
+data class RangHorariEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val concepteId: Long,
+    val horaInici: Long,  // Stored as seconds of day
+    val horaFi: Long      // Stored as seconds of day
+)
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/export/CsvExporter.kt ---
+package com.freelance.hores.data.export
+
+import android.content.Context
+import com.freelance.hores.R
+import com.freelance.hores.domain.model.Dia
+import java.io.File
+import java.time.format.DateTimeFormatter
+
+class CsvExporter(private val context: Context) {
+    fun exportToCsv(dias: List<Dia>, filename: String = "hores_freelance.csv"): File {
+        val file = File(context.cacheDir, filename)
+        file.bufferedWriter().use { writer ->
+            // Header
+            val headers = listOf(
+                context.getString(R.string.csv_header_date),
+                context.getString(R.string.csv_header_concept),
+                context.getString(R.string.csv_header_start),
+                context.getString(R.string.csv_header_end),
+                context.getString(R.string.csv_header_duration),
+                context.getString(R.string.csv_header_notes)
+            ).joinToString(",")
+            writer.write("$headers\n")
+
+            // Rows
+            var totalHoras = 0.0
+            for (dia in dias) {
+                for (concepte in dia.conceptes) {
+                    for ((index, rang) in concepte.rangsHoraris.withIndex()) {
+                        val duracio = rang.getDuracionaEnHoras()
+                        totalHoras += duracio
+                        writer.write(
+                            "${dia.data}," +
+                            "${concepte.nom.replace(",", " ")}," +
+                            "${rang.horaInici}," +
+                            "${rang.horaFi}," +
+                            "${"%.2f".format(duracio)}," +
+                            "${if (index == 0) dia.notes.replace(",", " ").replace("\n", " ") else ""}\n"
+                        )
+                    }
+                }
+            }
+
+            // Total
+            writer.write(",,,,${"%.2f".format(totalHoras)},${context.getString(R.string.csv_header_total)}\n")
+        }
+        return file
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/export/ExportService.kt ---
+package com.freelance.hores.data.export
+
+import android.content.Context
+import android.content.Intent
+import androidx.core.content.FileProvider
+import com.freelance.hores.domain.model.Dia
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class ExportService @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    private val csvExporter = CsvExporter(context)
+    private val pdfExporter = PdfExporter(context)
+
+    fun exportCsv(dias: List<Dia>, startDate: LocalDate, endDate: LocalDate): Intent {
+        val filename = buildFilename("hores_freelance", "csv", startDate, endDate)
+        val file = csvExporter.exportToCsv(dias, filename)
+        return buildShareIntent(file, "text/csv")
+    }
+
+    fun exportPdf(dias: List<Dia>, startDate: LocalDate, endDate: LocalDate): Intent {
+        val filename = buildFilename("hores_freelance", "pdf", startDate, endDate)
+        val file = pdfExporter.exportToPdf(dias, filename, startDate, endDate)
+        return buildShareIntent(file, "application/pdf")
+    }
+
+    private fun buildFilename(
+        prefix: String,
+        extension: String,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        return "${prefix}_${startDate.format(formatter)}_${endDate.format(formatter)}.$extension"
+    }
+
+    private fun buildShareIntent(file: File, mimeType: String): Intent {
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = mimeType
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        return Intent.createChooser(intent, null)
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/export/PdfExporter.kt ---
+package com.freelance.hores.data.export
+
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
+import android.graphics.pdf.PdfDocument.PageInfo
+import com.freelance.hores.R
+import com.freelance.hores.domain.model.Dia
+import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+class PdfExporter(private val context: Context) {
+    fun exportToPdf(
+        dias: List<Dia>,
+        filename: String = "hores_freelance.pdf",
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null
+    ): File {
+        val file = File(context.cacheDir, filename)
+
+        val pdfDocument = PdfDocument()
+        val pageWidth = 595
+        val pageHeight = 842
+        
+        val titlePaint = Paint().apply {
+            textSize = 20f
+            isFakeBoldText = true
+        }
+
+        val headerPaint = Paint().apply {
+            textSize = 12f
+            isFakeBoldText = true
+        }
+
+        val textPaint = Paint().apply {
+            textSize = 10f
+        }
+
+        val footerPaint = Paint().apply {
+            textSize = 10f
+            isFakeBoldText = true
+        }
+
+        var pageNumber = 1
+        var pageInfo = PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+        var page = pdfDocument.startPage(pageInfo)
+        var canvas = page.canvas
+
+        var y = 50f
+        val margin = 40f
+        val lineHeight = 20f
+
+        // Title
+        val periodTitle = if (startDate != null && endDate != null) {
+            "${context.getString(R.string.resum_title)} — ${startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)} ${context.getString(R.string.resum_to)} ${endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
+        } else {
+            context.getString(R.string.resum_title)
+        }
+        canvas.drawText(periodTitle, margin, y, titlePaint)
+        y += lineHeight * 2
+
+        // Headers
+        canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_start), margin + 250, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_end), margin + 320, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 400, y, headerPaint)
+
+        y += lineHeight
+        canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
+        y += 10f
+
+        var totalHoras = 0.0
+        for (dia in dias) {
+            for (concepte in dia.conceptes) {
+                for (rang in concepte.rangsHoraris) {
+                    if (y > pageHeight - 100) {
+                        pdfDocument.finishPage(page)
+                        pageNumber++
+                        pageInfo = PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+                        page = pdfDocument.startPage(pageInfo)
+                        canvas = page.canvas
+                        y = 50f
+                        
+                        // Redraw headers on new page
+                        canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 250, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 320, y, headerPaint)
+                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 400, y, headerPaint)
+                        y += lineHeight
+                        canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
+                        y += 10f
+                    }
+
+                    val duracion = rang.getDuracionaEnHoras()
+                    totalHoras += duracion
+
+                    canvas.drawText(dia.data.toString(), margin, y, textPaint)
+                    
+                    // Truncate concept name if too long
+                    val conceptName = if (concepte.nom.length > 30) concepte.nom.substring(0, 27) + "..." else concepte.nom
+                    canvas.drawText(conceptName, margin + 80, y, textPaint)
+                    
+                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 250, y, textPaint)
+                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 320, y, textPaint)
+                    canvas.drawText("%.2f".format(duracion), margin + 400, y, textPaint)
+
+                    y += lineHeight
+                }
+            }
+        }
+
+        // Total
+        y += lineHeight
+        canvas.drawLine(margin, y - 15, pageWidth - margin.toFloat(), y - 15, textPaint)
+        canvas.drawText(context.getString(R.string.resum_total, "%.2f".format(totalHoras)), margin, y, footerPaint)
+
+        pdfDocument.finishPage(page)
+        pdfDocument.writeTo(file.outputStream())
+        pdfDocument.close()
+
+        return file
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/data/repository/RegistreRepository.kt ---
+package com.freelance.hores.data.repository
+
+import com.freelance.hores.data.db.dao.ConcepteDao
+import com.freelance.hores.data.db.dao.DiaDao
+import com.freelance.hores.data.db.dao.RangHorariDao
+import com.freelance.hores.data.db.entity.ConcepteEntity
+import com.freelance.hores.data.db.entity.DiaEntity
+import com.freelance.hores.data.db.entity.RangHorariEntity
+import com.freelance.hores.domain.model.Concepte
+import com.freelance.hores.domain.model.Dia
+import com.freelance.hores.domain.model.RangHorari
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.LocalTime
+import javax.inject.Inject
+
+class RegistreRepository @Inject constructor(
+    private val diaDao: DiaDao,
+    private val concepteDao: ConcepteDao,
+    private val rangHorariDao: RangHorariDao
+) {
+    // Get all dias with concepts and time ranges
+    fun getAllDiasWithDetails(): Flow<List<Dia>> {
+        return diaDao.getAllDias().map { diasEntity ->
+            diasEntity.map { entity ->
+                Dia(
+                    id = entity.id,
+                    data = LocalDate.ofEpochDay(entity.data),
+                    notes = entity.notes,
+                    conceptes = getConceptesForDia(entity.id)
+                )
+            }
+        }
+    }
+
+    // Get a specific dia with all its conceptes and rangs horaris
+    suspend fun getDiaWithDetails(diaId: Long): Dia {
+        val diaEntity = diaDao.getById(diaId) ?: return Dia(data = LocalDate.now())
+        val conceptes = getConceptesForDia(diaId)
+        return Dia(
+            id = diaEntity.id,
+            data = LocalDate.ofEpochDay(diaEntity.data),
+            notes = diaEntity.notes,
+            conceptes = conceptes
+        )
+    }
+
+    // Get conceptes with their time ranges for a specific dia
+    private suspend fun getConceptesForDia(diaId: Long): List<Concepte> {
+        val concepteEntities = concepteDao.getByDiaIdSync(diaId)
+        return concepteEntities.map { concepteEntity ->
+            val rangsHoraris = getRangsForConcepte(concepteEntity.id)
+            Concepte(
+                id = concepteEntity.id,
+                diaId = concepteEntity.diaId,
+                nom = concepteEntity.nom,
+                rangsHoraris = rangsHoraris
+            )
+        }
+    }
+
+    // Get time ranges for a specific concepte
+    private suspend fun getRangsForConcepte(concepteId: Long): List<RangHorari> {
+        val rangEntities = rangHorariDao.getByConcepteIdSync(concepteId)
+        return rangEntities.map { rangEntity ->
+            RangHorari(
+                id = rangEntity.id,
+                concepteId = rangEntity.concepteId,
+                horaInici = LocalTime.ofSecondOfDay(rangEntity.horaInici),
+                horaFi = LocalTime.ofSecondOfDay(rangEntity.horaFi)
+            )
+        }
+    }
+
+    // Get dias within a date range with full details
+    fun getDiasByDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<Dia>> {
+        return diaDao.getDiasByDateRange(startDate.toEpochDay(), endDate.toEpochDay())
+            .map { diasEntity ->
+                diasEntity.map { diaEntity ->
+                    Dia(
+                        id = diaEntity.id,
+                        data = LocalDate.ofEpochDay(diaEntity.data),
+                        notes = diaEntity.notes,
+                        conceptes = getConceptesForDia(diaEntity.id)
+                    )
+                }
+            }
+    }
+
+    // Save or update a complete dia with conceptes and rangs horaris
+    suspend fun saveDia(dia: Dia) {
+        // 1. Insert or update the dia
+        val diaEntity = DiaEntity(
+            id = dia.id,
+            data = dia.data.toEpochDay(),
+            notes = dia.notes
+        )
+        val actualDiaId = if (dia.id > 0) {
+            diaDao.update(diaEntity)
+            dia.id
+        } else {
+            diaDao.insert(diaEntity)
+        }
+
+        // 2. Clear existing relations to avoid duplicates and handle deletions
+        val existingConceptes = concepteDao.getByDiaIdSync(actualDiaId)
+        for (concepte in existingConceptes) {
+            concepteDao.delete(concepte) // Cascade will delete rangs horaris
+        }
+
+        // 3. Save new conceptes and their time ranges
+        for (concepte in dia.conceptes) {
+            val concepteEntity = ConcepteEntity(
+                diaId = actualDiaId,
+                nom = concepte.nom
+            )
+            val concepteId = concepteDao.insert(concepteEntity)
+
+            // Save rangs horaris
+            for (rangHorari in concepte.rangsHoraris) {
+                val rangEntity = RangHorariEntity(
+                    concepteId = concepteId,
+                    horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
+                    horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+                )
+                rangHorariDao.insert(rangEntity)
+            }
+        }
+    }
+
+    // Delete a dia
+    suspend fun deleteDia(dia: Dia) {
+        diaDao.delete(DiaEntity(id = dia.id, data = dia.data.toEpochDay(), notes = dia.notes))
+    }
+
+    // Delete a concepte
+    suspend fun deleteConcepte(concepte: Concepte) {
+        concepteDao.delete(ConcepteEntity(id = concepte.id, diaId = concepte.diaId, nom = concepte.nom))
+    }
+
+    // Delete a rang horari
+    suspend fun deleteRangHorari(rangHorari: RangHorari) {
+        rangHorariDao.delete(
+            RangHorariEntity(
+                id = rangHorari.id,
+                concepteId = rangHorari.concepteId,
+                horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
+                horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+            )
+        )
+    }
+
+    // Get dia by date
+    suspend fun getDiaByDate(date: LocalDate): Dia? {
+        val diaEntity = diaDao.getByDate(date.toEpochDay()) ?: return null
+        return getDiaWithDetails(diaEntity.id)
+    }
+
+    // Update dia notes
+    suspend fun updateDiaNotes(diaId: Long, notes: String) {
+        val dia = diaDao.getById(diaId) ?: return
+        diaDao.update(dia.copy(notes = notes))
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/di/HiltModules.kt ---
+package com.freelance.hores.di
+
+import android.content.Context
+import com.freelance.hores.data.db.AppDatabase
+import com.freelance.hores.data.db.dao.ConcepteDao
+import com.freelance.hores.data.db.dao.DiaDao
+import com.freelance.hores.data.db.dao.RangHorariDao
+import com.freelance.hores.data.repository.RegistreRepository
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+    @Singleton
+    @Provides
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
+        return AppDatabase.getDatabase(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDiaDao(database: AppDatabase): DiaDao {
+        return database.diaDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideConcepteDao(database: AppDatabase): ConcepteDao {
+        return database.concepteDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideRangHorariDao(database: AppDatabase): RangHorariDao {
+        return database.rangHorariDao()
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object RepositoryModule {
+    @Singleton
+    @Provides
+    fun provideRegistreRepository(
+        diaDao: DiaDao,
+        concepteDao: ConcepteDao,
+        rangHorariDao: RangHorariDao
+    ): RegistreRepository {
+        return RegistreRepository(diaDao, concepteDao, rangHorariDao)
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/domain/model/Concepte.kt ---
+package com.freelance.hores.domain.model
+
+import java.time.LocalTime
+
+data class Concepte(
+    val id: Long = 0,
+    val diaId: Long,
+    val nom: String,
+    val rangsHoraris: List<RangHorari> = emptyList()
+) {
+    fun getTotalHoras(): Double {
+        return rangsHoraris.sumOf { it.getDuracionaEnHoras() }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/domain/model/Dia.kt ---
+package com.freelance.hores.domain.model
+
+import java.time.LocalDate
+
+data class Dia(
+    val id: Long = 0,
+    val data: LocalDate,
+    val notes: String = "",
+    val conceptes: List<Concepte> = emptyList()
+) {
+    fun getTotalHoras(): Double {
+        return conceptes.sumOf { it.getTotalHoras() }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/domain/model/RangHorari.kt ---
+package com.freelance.hores.domain.model
+
+import java.time.LocalTime
+
+data class RangHorari(
+    val id: Long = 0,
+    val concepteId: Long,
+    val horaInici: LocalTime,
+    val horaFi: LocalTime
+) {
+    fun getDuracionaEnHoras(): Double {
+        val minutsTotal = (horaFi.toSecondOfDay() - horaInici.toSecondOfDay()) / 60
+        return minutsTotal / 60.0
+    }
+
+    fun getDuracionaFormatada(): String {
+        val minutsTotal = (horaFi.toSecondOfDay() - horaInici.toSecondOfDay()) / 60
+        val hores = minutsTotal / 60
+        val minuts = minutsTotal % 60
+        return if (hores > 0) {
+            "${hores}h ${minuts}m"
+        } else {
+            "${minuts}m"
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/HoresApp.kt ---
+package com.freelance.hores
+
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class HoresApp : Application()
+
+
+--- FILE: app/src/main/java/com/freelance/hores/MainActivity.kt ---
+package com.freelance.hores
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.freelance.hores.ui.navigation.AppNavHost
+import com.freelance.hores.ui.theme.HoresFreelanceTheme
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            HoresFreelanceTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+                    AppNavHost(navController = navController)
+                }
+            }
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/component/Cards.kt ---
+package com.freelance.hores.ui.component
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.freelance.hores.R
+import com.freelance.hores.domain.model.Concepte
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+@Composable
+fun DiaCard(
+    data: LocalDate,
+    conceptes: List<Concepte>,
+    totalHoras: Double,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            if (conceptes.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    conceptes.forEach { concepte ->
+                        Text(
+                            text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.resum_total, String.format("%.2f", totalHoras)),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+fun ConcepteCard(
+    concepte: Concepte,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = concepte.nom,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${String.format("%.2f", concepte.getTotalHoras())}h",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.common_edit),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.common_delete),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            if (concepte.rangsHoraris.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    concepte.rangsHoraris.forEach { rang ->
+                        Text(
+                            text = "${rang.horaInici} → ${rang.horaFi} · ${rang.getDuracionaFormatada()}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RangHorariCard(
+    horaInici: String,
+    horaFi: String,
+    duracio: String,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$horaInici → $horaFi",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
+
+            Text(
+                text = duracio,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/component/Dialog.kt ---
+package com.freelance.hores.ui.component
+
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.freelance.hores.R
+
+@Composable
+fun ConfirmDialog(
+    title: String,
+    message: String,
+    confirmText: String = stringResource(R.string.common_confirm),
+    dismissText: String = stringResource(R.string.common_cancel),
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    showDialog: Boolean
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(title) },
+            text = { Text(message) },
+            confirmButton = {
+                Button(onClick = {
+                    onConfirm()
+                    onDismiss()
+                }) {
+                    Text(confirmText)
+                }
+            },
+            dismissButton = {
+                Button(onClick = onDismiss) {
+                    Text(dismissText)
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun ErrorDialog(
+    title: String = stringResource(R.string.common_error),
+    message: String,
+    onDismiss: () -> Unit,
+    showDialog: Boolean
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(title) },
+            text = { Text(message) },
+            confirmButton = {
+                Button(onClick = onDismiss) {
+                    Text(stringResource(R.string.common_close))
+                }
+            }
+        )
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/component/SnackbarEffect.kt ---
+package com.freelance.hores.ui.component
+
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
+
+@Composable
+fun ErrorSnackbarEffect(
+    errorMessage: String?,
+    snackbarHostState: SnackbarHostState,
+    onErrorDismissed: () -> Unit = {}
+) {
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            snackbarHostState.showSnackbar(
+                message = errorMessage,
+                duration = SnackbarDuration.Short
+            )
+            onErrorDismissed()
+        }
+    }
+}
+
+@Composable
+fun SuccessSnackbarEffect(
+    isSuccess: Boolean,
+    snackbarHostState: SnackbarHostState,
+    message: String = "Saved successfully",
+    onDismissed: () -> Unit = {}
+) {
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.Dismissed) {
+                onDismissed()
+            }
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/navigation/AppNavHost.kt ---
+package com.freelance.hores.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.freelance.hores.ui.screen.calendari.CalendariScreen
+import com.freelance.hores.ui.screen.dia.DiaDetallScreen
+import com.freelance.hores.ui.screen.registre.RegistreScreen
+import com.freelance.hores.ui.screen.resum.ResumScreen
+import java.time.LocalDate
+
+@Composable
+fun AppNavHost(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "calendari"
+    ) {
+        composable("calendari") {
+            CalendariScreen(navController = navController)
+        }
+
+        composable(
+            "dia/{diaId}",
+            arguments = listOf(navArgument("diaId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val diaId = backStackEntry.arguments?.getLong("diaId") ?: 0L
+            DiaDetallScreen(navController = navController, diaId = diaId)
+        }
+
+        composable(
+            "registre?diaId={diaId}&data={data}",
+            arguments = listOf(
+                navArgument("diaId") {
+                    type = NavType.LongType
+                    defaultValue = 0L
+                },
+                navArgument("data") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val diaId = backStackEntry.arguments?.getLong("diaId") ?: 0L
+            val dataArg = backStackEntry.arguments?.getString("data") ?: ""
+            val initialDate = if (dataArg.isNotEmpty()) {
+                LocalDate.parse(dataArg)
+            } else {
+                null
+            }
+            RegistreScreen(
+                navController = navController,
+                diaId = diaId,
+                initialDate = initialDate
+            )
+        }
+
+        composable("resum") {
+            ResumScreen(navController = navController)
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/calendari/CalendariScreen.kt ---
+package com.freelance.hores.ui.screen.calendari
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.freelance.hores.R
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CalendariScreen(
+    navController: NavHostController,
+    viewModel: CalendariViewModel = hiltViewModel()
+) {
+    val currentMonth by viewModel.currentMonth.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val diasWithRecords = viewModel.getDiasWithRecords()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.calendari_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.previousMonth() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_cancel))
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.nextMonth() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                    }
+                    IconButton(onClick = { navController.navigate("resum") }) {
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.nav_resum))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("registre?diaId=0&data=") },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.nav_new_record))
+            }
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Text(
+                        text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${currentMonth.year}",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                    CalendarGrid(
+                        yearMonth = currentMonth,
+                        diasWithRecords = diasWithRecords,
+                        onDateClick = { date ->
+                            val dia = viewModel.getDiasByDate(date)
+                            if (dia != null) {
+                                navController.navigate("dia/${dia.id}")
+                            } else {
+                                navController.navigate("registre?diaId=0&data=${date}")
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarGrid(
+    yearMonth: YearMonth,
+    diasWithRecords: List<LocalDate>,
+    onDateClick: (LocalDate) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf(
+                R.string.day_mon,
+                R.string.day_tue,
+                R.string.day_wed,
+                R.string.day_thu,
+                R.string.day_fri,
+                R.string.day_sat,
+                R.string.day_sun
+            ).forEach { dayRes ->
+                Text(
+                    text = stringResource(dayRes),
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        val firstDay = yearMonth.atDay(1)
+        val lastDay = yearMonth.atEndOfMonth()
+        val firstDayOfWeek = firstDay.dayOfWeek.value // 1 (Mon) to 7 (Sun)
+        val daysInMonth = lastDay.dayOfMonth
+        
+        // Adjust index to start Monday at 0
+        // If Monday is 1, then firstDayOfWeek - 1 is the number of empty cells
+        val emptyCellsBefore = firstDayOfWeek - 1
+        val totalCells = ((daysInMonth + emptyCellsBefore + 6) / 7) * 7
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(7),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            items(totalCells) { index ->
+                val dayOfMonth = index - emptyCellsBefore + 1
+                if (dayOfMonth in 1..daysInMonth) {
+                    val date = yearMonth.atDay(dayOfMonth)
+                    val hasRecord = date in diasWithRecords
+                    DayCell(
+                        day = dayOfMonth,
+                        hasRecord = hasRecord,
+                        onClick = { onDateClick(date) }
+                    )
+                } else {
+                    Box(modifier = Modifier.size(48.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DayCell(
+    day: Int,
+    hasRecord: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .background(
+                color = if (hasRecord) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                shape = MaterialTheme.shapes.small
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = day.toString(),
+            style = MaterialTheme.typography.bodySmall,
+            color = if (hasRecord) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/calendari/CalendariViewModel.kt ---
+package com.freelance.hores.ui.screen.calendari
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Dia
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.YearMonth
+import javax.inject.Inject
+
+@HiltViewModel
+class CalendariViewModel @Inject constructor(
+    private val repository: RegistreRepository
+) : ViewModel() {
+    private val _currentMonth = MutableStateFlow(YearMonth.now())
+    val currentMonth: StateFlow<YearMonth> = _currentMonth.asStateFlow()
+
+    private val _dias = MutableStateFlow<List<Dia>>(emptyList())
+    val dias: StateFlow<List<Dia>> = _dias.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    init {
+        observeDias()
+    }
+
+    private fun observeDias() {
+        viewModelScope.launch {
+            _currentMonth
+                .flatMapLatest { month ->
+                    val startDate = month.atDay(1)
+                    val endDate = month.atEndOfMonth()
+                    repository.getDiasByDateRange(startDate, endDate)
+                        .onStart { _isLoading.value = true }
+                        .catch { e -> _error.value = e.message ?: "Error loading calendar" }
+                }
+                .collect { dias ->
+                    _dias.value = dias
+                    _isLoading.value = false
+                }
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
+
+    fun setCurrentMonth(yearMonth: YearMonth) {
+        _currentMonth.value = yearMonth
+    }
+
+    fun nextMonth() {
+        setCurrentMonth(_currentMonth.value.plusMonths(1))
+    }
+
+    fun previousMonth() {
+        setCurrentMonth(_currentMonth.value.minusMonths(1))
+    }
+
+    fun getDiasByDate(date: LocalDate): Dia? {
+        return _dias.value.find { it.data == date }
+    }
+
+    fun getDiasWithRecords(): List<LocalDate> {
+        return _dias.value.map { it.data }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/dia/DiaDetallScreen.kt ---
+package com.freelance.hores.ui.screen.dia
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.freelance.hores.R
+import com.freelance.hores.ui.component.ConcepteCard
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DiaDetallScreen(
+    navController: NavHostController,
+    diaId: Long,
+    viewModel: DiaDetallViewModel = hiltViewModel()
+) {
+    val dia by viewModel.dia.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(diaId) {
+        viewModel.loadDia(diaId)
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.dia_detall_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_cancel))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { paddingValues ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (dia != null) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Column {
+                        Text(
+                            text = dia!!.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        if (dia!!.notes.isNotEmpty()) {
+                            Text(
+                                text = "${stringResource(R.string.dia_detall_notes)}: ${dia!!.notes}",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Text(
+                        text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", dia!!.getTotalHoras())),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                items(dia!!.conceptes) { concepte ->
+                    ConcepteCard(
+                        concepte = concepte,
+                        onEdit = { },
+                        onDelete = { }
+                    )
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { navController.navigate("registre?diaId=${dia!!.id}") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                            Text(stringResource(R.string.dia_detall_edit))
+                        }
+                        Button(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Text(stringResource(R.string.dia_detall_delete))
+                        }
+                    }
+                }
+            }
+
+            if (showDeleteDialog && dia != null) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = { Text(stringResource(R.string.common_confirm)) },
+                    text = { Text(stringResource(R.string.common_confirm_delete)) },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.deleteDia()
+                                showDeleteDialog = false
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Text(stringResource(R.string.common_delete))
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showDeleteDialog = false }) {
+                            Text(stringResource(R.string.common_cancel))
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/dia/DiaDetallViewModel.kt ---
+package com.freelance.hores.ui.screen.dia
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Dia
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class DiaDetallViewModel @Inject constructor(
+    private val repository: RegistreRepository
+) : ViewModel() {
+    private val _dia = MutableStateFlow<Dia?>(null)
+    val dia: StateFlow<Dia?> = _dia.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    fun loadDia(diaId: Long) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val diaDetall = repository.getDiaWithDetails(diaId)
+                _dia.value = diaDetall
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error loading day details"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updateDiaNotes(notes: String) {
+        val currentDia = _dia.value ?: return
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                repository.updateDiaNotes(currentDia.id, notes)
+                _dia.value = currentDia.copy(notes = notes)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error updating notes"
+            }
+        }
+    }
+
+    fun deleteDia() {
+        val currentDia = _dia.value ?: return
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                repository.deleteDia(currentDia)
+                _dia.value = null
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error deleting day"
+            }
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/registre/RegistreScreen.kt ---
+package com.freelance.hores.ui.screen.registre
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.freelance.hores.R
+import com.freelance.hores.domain.model.RangHorari
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegistreScreen(
+    navController: NavHostController,
+    diaId: Long = 0,
+    initialDate: LocalDate? = null,
+    viewModel: RegistreViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val formState by viewModel.formState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val savedMessage = stringResource(R.string.common_saved)
+    val defaultErrorMessage = stringResource(R.string.common_error)
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = formState.data.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    )
+
+    LaunchedEffect(diaId, initialDate) {
+        if (diaId > 0) {
+            viewModel.loadDiaForEditing(diaId)
+        } else {
+            if (initialDate != null) {
+                viewModel.setData(initialDate)
+            }
+            if (viewModel.formState.value.conceptes.isEmpty()) {
+                viewModel.addConcepte()
+            }
+        }
+    }
+
+    LaunchedEffect(formState.success) {
+        if (formState.success) {
+            snackbarHostState.showSnackbar(savedMessage)
+            viewModel.resetSuccess()
+            navController.popBackStack()
+        }
+    }
+
+    LaunchedEffect(formState.errorResId, formState.error) {
+        if (formState.errorResId != null) {
+            snackbarHostState.showSnackbar(context.getString(formState.errorResId!!))
+            viewModel.clearError()
+        } else if (formState.error != null) {
+            snackbarHostState.showSnackbar(formState.error ?: defaultErrorMessage)
+            viewModel.clearError()
+        }
+    }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val date = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            viewModel.setData(date)
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.registre_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.registre_date), style = MaterialTheme.typography.labelMedium)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showDatePicker = true }
+                    ) {
+                        OutlinedTextField(
+                            value = formState.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy")),
+                            onValueChange = {},
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            enabled = false
+                        )
+                    }
+                }
+            }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.registre_notes), style = MaterialTheme.typography.labelMedium)
+                    OutlinedTextField(
+                        value = formState.notes,
+                        onValueChange = { viewModel.setNotes(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+                }
+            }
+
+            item {
+                Text(stringResource(R.string.dia_detall_conceptes), style = MaterialTheme.typography.headlineSmall)
+            }
+
+            items(formState.conceptes.size) { concepteIndex ->
+                ConcepteFormItem(
+                    concepte = formState.conceptes[concepteIndex],
+                    onNameChange = { viewModel.updateConcepteName(concepteIndex, it) },
+                    onAddRang = { viewModel.addRangHorariToConcepte(concepteIndex) },
+                    onRemoveRang = { rangIndex -> viewModel.removeRangHorari(concepteIndex, rangIndex) },
+                    onUpdateHoraInici = { rangIndex, hora ->
+                        viewModel.updateRangHorariInici(concepteIndex, rangIndex, hora)
+                    },
+                    onUpdateHoraFi = { rangIndex, hora ->
+                        viewModel.updateRangHorariFi(concepteIndex, rangIndex, hora)
+                    },
+                    onDelete = { viewModel.removeConcepte(concepteIndex) }
+                )
+            }
+
+            item {
+                Button(
+                    onClick = { viewModel.addConcepte() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Text(stringResource(R.string.registre_add_concepte))
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(stringResource(R.string.registre_cancel))
+                    }
+
+                    Button(
+                        onClick = { viewModel.saveDia() },
+                        modifier = Modifier.weight(1f),
+                        enabled = !formState.isSaving
+                    ) {
+                        if (formState.isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.padding(end = 8.dp),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        Text(stringResource(R.string.registre_save))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ConcepteFormItem(
+    concepte: ConcepteForm,
+    onNameChange: (String) -> Unit,
+    onAddRang: () -> Unit,
+    onRemoveRang: (Int) -> Unit,
+    onUpdateHoraInici: (Int, LocalTime) -> Unit,
+    onUpdateHoraFi: (Int, LocalTime) -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+            .then(
+                Modifier
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)
+                    .padding(12.dp)
+            ),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = concepte.nom,
+                onValueChange = onNameChange,
+                label = { Text(stringResource(R.string.registre_concepte_name)) },
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete))
+            }
+        }
+
+        concepte.rangsHoraris.forEachIndexed { rangIndex, rang ->
+            RangHorariFormItem(
+                rang = rang,
+                onUpdateInici = { onUpdateHoraInici(rangIndex, it) },
+                onUpdateFi = { onUpdateHoraFi(rangIndex, it) },
+                onDelete = { onRemoveRang(rangIndex) }
+            )
+        }
+
+        OutlinedButton(
+            onClick = onAddRang,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Text(stringResource(R.string.registre_add_rang))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RangHorariFormItem(
+    rang: RangHorariForm,
+    onUpdateInici: (LocalTime) -> Unit,
+    onUpdateFi: (LocalTime) -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showStartPicker by remember { mutableStateOf(false) }
+    var showEndPicker by remember { mutableStateOf(false) }
+    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
+
+    if (showStartPicker) {
+        val timeState = rememberTimePickerState(
+            initialHour = rang.horaInici.hour,
+            initialMinute = rang.horaInici.minute,
+            is24Hour = true
+        )
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showStartPicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onUpdateInici(LocalTime.of(timeState.hour, timeState.minute))
+                        showStartPicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartPicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+            text = {
+                TimePicker(state = timeState)
+            }
+        )
+    }
+
+    if (showEndPicker) {
+        val timeState = rememberTimePickerState(
+            initialHour = rang.horaFi.hour,
+            initialMinute = rang.horaFi.minute,
+            is24Hour = true
+        )
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showEndPicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onUpdateFi(LocalTime.of(timeState.hour, timeState.minute))
+                        showEndPicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndPicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+            text = {
+                TimePicker(state = timeState)
+            }
+        )
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .then(
+                Modifier
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.tertiaryContainer,
+                        MaterialTheme.shapes.extraSmall
+                    )
+                    .padding(8.dp)
+            ),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { showStartPicker = true }
+            ) {
+                OutlinedTextField(
+                    value = rang.horaInici.format(timeFormatter),
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.registre_hora_inici)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    enabled = false
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { showEndPicker = true }
+            ) {
+                OutlinedTextField(
+                    value = rang.horaFi.format(timeFormatter),
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.registre_hora_fi)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    enabled = false
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete))
+            }
+        }
+
+        val duration = RangHorari(
+            concepteId = 0,
+            horaInici = rang.horaInici,
+            horaFi = rang.horaFi
+        ).getDuracionaFormatada()
+
+        Text(
+            text = stringResource(R.string.registre_duracio, duration),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/registre/RegistreViewModel.kt ---
+package com.freelance.hores.ui.screen.registre
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.freelance.hores.R
+import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Concepte
+import com.freelance.hores.domain.model.Dia
+import com.freelance.hores.domain.model.RangHorari
+import com.freelance.hores.ui.util.FormValidator
+import com.freelance.hores.ui.util.ValidationResult
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+import javax.inject.Inject
+
+data class RegistreFormState(
+    val diaId: Long = 0,
+    val data: LocalDate = LocalDate.now(),
+    val notes: String = "",
+    val conceptes: List<ConcepteForm> = emptyList(),
+    val isSaving: Boolean = false,
+    val errorResId: Int? = null,
+    val error: String? = null,
+    val success: Boolean = false
+)
+
+data class ConcepteForm(
+    val id: Long = 0,
+    val nom: String = "",
+    val rangsHoraris: List<RangHorariForm> = emptyList()
+)
+
+data class RangHorariForm(
+    val id: Long = 0,
+    val horaInici: LocalTime = LocalTime.of(9, 0),
+    val horaFi: LocalTime = LocalTime.of(17, 0)
+)
+
+@HiltViewModel
+class RegistreViewModel @Inject constructor(
+    private val repository: RegistreRepository
+) : ViewModel() {
+    private val _formState = MutableStateFlow(RegistreFormState())
+    val formState: StateFlow<RegistreFormState> = _formState.asStateFlow()
+
+    fun setData(data: LocalDate) {
+        _formState.value = _formState.value.copy(data = data)
+    }
+
+    fun setNotes(notes: String) {
+        _formState.value = _formState.value.copy(notes = notes)
+    }
+
+    fun addConcepte(concepteName: String = "") {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        currentConceptes.add(
+            ConcepteForm(
+                nom = concepteName,
+                rangsHoraris = listOf(RangHorariForm())
+            )
+        )
+        _formState.value = _formState.value.copy(conceptes = currentConceptes)
+    }
+
+    fun updateConcepteName(index: Int, nom: String) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(nom = nom)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun removeConcepte(index: Int) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes.removeAt(index)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun addRangHorariToConcepte(concepteIndex: Int) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            newRangs.add(RangHorariForm())
+            currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateRangHorariInici(concepteIndex: Int, rangIndex: Int, hora: LocalTime) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            if (rangIndex >= 0 && rangIndex < newRangs.size) {
+                newRangs[rangIndex] = newRangs[rangIndex].copy(horaInici = hora)
+                currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+                _formState.value = _formState.value.copy(conceptes = currentConceptes)
+            }
+        }
+    }
+
+    fun updateRangHorariFi(concepteIndex: Int, rangIndex: Int, hora: LocalTime) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            if (rangIndex >= 0 && rangIndex < newRangs.size) {
+                newRangs[rangIndex] = newRangs[rangIndex].copy(horaFi = hora)
+                currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+                _formState.value = _formState.value.copy(conceptes = currentConceptes)
+            }
+        }
+    }
+
+    fun removeRangHorari(concepteIndex: Int, rangIndex: Int) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            if (rangIndex >= 0 && rangIndex < newRangs.size) {
+                newRangs.removeAt(rangIndex)
+                currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+                _formState.value = _formState.value.copy(conceptes = currentConceptes)
+            }
+        }
+    }
+
+    fun saveDia() {
+        viewModelScope.launch {
+            val state = _formState.value
+            
+            // 1. Validació bàsica de conceptes
+            val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
+            if (countValidation is ValidationResult.Error) {
+                _formState.value = state.copy(errorResId = countValidation.resId)
+                return@launch
+            }
+
+            for (concepte in state.conceptes) {
+                // 2. Validació nom concepte
+                val nameValidation = FormValidator.validateConcepteName(concepte.nom)
+                if (nameValidation is ValidationResult.Error) {
+                    _formState.value = state.copy(errorResId = nameValidation.resId)
+                    return@launch
+                }
+
+                // 3. Validació rangs horaris
+                val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
+                if (rangsCountValidation is ValidationResult.Error) {
+                    _formState.value = state.copy(errorResId = rangsCountValidation.resId)
+                    return@launch
+                }
+                
+                // Sort ranges by start time to check for overlaps
+                val sortedRangs = concepte.rangsHoraris.sortedBy { it.horaInici }
+                for (i in sortedRangs.indices) {
+                    val current = sortedRangs[i]
+                    
+                    // 4. Validació hora inici < hora fi
+                    val rangeValidation = FormValidator.validateTimeRange(current.horaInici, current.horaFi)
+                    if (rangeValidation is ValidationResult.Error) {
+                        _formState.value = state.copy(errorResId = rangeValidation.resId)
+                        return@launch
+                    }
+
+                    // 5. Validació solapaments
+                    if (i > 0) {
+                        val previous = sortedRangs[i - 1]
+                        if (current.horaInici < previous.horaFi) {
+                            _formState.value = state.copy(errorResId = R.string.registre_error_overlapping_ranges)
+                            return@launch
+                        }
+                    }
+                }
+            }
+
+            _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
+            try {
+                val conceptesForSave = state.conceptes.map { concepteForm ->
+                    Concepte(
+                        id = concepteForm.id,
+                        diaId = state.diaId,
+                        nom = concepteForm.nom,
+                        rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
+                            RangHorari(
+                                id = rangForm.id,
+                                concepteId = concepteForm.id,
+                                horaInici = rangForm.horaInici,
+                                horaFi = rangForm.horaFi
+                            )
+                        }
+                    )
+                }
+
+                val diaToSave = Dia(
+                    id = state.diaId,
+                    data = state.data,
+                    notes = state.notes,
+                    conceptes = conceptesForSave
+                )
+
+                repository.saveDia(diaToSave)
+                _formState.value = state.copy(
+                    isSaving = false,
+                    success = true,
+                    errorResId = null,
+                    error = null
+                )
+            } catch (e: Exception) {
+                _formState.value = state.copy(
+                    isSaving = false,
+                    error = e.message ?: "An error occurred"
+                )
+            }
+        }
+    }
+
+    fun clearError() {
+        _formState.value = _formState.value.copy(errorResId = null, error = null)
+    }
+
+    fun resetSuccess() {
+        _formState.value = _formState.value.copy(success = false)
+    }
+
+    fun loadDiaForEditing(diaId: Long) {
+        viewModelScope.launch {
+            try {
+                val dia = repository.getDiaWithDetails(diaId)
+                val concepteForms = dia.conceptes.map { concepte ->
+                    ConcepteForm(
+                        id = concepte.id,
+                        nom = concepte.nom,
+                        rangsHoraris = concepte.rangsHoraris.map { rang ->
+                            RangHorariForm(
+                                id = rang.id,
+                                horaInici = rang.horaInici,
+                                horaFi = rang.horaFi
+                            )
+                        }
+                    )
+                }
+                _formState.value = RegistreFormState(
+                    diaId = dia.id,
+                    data = dia.data,
+                    notes = dia.notes,
+                    conceptes = concepteForms
+                )
+            } catch (e: Exception) {
+                _formState.value = _formState.value.copy(error = e.message)
+            }
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/resum/ResumScreen.kt ---
+package com.freelance.hores.ui.screen.resum
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.freelance.hores.R
+import com.freelance.hores.ui.component.DiaCard
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ResumScreen(
+    navController: NavHostController,
+    viewModel: ResumViewModel = hiltViewModel()
+) {
+    val resumState by viewModel.resumState.collectAsState()
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+
+    if (showStartDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val date = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            viewModel.loadCustomPeriod(date, resumState.endDate)
+                        }
+                        showStartDatePicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showEndDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val date = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            viewModel.loadCustomPeriod(resumState.startDate, date)
+                        }
+                        showEndDatePicker = false
+                    }
+                ) {
+                    Text(stringResource(R.string.common_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.resum_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_cancel))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { paddingValues ->
+        if (resumState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { viewModel.loadThisWeek() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.resum_this_week), style = MaterialTheme.typography.labelSmall)
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.loadThisMonth() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.resum_this_month), style = MaterialTheme.typography.labelSmall)
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.loadLastMonth() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(stringResource(R.string.resum_last_month), style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = { showStartDatePicker = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.resum_custom), style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${resumState.startDate}",
+                            modifier = Modifier.clickable { showStartDatePicker = true },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = " ${stringResource(R.string.resum_to)} ",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "${resumState.endDate}",
+                            modifier = Modifier.clickable { showEndDatePicker = true },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                item {
+                    Text(
+                        text = stringResource(R.string.resum_total, String.format("%.2f", viewModel.getTotalHoras())),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                if (resumState.dias.isNotEmpty()) {
+                    items(resumState.dias) { dia ->
+                        DiaCard(
+                            data = dia.data,
+                            conceptes = dia.conceptes,
+                            totalHoras = dia.getTotalHoras(),
+                            onClick = { navController.navigate("dia/${dia.id}") }
+                        )
+                    }
+                } else {
+                    item {
+                        Text(
+                            text = stringResource(R.string.resum_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp)
+                        )
+                    }
+                }
+
+                item {
+                    if (resumState.dias.isNotEmpty()) {
+                        ConceptesSummary(
+                            conceptesSummary = viewModel.getConceptesSummary()
+                        )
+                    }
+                }
+
+                item {
+                    val context = LocalContext.current
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { 
+                                val intent = viewModel.exportCsv()
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.resum_export_csv))
+                        }
+                        Button(
+                            onClick = { 
+                                val intent = viewModel.exportPdf()
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.resum_export_pdf))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ConceptesSummary(
+    conceptesSummary: Map<String, Double>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .then(
+                Modifier
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant,
+                        MaterialTheme.shapes.small
+                    )
+                    .padding(12.dp)
+            ),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(stringResource(R.string.resum_summary_by_concept), style = MaterialTheme.typography.titleMedium)
+
+        conceptesSummary.forEach { (concepteName, horas) ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = concepteName,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = "${String.format("%.2f", horas)}h",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/screen/resum/ResumViewModel.kt ---
+package com.freelance.hores.ui.screen.resum
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.freelance.hores.data.export.ExportService
+import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Dia
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.temporal.ChronoUnit
+import javax.inject.Inject
+
+data class ResumState(
+    val dias: List<Dia> = emptyList(),
+    val startDate: LocalDate = LocalDate.now().minusWeeks(1),
+    val endDate: LocalDate = LocalDate.now(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+@HiltViewModel
+class ResumViewModel @Inject constructor(
+    private val repository: RegistreRepository,
+    private val exportService: ExportService
+) : ViewModel() {
+    private val _period = MutableStateFlow(Pair(LocalDate.now().minusWeeks(1), LocalDate.now()))
+    private val _resumState = MutableStateFlow(ResumState())
+    val resumState: StateFlow<ResumState> = _resumState.asStateFlow()
+
+    init {
+        observePeriod()
+        loadThisWeek()
+    }
+
+    private fun observePeriod() {
+        viewModelScope.launch {
+            _period
+                .flatMapLatest { (start, end) ->
+                    repository.getDiasByDateRange(start, end)
+                        .onStart { _resumState.value = _resumState.value.copy(isLoading = true, error = null) }
+                        .catch { e -> _resumState.value = _resumState.value.copy(isLoading = false, error = e.message ?: "An error occurred") }
+                }
+                .collect { dias ->
+                    _resumState.value = _resumState.value.copy(
+                        dias = dias,
+                        startDate = _period.value.first,
+                        endDate = _period.value.second,
+                        isLoading = false
+                    )
+                }
+        }
+    }
+
+    fun loadThisWeek() {
+        val today = LocalDate.now()
+        val monday = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+        val sunday = monday.plusDays(6)
+        _period.value = Pair(monday, sunday)
+    }
+
+    fun loadThisMonth() {
+        val today = LocalDate.now()
+        val firstDay = today.withDayOfMonth(1)
+        val lastDay = today.withDayOfMonth(today.lengthOfMonth())
+        _period.value = Pair(firstDay, lastDay)
+    }
+
+    fun loadLastMonth() {
+        val today = LocalDate.now()
+        val lastMonthLastDay = today.withDayOfMonth(1).minusDays(1)
+        val lastMonthFirstDay = lastMonthLastDay.withDayOfMonth(1)
+        _period.value = Pair(lastMonthFirstDay, lastMonthLastDay)
+    }
+
+    fun loadCustomPeriod(startDate: LocalDate, endDate: LocalDate) {
+        _period.value = Pair(startDate, endDate)
+    }
+
+    fun getTotalHoras(): Double {
+        return _resumState.value.dias.sumOf { it.getTotalHoras() }
+    }
+
+    fun getConceptesSummary(): Map<String, Double> {
+        val summary = mutableMapOf<String, Double>()
+        for (dia in _resumState.value.dias) {
+            for (concepte in dia.conceptes) {
+                summary[concepte.nom] = (summary[concepte.nom] ?: 0.0) + concepte.getTotalHoras()
+            }
+        }
+        return summary.toSortedMap()
+    }
+
+    fun exportCsv(): android.content.Intent {
+        val state = _resumState.value
+        return exportService.exportCsv(state.dias, state.startDate, state.endDate)
+    }
+
+    fun exportPdf(): android.content.Intent {
+        val state = _resumState.value
+        return exportService.exportPdf(state.dias, state.startDate, state.endDate)
+    }
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/theme/Theme.kt ---
+package com.freelance.hores.ui.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF1F88E5),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFD6E4FF),
+    onPrimaryContainer = Color(0xFF001A3F),
+    secondary = Color(0xFF5D5E7F),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE3E0FF),
+    onSecondaryContainer = Color(0xFF1A1B38),
+    tertiary = Color(0xFF785900),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFFFDCC0),
+    onTertiaryContainer = Color(0xFF2C1F00),
+    error = Color(0xFFB3261E),
+    onError = Color.White,
+    errorContainer = Color(0xFFF9DEDC),
+    onErrorContainer = Color(0xFF410E0B),
+    outline = Color(0xFF79747E),
+    background = Color(0xFFFFFBFE),
+    onBackground = Color(0xFF1C1B1F),
+    surface = Color(0xFFFFFBFE),
+    onSurface = Color(0xFF1C1B1F),
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFFB3D9FF),
+    onPrimary = Color(0xFF003066),
+    primaryContainer = Color(0xFF004A94),
+    onPrimaryContainer = Color(0xFFD6E4FF),
+    secondary = Color(0xFFC7C7E8),
+    onSecondary = Color(0xFF2E2F4E),
+    secondaryContainer = Color(0xFF454667),
+    onSecondaryContainer = Color(0xFFE3E0FF),
+    tertiary = Color(0xFFFFB873),
+    onTertiary = Color(0xFF462900),
+    tertiaryContainer = Color(0xFF643D00),
+    onTertiaryContainer = Color(0xFFFFDCC0),
+    error = Color(0xFFF2B8B5),
+    onError = Color(0xFF601410),
+    errorContainer = Color(0xFF8C1D18),
+    onErrorContainer = Color(0xFFF9DEDC),
+    outline = Color(0xFF9A9AA9),
+    background = Color(0xFF1C1B1F),
+    onBackground = Color(0xFFE7E0E6),
+    surface = Color(0xFF1C1B1F),
+    onSurface = Color(0xFFE7E0E6),
+)
+
+@Composable
+fun HoresFreelanceTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/theme/Type.kt ---
+package com.freelance.hores.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    displayLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = 0.sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 45.sp,
+        lineHeight = 52.sp,
+        letterSpacing = 0.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 36.sp,
+        lineHeight = 44.sp,
+        letterSpacing = 0.sp
+    )
+)
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/util/FormValidator.kt ---
+package com.freelance.hores.ui.util
+
+import java.time.LocalTime
+
+import com.freelance.hores.R
+
+object FormValidator {
+    
+    fun validateConcepteName(name: String): ValidationResult {
+        return when {
+            name.isBlank() -> ValidationResult.Error(R.string.registre_error_concepte_empty)
+            else -> ValidationResult.Success
+        }
+    }
+
+    fun validateTimeRange(startTime: LocalTime, endTime: LocalTime): ValidationResult {
+        return when {
+            endTime <= startTime -> ValidationResult.Error(R.string.registre_error_hora_invalid)
+            else -> ValidationResult.Success
+        }
+    }
+
+    fun validateConceptesCount(count: Int): ValidationResult {
+        return when {
+            count == 0 -> ValidationResult.Error(R.string.registre_error_concepte_empty)
+            else -> ValidationResult.Success
+        }
+    }
+
+    fun validateTimeRangesCount(count: Int): ValidationResult {
+        return when {
+            count == 0 -> ValidationResult.Error(R.string.registre_error_no_rangs)
+            else -> ValidationResult.Success
+        }
+    }
+}
+
+sealed class ValidationResult {
+    object Success : ValidationResult()
+    data class Error(val resId: Int) : ValidationResult()
+}
+
+
+--- FILE: app/src/main/java/com/freelance/hores/ui/util/UiEvent.kt ---
+package com.freelance.hores.ui.util
+
+/**
+ * UI Event sealed class for handling one-time events like showing snackbars, navigation, etc.
+ */
+sealed class UiEvent {
+    data class ShowSnackbar(val message: String) : UiEvent()
+    data class ShowError(val title: String, val message: String) : UiEvent()
+    object NavigateBack : UiEvent()
+    data class Navigate(val route: String) : UiEvent()
+    object DismissDialog : UiEvent()
+}
+
+
+--- FILE: app/src/main/res/values-ca/strings.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoresFreelance</string>
+
+    <string name="nav_calendari">Calendari</string>
+    <string name="nav_resum">Resum</string>
+    <string name="nav_new_record">Nou registre</string>
+
+    <string name="day_mon">L</string>
+    <string name="day_tue">M</string>
+    <string name="day_wed">X</string>
+    <string name="day_thu">J</string>
+    <string name="day_fri">V</string>
+    <string name="day_sat">S</string>
+    <string name="day_sun">D</string>
+
+    <string name="calendari_title">Calendari de treball</string>
+    <string name="calendari_empty">Encara no hi ha registres</string>
+
+    <string name="dia_detall_title">Detall del dia</string>
+    <string name="dia_detall_notes">Notes</string>
+    <string name="dia_detall_conceptes">Conceptes</string>
+    <string name="dia_detall_total_hours">Total d\'hores: %s</string>
+    <string name="dia_detall_add_concepte">Afegir concepte</string>
+    <string name="dia_detall_edit">Editar</string>
+    <string name="dia_detall_delete">Esborrar</string>
+
+    <string name="registre_title">Registrar hores</string>
+    <string name="registre_date">Data</string>
+    <string name="registre_notes">Notes (opcional)</string>
+    <string name="registre_concepte_name">Nom del concepte</string>
+    <string name="registre_hora_inici">Hora d\'inici</string>
+    <string name="registre_hora_fi">Hora de fi</string>
+    <string name="registre_duracio">Durada: %s</string>
+    <string name="registre_add_rang">Afegir rang horari</string>
+    <string name="registre_add_concepte">Afegir concepte</string>
+    <string name="registre_save">Desa</string>
+    <string name="registre_cancel">Cancel·la</string>
+    <string name="registre_error_concepte_empty">El nom del concepte no pot estar buit</string>
+    <string name="registre_error_no_rangs">Almenys un rang horari per concepte</string>
+    <string name="registre_error_hora_invalid">L\'hora de fi ha de ser posterior a l\'inici</string>
+    <string name="registre_error_overlapping_ranges">Els rangs horaris es solapen per al mateix concepte</string>
+
+    <string name="resum_title">Resum d\'hores</string>
+    <string name="resum_this_week">Aquesta setmana</string>
+    <string name="resum_this_month">Aquest mes</string>
+    <string name="resum_last_month">Mes anterior</string>
+    <string name="resum_custom">Rang personalitzat</string>
+    <string name="resum_total">Total: %s hores</string>
+    <string name="resum_export_csv">Exportar CSV</string>
+    <string name="resum_export_pdf">Exportar PDF</string>
+    <string name="resum_empty">No hi ha registres per aquest període</string>
+    <string name="resum_from">Des de</string>
+    <string name="resum_to">Fins a</string>
+    <string name="resum_summary_by_concept">Resum per concepte</string>
+
+    <string name="common_save">Desa</string>
+    <string name="common_cancel">Cancel·la</string>
+    <string name="common_delete">Esborrar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_add">Afegir</string>
+    <string name="common_close">Tancar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="common_confirm_delete">Segur que vols esborrar?</string>
+    <string name="common_saved">Desat correctament</string>
+    <string name="common_deleted">Esborrat correctament</string>
+    <string name="common_error">S\'ha produït un error</string>
+    <string name="csv_header_date">Data</string>
+    <string name="csv_header_concept">Concepte</string>
+    <string name="csv_header_start">Hora inici</string>
+    <string name="csv_header_end">Hora fi</string>
+    <string name="csv_header_duration">Durada (h)</string>
+    <string name="csv_header_notes">Notes dia</string>
+    <string name="csv_header_total">TOTAL</string>
+</resources>
+
+
+--- FILE: app/src/main/res/values-es/strings.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoresFreelance</string>
+
+    <string name="nav_calendari">Calendario</string>
+    <string name="nav_resum">Resumen</string>
+    <string name="nav_new_record">Nuevo registro</string>
+
+    <string name="day_mon">L</string>
+    <string name="day_tue">M</string>
+    <string name="day_wed">X</string>
+    <string name="day_thu">J</string>
+    <string name="day_fri">V</string>
+    <string name="day_sat">S</string>
+    <string name="day_sun">D</string>
+
+    <string name="calendari_title">Calendario de trabajo</string>
+    <string name="calendari_empty">Aún no hay registros</string>
+
+    <string name="dia_detall_title">Detalle del día</string>
+    <string name="dia_detall_notes">Notas</string>
+    <string name="dia_detall_conceptes">Conceptos</string>
+    <string name="dia_detall_total_hours">Total de horas: %s</string>
+    <string name="dia_detall_add_concepte">Añadir concepto</string>
+    <string name="dia_detall_edit">Editar</string>
+    <string name="dia_detall_delete">Eliminar</string>
+
+    <string name="registre_title">Registrar horas</string>
+    <string name="registre_date">Fecha</string>
+    <string name="registre_notes">Notas (opcional)</string>
+    <string name="registre_concepte_name">Nombre del concepto</string>
+    <string name="registre_hora_inici">Hora de inicio</string>
+    <string name="registre_hora_fi">Hora de fin</string>
+    <string name="registre_duracio">Duración: %s</string>
+    <string name="registre_add_rang">Añadir rango horario</string>
+    <string name="registre_add_concepte">Añadir concepto</string>
+    <string name="registre_save">Guardar</string>
+    <string name="registre_cancel">Cancelar</string>
+    <string name="registre_error_concepte_empty">El nombre del concepto no puede estar vacío</string>
+    <string name="registre_error_no_rangs">Al menos un rango horario por concepto</string>
+    <string name="registre_error_hora_invalid">La hora de fin debe ser posterior a la de inicio</string>
+    <string name="registre_error_overlapping_ranges">Los rangos horarios se solapan para el mismo concepto</string>
+
+    <string name="resum_title">Resumen de horas</string>
+    <string name="resum_this_week">Esta semana</string>
+    <string name="resum_this_month">Este mes</string>
+    <string name="resum_last_month">Mes anterior</string>
+    <string name="resum_custom">Rango personalizado</string>
+    <string name="resum_total">Total: %s horas</string>
+    <string name="resum_export_csv">Exportar CSV</string>
+    <string name="resum_export_pdf">Exportar PDF</string>
+    <string name="resum_empty">No hay registros para este período</string>
+    <string name="resum_from">Desde</string>
+    <string name="resum_to">Hasta</string>
+    <string name="resum_summary_by_concept">Resumen por concepto</string>
+
+    <string name="common_save">Guardar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_add">Añadir</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="common_confirm_delete">¿Seguro que quieres eliminar?</string>
+    <string name="common_saved">Guardado correctamente</string>
+    <string name="common_deleted">Eliminado correctamente</string>
+    <string name="common_error">Se ha producido un error</string>
+    <string name="csv_header_date">Fecha</string>
+    <string name="csv_header_concept">Concepto</string>
+    <string name="csv_header_start">Hora inicio</string>
+    <string name="csv_header_end">Hora fin</string>
+    <string name="csv_header_duration">Duración (h)</string>
+    <string name="csv_header_notes">Notas día</string>
+    <string name="csv_header_total">TOTAL</string>
+</resources>
+
+
+--- FILE: app/src/main/res/values/strings.xml ---
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoresFreelance</string>
+
+    <!-- Navigation -->
+    <string name="nav_calendari">Calendar</string>
+    <string name="nav_resum">Summary</string>
+    <string name="nav_new_record">New Record</string>
+
+    <!-- Calendar days -->
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+
+    <!-- Calendari Screen -->
+    <string name="calendari_title">Work Calendar</string>
+    <string name="calendari_empty">No records yet</string>
+
+    <!-- Dia Detall Screen -->
+    <string name="dia_detall_title">Day Details</string>
+    <string name="dia_detall_notes">Notes</string>
+    <string name="dia_detall_conceptes">Concepts</string>
+    <string name="dia_detall_total_hours">Total Hours: %s</string>
+    <string name="dia_detall_add_concepte">Add Concept</string>
+    <string name="dia_detall_edit">Edit</string>
+    <string name="dia_detall_delete">Delete</string>
+
+    <!-- Registre Screen -->
+    <string name="registre_title">Record Hours</string>
+    <string name="registre_date">Date</string>
+    <string name="registre_notes">Notes (optional)</string>
+    <string name="registre_concepte_name">Concept Name</string>
+    <string name="registre_hora_inici">Start Time</string>
+    <string name="registre_hora_fi">End Time</string>
+    <string name="registre_duracio">Duration: %s</string>
+    <string name="registre_add_rang">Add Time Range</string>
+    <string name="registre_add_concepte">Add Concept</string>
+    <string name="registre_save">Save</string>
+    <string name="registre_cancel">Cancel</string>
+    <string name="registre_error_concepte_empty">Concept name cannot be empty</string>
+    <string name="registre_error_no_rangs">At least one time range per concept</string>
+    <string name="registre_error_hora_invalid">End time must be after start time</string>
+    <string name="registre_error_overlapping_ranges">Time ranges overlap for the same concept</string>
+
+    <!-- Resum Screen -->
+    <string name="resum_title">Hours Summary</string>
+    <string name="resum_this_week">This Week</string>
+    <string name="resum_this_month">This Month</string>
+    <string name="resum_last_month">Last Month</string>
+    <string name="resum_custom">Custom Range</string>
+    <string name="resum_total">Total: %s hours</string>
+    <string name="resum_export_csv">Export CSV</string>
+    <string name="resum_export_pdf">Export PDF</string>
+    <string name="resum_empty">No records for this period</string>
+    <string name="resum_from">From</string>
+    <string name="resum_to">To</string>
+    <string name="resum_summary_by_concept">Summary by Concept</string>
+
+    <!-- Common -->
+    <string name="common_save">Save</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_add">Add</string>
+    <string name="common_close">Close</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_confirm_delete">Are you sure you want to delete?</string>
+    <string name="common_saved">Saved successfully</string>
+    <string name="common_deleted">Deleted successfully</string>
+    <string name="common_error">An error occurred</string>
+    <string name="csv_header_date">Date</string>
+    <string name="csv_header_concept">Concept</string>
+    <string name="csv_header_start">Start Time</string>
+    <string name="csv_header_end">End Time</string>
+    <string name="csv_header_duration">Duration (h)</string>
+    <string name="csv_header_notes">Day Notes</string>
+    <string name="csv_header_total">TOTAL</string>
+</resources>
+
+

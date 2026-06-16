@@ -10,7 +10,7 @@ import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
@@ -22,7 +22,7 @@ class RegistreRepository @Inject constructor(
 ) {
     // Get all dias with concepts and time ranges
     fun getAllDiasWithDetails(): Flow<List<Dia>> {
-        return diaDao.getAllDias().mapLatest { diasEntity ->
+        return diaDao.getAllDias().map { diasEntity ->
             diasEntity.map { entity ->
                 Dia(
                     id = entity.id,
@@ -76,7 +76,7 @@ class RegistreRepository @Inject constructor(
     // Get dias within a date range with full details
     fun getDiasByDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<Dia>> {
         return diaDao.getDiasByDateRange(startDate.toEpochDay(), endDate.toEpochDay())
-            .mapLatest { diasEntity ->
+            .map { diasEntity ->
                 diasEntity.map { diaEntity ->
                     Dia(
                         id = diaEntity.id,
@@ -90,30 +90,37 @@ class RegistreRepository @Inject constructor(
 
     // Save or update a complete dia with conceptes and rangs horaris
     suspend fun saveDia(dia: Dia) {
-        // Insert or update the dia
+        // 1. Insert or update the dia
         val diaEntity = DiaEntity(
             id = dia.id,
             data = dia.data.toEpochDay(),
             notes = dia.notes
         )
-        val diaId = diaDao.insert(diaEntity)
-        val actualDiaId = if (dia.id > 0) dia.id else diaId
+        val actualDiaId = if (dia.id > 0) {
+            diaDao.update(diaEntity)
+            dia.id
+        } else {
+            diaDao.insert(diaEntity)
+        }
 
-        // Save conceptes
+        // 2. Clear existing relations to avoid duplicates and handle deletions
+        val existingConceptes = concepteDao.getByDiaIdSync(actualDiaId)
+        for (concepte in existingConceptes) {
+            concepteDao.delete(concepte) // Cascade will delete rangs horaris
+        }
+
+        // 3. Save new conceptes and their time ranges
         for (concepte in dia.conceptes) {
             val concepteEntity = ConcepteEntity(
-                id = concepte.id,
                 diaId = actualDiaId,
                 nom = concepte.nom
             )
             val concepteId = concepteDao.insert(concepteEntity)
-            val actualConcepteId = if (concepte.id > 0) concepte.id else concepteId
 
             // Save rangs horaris
             for (rangHorari in concepte.rangsHoraris) {
                 val rangEntity = RangHorariEntity(
-                    id = rangHorari.id,
-                    concepteId = actualConcepteId,
+                    concepteId = concepteId,
                     horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
                     horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
                 )

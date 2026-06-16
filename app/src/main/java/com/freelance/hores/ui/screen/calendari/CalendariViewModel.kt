@@ -8,6 +8,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -30,25 +33,23 @@ class CalendariViewModel @Inject constructor(
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
-        loadDias()
+        observeDias()
     }
 
-    fun loadDias() {
+    private fun observeDias() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            try {
-                val month = _currentMonth.value
-                val startDate = month.atDay(1)
-                val endDate = month.atEndOfMonth()
-                repository.getDiasByDateRange(startDate, endDate).collect { dias ->
-                    _dias.value = dias
+            _currentMonth
+                .flatMapLatest { month ->
+                    val startDate = month.atDay(1)
+                    val endDate = month.atEndOfMonth()
+                    repository.getDiasByDateRange(startDate, endDate)
+                        .onStart { _isLoading.value = true }
+                        .catch { e -> _error.value = e.message ?: "Error loading calendar" }
                 }
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Error loading calendar"
-            } finally {
-                _isLoading.value = false
-            }
+                .collect { dias ->
+                    _dias.value = dias
+                    _isLoading.value = false
+                }
         }
     }
 
@@ -58,7 +59,6 @@ class CalendariViewModel @Inject constructor(
 
     fun setCurrentMonth(yearMonth: YearMonth) {
         _currentMonth.value = yearMonth
-        loadDias()
     }
 
     fun nextMonth() {

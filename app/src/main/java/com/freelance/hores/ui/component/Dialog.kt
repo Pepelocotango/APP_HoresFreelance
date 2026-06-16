@@ -4,13 +4,15 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.freelance.hores.R
 
 @Composable
 fun ConfirmDialog(
     title: String,
     message: String,
-    confirmText: String = "Confirm",
-    dismissText: String = "Cancel",
+    confirmText: String = stringResource(R.string.common_confirm),
+    dismissText: String = stringResource(R.string.common_cancel),
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     showDialog: Boolean
@@ -39,7 +41,7 @@ fun ConfirmDialog(
 
 @Composable
 fun ErrorDialog(
-    title: String = "Error",
+    title: String = stringResource(R.string.common_error),
     message: String,
     onDismiss: () -> Unit,
     showDialog: Boolean
@@ -51,7 +53,7 @@ fun ErrorDialog(
             text = { Text(message) },
             confirmButton = {
                 Button(onClick = onDismiss) {
-                    Text("OK")
+                    Text(stringResource(R.string.common_close))
                 }
             }
         )

@@ -15,8 +15,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -40,6 +40,8 @@ import androidx.navigation.NavHostController
 import com.freelance.hores.R
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +59,7 @@ fun CalendariScreen(
                 title = { Text(stringResource(R.string.calendari_title)) },
                 navigationIcon = {
                     IconButton(onClick = { viewModel.previousMonth() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_cancel))
                     }
                 },
                 actions = {
@@ -65,7 +67,7 @@ fun CalendariScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                     }
                     IconButton(onClick = { navController.navigate("resum") }) {
-                        Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_resum))
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.nav_resum))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -95,7 +97,8 @@ fun CalendariScreen(
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Text(
-                        text = currentMonth.toString(),
+                        text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${currentMonth.year}",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -158,9 +161,13 @@ fun CalendarGrid(
 
         val firstDay = yearMonth.atDay(1)
         val lastDay = yearMonth.atEndOfMonth()
-        val firstDayOfWeek = firstDay.dayOfWeek.value
+        val firstDayOfWeek = firstDay.dayOfWeek.value // 1 (Mon) to 7 (Sun)
         val daysInMonth = lastDay.dayOfMonth
-        val totalCells = ((daysInMonth + firstDayOfWeek - 1 + 6) / 7) * 7
+        
+        // Adjust index to start Monday at 0
+        // If Monday is 1, then firstDayOfWeek - 1 is the number of empty cells
+        val emptyCellsBefore = firstDayOfWeek - 1
+        val totalCells = ((daysInMonth + emptyCellsBefore + 6) / 7) * 7
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
@@ -169,7 +176,7 @@ fun CalendarGrid(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(totalCells) { index ->
-                val dayOfMonth = index - firstDayOfWeek + 2
+                val dayOfMonth = index - emptyCellsBefore + 1
                 if (dayOfMonth in 1..daysInMonth) {
                     val date = yearMonth.atDay(dayOfMonth)
                     val hasRecord = date in diasWithRecords

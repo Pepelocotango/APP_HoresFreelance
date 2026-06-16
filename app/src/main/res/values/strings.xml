@@ -44,6 +44,7 @@
     <string name="registre_error_concepte_empty">Concept name cannot be empty</string>
     <string name="registre_error_no_rangs">At least one time range per concept</string>
     <string name="registre_error_hora_invalid">End time must be after start time</string>
+    <string name="registre_error_overlapping_ranges">Time ranges overlap for the same concept</string>
 
     <!-- Resum Screen -->
     <string name="resum_title">Hours Summary</string>
@@ -71,4 +72,11 @@
     <string name="common_saved">Saved successfully</string>
     <string name="common_deleted">Deleted successfully</string>
     <string name="common_error">An error occurred</string>
+    <string name="csv_header_date">Date</string>
+    <string name="csv_header_concept">Concept</string>
+    <string name="csv_header_start">Start Time</string>
+    <string name="csv_header_end">End Time</string>
+    <string name="csv_header_duration">Duration (h)</string>
+    <string name="csv_header_notes">Day Notes</string>
+    <string name="csv_header_total">TOTAL</string>
 </resources>

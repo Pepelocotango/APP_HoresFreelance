@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,6 +64,7 @@ fun RegistreScreen(
     initialDate: LocalDate? = null,
     viewModel: RegistreViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val formState by viewModel.formState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -94,9 +96,13 @@ fun RegistreScreen(
         }
     }
 
-    LaunchedEffect(formState.error) {
-        if (formState.error != null) {
+    LaunchedEffect(formState.errorResId, formState.error) {
+        if (formState.errorResId != null) {
+            snackbarHostState.showSnackbar(context.getString(formState.errorResId!!))
+            viewModel.clearError()
+        } else if (formState.error != null) {
             snackbarHostState.showSnackbar(formState.error ?: defaultErrorMessage)
+            viewModel.clearError()
         }
     }
 

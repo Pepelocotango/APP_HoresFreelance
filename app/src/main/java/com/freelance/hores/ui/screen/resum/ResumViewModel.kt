@@ -9,6 +9,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -28,57 +31,57 @@ class ResumViewModel @Inject constructor(
     private val repository: RegistreRepository,
     private val exportService: ExportService
 ) : ViewModel() {
+    private val _period = MutableStateFlow(Pair(LocalDate.now().minusWeeks(1), LocalDate.now()))
     private val _resumState = MutableStateFlow(ResumState())
     val resumState: StateFlow<ResumState> = _resumState.asStateFlow()
 
     init {
+        observePeriod()
         loadThisWeek()
+    }
+
+    private fun observePeriod() {
+        viewModelScope.launch {
+            _period
+                .flatMapLatest { (start, end) ->
+                    repository.getDiasByDateRange(start, end)
+                        .onStart { _resumState.value = _resumState.value.copy(isLoading = true, error = null) }
+                        .catch { e -> _resumState.value = _resumState.value.copy(isLoading = false, error = e.message ?: "An error occurred") }
+                }
+                .collect { dias ->
+                    _resumState.value = _resumState.value.copy(
+                        dias = dias,
+                        startDate = _period.value.first,
+                        endDate = _period.value.second,
+                        isLoading = false
+                    )
+                }
+        }
     }
 
     fun loadThisWeek() {
         val today = LocalDate.now()
         val monday = today.minusDays(today.dayOfWeek.value.toLong() - 1)
         val sunday = monday.plusDays(6)
-        loadPeriod(monday, sunday)
+        _period.value = Pair(monday, sunday)
     }
 
     fun loadThisMonth() {
         val today = LocalDate.now()
         val firstDay = today.withDayOfMonth(1)
         val lastDay = today.withDayOfMonth(today.lengthOfMonth())
-        loadPeriod(firstDay, lastDay)
+        _period.value = Pair(firstDay, lastDay)
     }
 
     fun loadLastMonth() {
         val today = LocalDate.now()
         val lastMonthLastDay = today.withDayOfMonth(1).minusDays(1)
         val lastMonthFirstDay = lastMonthLastDay.withDayOfMonth(1)
-        loadPeriod(lastMonthFirstDay, lastMonthLastDay)
+        _period.value = Pair(lastMonthFirstDay, lastMonthLastDay)
     }
 
     fun loadCustomPeriod(startDate: LocalDate, endDate: LocalDate) {
-        loadPeriod(startDate, endDate)
-    }
-
-    private fun loadPeriod(startDate: LocalDate, endDate: LocalDate) {
-        viewModelScope.launch {
-            _resumState.value = _resumState.value.copy(isLoading = true, error = null)
-            try {
-                repository.getDiasByDateRange(startDate, endDate).collect { dias ->
-                    _resumState.value = _resumState.value.copy(
-                        dias = dias,
-                        startDate = startDate,
-                        endDate = endDate,
-                        isLoading = false
-                    )
-                }
-            } catch (e: Exception) {
-                _resumState.value = _resumState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "An error occurred"
-                )
-            }
-        }
+        _period.value = Pair(startDate, endDate)
     }
 
     fun getTotalHoras(): Double {
@@ -95,13 +98,13 @@ class ResumViewModel @Inject constructor(
         return summary.toSortedMap()
     }
 
-    fun exportCsv() {
+    fun exportCsv(): android.content.Intent {
         val state = _resumState.value
-        exportService.exportCsv(state.dias, state.startDate, state.endDate)
+        return exportService.exportCsv(state.dias, state.startDate, state.endDate)
     }
 
-    fun exportPdf() {
+    fun exportPdf(): android.content.Intent {
         val state = _resumState.value
-        exportService.exportPdf(state.dias, state.startDate, state.endDate)
+        return exportService.exportPdf(state.dias, state.startDate, state.endDate)
     }
 }
