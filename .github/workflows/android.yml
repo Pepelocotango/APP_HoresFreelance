@@ -37,18 +37,24 @@ jobs:
       - name: Build release APK
         run: ./gradlew assembleRelease --stacktrace
 
+      - name: Rename Debug APK
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/app_hores-debug-C${{ github.run_number }}.apk
+
+      - name: Rename Release APK
+        run: mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app_hores-release-unsigned-C${{ github.run_number }}.apk
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: app_hores-debug-C${{ github.run_number }}
+          path: app/build/outputs/apk/debug/app_hores-debug-C${{ github.run_number }}.apk
           if-no-files-found: ignore
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-unsigned
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          name: app_hores-release-unsigned-C${{ github.run_number }}
+          path: app/build/outputs/apk/release/app_hores-release-unsigned-C${{ github.run_number }}.apk
           if-no-files-found: ignore
 
       - name: Upload test results
