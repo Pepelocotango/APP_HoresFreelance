@@ -48,4 +48,12 @@ object DatabaseModule {
     fun provideClientDao(database: AppDatabase): ClientDao {
         return database.clientDao()
     }
+
+    @Singleton
+    @Provides
+    fun provideSharedPreferences(
+        @ApplicationContext context: Context
+    ): android.content.SharedPreferences {
+        return context.getSharedPreferences("hores_prefs", Context.MODE_PRIVATE)
+    }
 }

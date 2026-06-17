@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.freelance.hores.ui.screen.calendari.CalendariScreen
 import com.freelance.hores.ui.screen.clients.ClientsScreen
 import com.freelance.hores.ui.screen.dia.DiaDetallScreen
+import com.freelance.hores.ui.screen.fitxar.FitxarScreen
 import com.freelance.hores.ui.screen.registre.RegistreScreen
 import com.freelance.hores.ui.screen.resum.ResumScreen
 import java.time.LocalDate
@@ -17,8 +18,12 @@ import java.time.LocalDate
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "calendari"
+        startDestination = "fitxar"
     ) {
+        composable("fitxar") {
+            FitxarScreen(navController = navController)
+        }
+
         composable("calendari") {
             CalendariScreen(navController = navController)
         }

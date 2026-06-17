@@ -1,7 +1,6 @@
 package com.freelance.hores.ui.util
 
 import java.time.LocalTime
-
 import com.freelance.hores.R
 
 object FormValidator {
@@ -31,6 +30,19 @@ object FormValidator {
         return when {
             count == 0 -> ValidationResult.Error(R.string.registre_error_no_rangs)
             else -> ValidationResult.Success
+        }
+    }
+
+    /**
+     * Arrodoneix un LocalTime al quart d'hora més proper (00, 15, 30, 45)
+     */
+    fun roundToNearest15Minutes(time: LocalTime): LocalTime {
+        val minutes = time.minute
+        val roundedMinutes = ((minutes + 7) / 15) * 15
+        return if (roundedMinutes == 60) {
+            time.plusHours(1).withMinute(0).withSecond(0).withNano(0)
+        } else {
+            time.withMinute(roundedMinutes).withSecond(0).withNano(0)
         }
     }
 }
