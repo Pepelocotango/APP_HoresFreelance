@@ -403,7 +403,7 @@ fun ConcepteFormItem(
                 expanded = expandedEstat,
                 onDismissRequest = { expandedEstat = false }
             ) {
-                EstatFacturacio.values().forEach { estat ->
+                EstatFacturacio.entries.forEach { estat ->
                     DropdownMenuItem(
                         text = { Text(estat.name) },
                         onClick = {

@@ -44,7 +44,7 @@ fun CalendariScreen(
     val backupService = remember { BackupService(context) }
     var showBackupDialog by remember { mutableStateOf(false) }
 
-    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-sqlite3")) { uri ->
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         uri?.let {
             context.contentResolver.openOutputStream(it)?.use { output ->
                 val backupFile = backupService.exportDatabase()
@@ -70,7 +70,7 @@ fun CalendariScreen(
             text = { Text("Gestió de la base de dades local.") },
             confirmButton = {
                 TextButton(onClick = { saveLauncher.launch("hores_backup.db"); showBackupDialog = false }) { Text("Exportar") }
-                TextButton(onClick = { loadLauncher.launch(arrayOf("application/x-sqlite3")); showBackupDialog = false }) { Text("Importar") }
+                TextButton(onClick = { loadLauncher.launch(arrayOf("*/*")); showBackupDialog = false }) { Text("Importar") }
             }
         )
     }

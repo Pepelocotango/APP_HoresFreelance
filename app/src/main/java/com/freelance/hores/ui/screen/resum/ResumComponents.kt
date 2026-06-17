@@ -25,7 +25,7 @@ fun FilterFacturacio(
             onClick = { onEstatSelected(null) },
             label = { Text("Tots") }
         )
-        EstatFacturacio.values().forEach { estat ->
+        EstatFacturacio.entries.forEach { estat ->
             FilterChip(
                 selected = selectedEstat == estat,
                 onClick = { onEstatSelected(estat) },

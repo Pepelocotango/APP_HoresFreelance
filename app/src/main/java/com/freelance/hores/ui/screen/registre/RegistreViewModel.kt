@@ -209,57 +209,54 @@ class RegistreViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _formState.value
             
-            // 1. Validació bàsica de conceptes
+            // 1. Validació general de quantitat de conceptes
             val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
             if (countValidation is ValidationResult.Error) {
                 _formState.value = state.copy(errorResId = countValidation.resId)
                 return@launch
             }
 
+            // 2. Validacions individuals de cada concepte i els seus rangs
             for (concepte in state.conceptes) {
-                // 2. Validació nom concepte
                 val nameValidation = FormValidator.validateConcepteName(concepte.nom)
                 if (nameValidation is ValidationResult.Error) {
                     _formState.value = state.copy(errorResId = nameValidation.resId)
                     return@launch
                 }
 
-                // 3. Validació rangs horaris
                 val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
                 if (rangsCountValidation is ValidationResult.Error) {
                     _formState.value = state.copy(errorResId = rangsCountValidation.resId)
                     return@launch
                 }
                 
-                // Sort ranges by start time to check for overlaps
-                val sortedRangs = concepte.rangsHoraris.sortedBy { it.horaInici }
-                for (i in sortedRangs.indices) {
-                    val current = sortedRangs[i]
-                    
-                    // 4. Validació hora inici < hora fi
-                    val rangeValidation = FormValidator.validateTimeRange(current.horaInici, current.horaFi)
+                for (rang in concepte.rangsHoraris) {
+                    val rangeValidation = FormValidator.validateTimeRange(rang.horaInici, rang.horaFi)
                     if (rangeValidation is ValidationResult.Error) {
                         _formState.value = state.copy(errorResId = rangeValidation.resId)
                         return@launch
                     }
-
-                    // 5. Validació solapaments (entre tots els conceptes del dia)
-                    val totsElsRangs = state.conceptes.flatMap { concepte ->
-                        concepte.rangsHoraris.map { it to concepte.nom }
-                    }.sortedBy { it.first.horaInici }
-
-                    for (i in 1 until totsElsRangs.size) {
-                        val current = totsElsRangs[i].first
-                        val previous = totsElsRangs[i - 1].first
-
-                        if (current.horaInici < previous.horaFi) {
-                            _formState.value = state.copy(error = "Solapament horari entre: ${totsElsRangs[i-1].second} i ${totsElsRangs[i].second}")
-                            return@launch
-                        }
-                    }
                 }
             }
 
+            // 3. Validació global de solapaments horaris del dia
+            val totsElsRangs = state.conceptes.flatMap { concepte ->
+                concepte.rangsHoraris.map { it to concepte.nom }
+            }.sortedBy { it.first.horaInici }
+
+            for (idx in 1 until totsElsRangs.size) {
+                val currentRang = totsElsRangs[idx].first
+                val previousRang = totsElsRangs[idx - 1].first
+
+                if (currentRang.horaInici < previousRang.horaFi) {
+                    _formState.value = state.copy(
+                        error = "Solapament horari entre: ${totsElsRangs[idx - 1].second} i ${totsElsRangs[idx].second}"
+                    )
+                    return@launch
+                }
+            }
+
+            // 4. Flux de desat de les dades
             _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
             try {
                 val conceptesForSave = state.conceptes.map { concepteForm ->

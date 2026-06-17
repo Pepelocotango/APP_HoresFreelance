@@ -949,6 +949,8 @@ class BackupService @Inject constructor(
 }
 package com.freelance.hores.data.repository
 
+import androidx.room.withTransaction
+import com.freelance.hores.data.db.AppDatabase
 import com.freelance.hores.data.db.dao.ClientDao
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
@@ -968,6 +970,7 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 class RegistreRepository @Inject constructor(
+    private val database: AppDatabase,
     private val diaDao: DiaDao,
     private val concepteDao: ConcepteDao,
     private val rangHorariDao: RangHorariDao,
@@ -1065,46 +1068,48 @@ class RegistreRepository @Inject constructor(
 
     // Save or update a complete dia with conceptes and rangs horaris
     suspend fun saveDia(dia: Dia) {
-        // 1. Insert or update the dia
-        val diaEntity = DiaEntity(
-            id = dia.id,
-            data = dia.data.toEpochDay(),
-            notes = dia.notes
-        )
-        val actualDiaId = if (dia.id > 0) {
-            diaDao.update(diaEntity)
-            dia.id
-        } else {
-            diaDao.insert(diaEntity)
-        }
-
-        // 2. Clear existing relations to avoid duplicates and handle deletions
-        val existingConceptes = concepteDao.getByDiaIdWithClientSync(actualDiaId)
-        for (concepteData in existingConceptes) {
-            concepteDao.delete(concepteData.concepte) // Cascade will delete rangs horaris
-        }
-
-        // 3. Save new conceptes and their time ranges
-        for (concepte in dia.conceptes) {
-            val concepteEntity = ConcepteEntity(
-                diaId = actualDiaId,
-                clientId = concepte.clientId,
-                nom = concepte.nom,
-                preuHora = concepte.preuHora,
-                estat = concepte.estat,
-                despeses = concepte.despeses,
-                despesesNotes = concepte.despesesNotes
+        database.withTransaction {
+            // 1. Insert or update the dia
+            val diaEntity = DiaEntity(
+                id = dia.id,
+                data = dia.data.toEpochDay(),
+                notes = dia.notes
             )
-            val concepteId = concepteDao.insert(concepteEntity)
+            val actualDiaId = if (dia.id > 0) {
+                diaDao.update(diaEntity)
+                dia.id
+            } else {
+                diaDao.insert(diaEntity)
+            }
 
-            // Save rangs horaris
-            for (rangHorari in concepte.rangsHoraris) {
-                val rangEntity = RangHorariEntity(
-                    concepteId = concepteId,
-                    horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
-                    horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+            // 2. Clear existing relations to avoid duplicates and handle deletions
+            val existingConceptes = concepteDao.getByDiaIdWithClientSync(actualDiaId)
+            for (concepteData in existingConceptes) {
+                concepteDao.delete(concepteData.concepte) // Cascade will delete rangs horaris
+            }
+
+            // 3. Save new conceptes and their time ranges
+            for (concepte in dia.conceptes) {
+                val concepteEntity = ConcepteEntity(
+                    diaId = actualDiaId,
+                    clientId = concepte.clientId,
+                    nom = concepte.nom,
+                    preuHora = concepte.preuHora,
+                    estat = concepte.estat,
+                    despeses = concepte.despeses,
+                    despesesNotes = concepte.despesesNotes
                 )
-                rangHorariDao.insert(rangEntity)
+                val concepteId = concepteDao.insert(concepteEntity)
+
+                // Save rangs horaris
+                for (rangHorari in concepte.rangsHoraris) {
+                    val rangEntity = RangHorariEntity(
+                        concepteId = concepteId,
+                        horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
+                        horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+                    )
+                    rangHorariDao.insert(rangEntity)
+                }
             }
         }
     }
@@ -1331,26 +1336,9 @@ package com.freelance.hores.data.db
 
 import androidx.room.TypeConverter
 import com.freelance.hores.data.db.entity.EstatFacturacio
-import java.time.LocalDate
-import java.time.LocalTime
 
 // TypeConverters for Room database
 class Converters {
-    @TypeConverter
-    fun fromEpochDayToLocalDate(epochDay: Long): LocalDate {
-        return LocalDate.ofEpochDay(epochDay)
-    }
-
-    @TypeConverter
-    fun localDateToEpochDay(date: LocalDate): Long {
-        return date.toEpochDay()
-    }
-
-    @TypeConverter
-    fun fromSecondsOfDayToLocalTime(secondsOfDay: Long): LocalTime {
-        return LocalTime.ofSecondOfDay(secondsOfDay)
-    }
-
     @TypeConverter
     fun fromEstatFacturacio(estat: EstatFacturacio): String {
         return estat.name
@@ -2182,57 +2170,54 @@ class RegistreViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _formState.value
             
-            // 1. Validació bàsica de conceptes
+            // 1. Validació general de quantitat de conceptes
             val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
             if (countValidation is ValidationResult.Error) {
                 _formState.value = state.copy(errorResId = countValidation.resId)
                 return@launch
             }
 
+            // 2. Validacions individuals de cada concepte i els seus rangs
             for (concepte in state.conceptes) {
-                // 2. Validació nom concepte
                 val nameValidation = FormValidator.validateConcepteName(concepte.nom)
                 if (nameValidation is ValidationResult.Error) {
                     _formState.value = state.copy(errorResId = nameValidation.resId)
                     return@launch
                 }
 
-                // 3. Validació rangs horaris
                 val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
                 if (rangsCountValidation is ValidationResult.Error) {
                     _formState.value = state.copy(errorResId = rangsCountValidation.resId)
                     return@launch
                 }
                 
-                // Sort ranges by start time to check for overlaps
-                val sortedRangs = concepte.rangsHoraris.sortedBy { it.horaInici }
-                for (i in sortedRangs.indices) {
-                    val current = sortedRangs[i]
-                    
-                    // 4. Validació hora inici < hora fi
-                    val rangeValidation = FormValidator.validateTimeRange(current.horaInici, current.horaFi)
+                for (rang in concepte.rangsHoraris) {
+                    val rangeValidation = FormValidator.validateTimeRange(rang.horaInici, rang.horaFi)
                     if (rangeValidation is ValidationResult.Error) {
                         _formState.value = state.copy(errorResId = rangeValidation.resId)
                         return@launch
                     }
-
-                    // 5. Validació solapaments (entre tots els conceptes del dia)
-                    val totsElsRangs = state.conceptes.flatMap { concepte ->
-                        concepte.rangsHoraris.map { it to concepte.nom }
-                    }.sortedBy { it.first.horaInici }
-
-                    for (i in 1 until totsElsRangs.size) {
-                        val current = totsElsRangs[i].first
-                        val previous = totsElsRangs[i - 1].first
-
-                        if (current.horaInici < previous.horaFi) {
-                            _formState.value = state.copy(error = "Solapament horari entre: ${totsElsRangs[i-1].second} i ${totsElsRangs[i].second}")
-                            return@launch
-                        }
-                    }
                 }
             }
 
+            // 3. Validació global de solapaments horaris del dia
+            val totsElsRangs = state.conceptes.flatMap { concepte ->
+                concepte.rangsHoraris.map { it to concepte.nom }
+            }.sortedBy { it.first.horaInici }
+
+            for (idx in 1 until totsElsRangs.size) {
+                val currentRang = totsElsRangs[idx].first
+                val previousRang = totsElsRangs[idx - 1].first
+
+                if (currentRang.horaInici < previousRang.horaFi) {
+                    _formState.value = state.copy(
+                        error = "Solapament horari entre: ${totsElsRangs[idx - 1].second} i ${totsElsRangs[idx].second}"
+                    )
+                    return@launch
+                }
+            }
+
+            // 4. Flux de desat de les dades
             _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
             try {
                 val conceptesForSave = state.conceptes.map { concepteForm ->
@@ -2726,7 +2711,7 @@ fun ConcepteFormItem(
                 expanded = expandedEstat,
                 onDismissRequest = { expandedEstat = false }
             ) {
-                EstatFacturacio.values().forEach { estat ->
+                EstatFacturacio.entries.forEach { estat ->
                     DropdownMenuItem(
                         text = { Text(estat.name) },
                         onClick = {
@@ -2970,7 +2955,7 @@ fun CalendariScreen(
     val backupService = remember { BackupService(context) }
     var showBackupDialog by remember { mutableStateOf(false) }
 
-    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-sqlite3")) { uri ->
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         uri?.let {
             context.contentResolver.openOutputStream(it)?.use { output ->
                 val backupFile = backupService.exportDatabase()
@@ -2996,7 +2981,7 @@ fun CalendariScreen(
             text = { Text("Gestió de la base de dades local.") },
             confirmButton = {
                 TextButton(onClick = { saveLauncher.launch("hores_backup.db"); showBackupDialog = false }) { Text("Exportar") }
-                TextButton(onClick = { loadLauncher.launch(arrayOf("application/x-sqlite3")); showBackupDialog = false }) { Text("Importar") }
+                TextButton(onClick = { loadLauncher.launch(arrayOf("*/*")); showBackupDialog = false }) { Text("Importar") }
             }
         )
     }
@@ -3742,7 +3727,7 @@ fun FilterFacturacio(
             onClick = { onEstatSelected(null) },
             label = { Text("Tots") }
         )
-        EstatFacturacio.values().forEach { estat ->
+        EstatFacturacio.entries.forEach { estat ->
             FilterChip(
                 selected = selectedEstat == estat,
                 onClick = { onEstatSelected(estat) },
@@ -4104,52 +4089,6 @@ fun ErrorDialog(
                 }
             }
         )
-    }
-}
-package com.freelance.hores.ui.component
-
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import kotlinx.coroutines.launch
-
-@Composable
-fun ErrorSnackbarEffect(
-    errorMessage: String?,
-    snackbarHostState: SnackbarHostState,
-    onErrorDismissed: () -> Unit = {}
-) {
-    LaunchedEffect(errorMessage) {
-        if (errorMessage != null) {
-            snackbarHostState.showSnackbar(
-                message = errorMessage,
-                duration = SnackbarDuration.Short
-            )
-            onErrorDismissed()
-        }
-    }
-}
-
-@Composable
-fun SuccessSnackbarEffect(
-    isSuccess: Boolean,
-    snackbarHostState: SnackbarHostState,
-    message: String = "Saved successfully",
-    onDismissed: () -> Unit = {}
-) {
-    LaunchedEffect(isSuccess) {
-        if (isSuccess) {
-            val result = snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
-            )
-            if (result == SnackbarResult.Dismissed) {
-                onDismissed()
-            }
-        }
     }
 }
 package com.freelance.hores.ui.component

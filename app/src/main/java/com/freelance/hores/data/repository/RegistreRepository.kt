@@ -1,5 +1,7 @@
 package com.freelance.hores.data.repository
 
+import androidx.room.withTransaction
+import com.freelance.hores.data.db.AppDatabase
 import com.freelance.hores.data.db.dao.ClientDao
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
@@ -19,6 +21,7 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 class RegistreRepository @Inject constructor(
+    private val database: AppDatabase,
     private val diaDao: DiaDao,
     private val concepteDao: ConcepteDao,
     private val rangHorariDao: RangHorariDao,
@@ -116,46 +119,48 @@ class RegistreRepository @Inject constructor(
 
     // Save or update a complete dia with conceptes and rangs horaris
     suspend fun saveDia(dia: Dia) {
-        // 1. Insert or update the dia
-        val diaEntity = DiaEntity(
-            id = dia.id,
-            data = dia.data.toEpochDay(),
-            notes = dia.notes
-        )
-        val actualDiaId = if (dia.id > 0) {
-            diaDao.update(diaEntity)
-            dia.id
-        } else {
-            diaDao.insert(diaEntity)
-        }
-
-        // 2. Clear existing relations to avoid duplicates and handle deletions
-        val existingConceptes = concepteDao.getByDiaIdWithClientSync(actualDiaId)
-        for (concepteData in existingConceptes) {
-            concepteDao.delete(concepteData.concepte) // Cascade will delete rangs horaris
-        }
-
-        // 3. Save new conceptes and their time ranges
-        for (concepte in dia.conceptes) {
-            val concepteEntity = ConcepteEntity(
-                diaId = actualDiaId,
-                clientId = concepte.clientId,
-                nom = concepte.nom,
-                preuHora = concepte.preuHora,
-                estat = concepte.estat,
-                despeses = concepte.despeses,
-                despesesNotes = concepte.despesesNotes
+        database.withTransaction {
+            // 1. Insert or update the dia
+            val diaEntity = DiaEntity(
+                id = dia.id,
+                data = dia.data.toEpochDay(),
+                notes = dia.notes
             )
-            val concepteId = concepteDao.insert(concepteEntity)
+            val actualDiaId = if (dia.id > 0) {
+                diaDao.update(diaEntity)
+                dia.id
+            } else {
+                diaDao.insert(diaEntity)
+            }
 
-            // Save rangs horaris
-            for (rangHorari in concepte.rangsHoraris) {
-                val rangEntity = RangHorariEntity(
-                    concepteId = concepteId,
-                    horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
-                    horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+            // 2. Clear existing relations to avoid duplicates and handle deletions
+            val existingConceptes = concepteDao.getByDiaIdWithClientSync(actualDiaId)
+            for (concepteData in existingConceptes) {
+                concepteDao.delete(concepteData.concepte) // Cascade will delete rangs horaris
+            }
+
+            // 3. Save new conceptes and their time ranges
+            for (concepte in dia.conceptes) {
+                val concepteEntity = ConcepteEntity(
+                    diaId = actualDiaId,
+                    clientId = concepte.clientId,
+                    nom = concepte.nom,
+                    preuHora = concepte.preuHora,
+                    estat = concepte.estat,
+                    despeses = concepte.despeses,
+                    despesesNotes = concepte.despesesNotes
                 )
-                rangHorariDao.insert(rangEntity)
+                val concepteId = concepteDao.insert(concepteEntity)
+
+                // Save rangs horaris
+                for (rangHorari in concepte.rangsHoraris) {
+                    val rangEntity = RangHorariEntity(
+                        concepteId = concepteId,
+                        horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
+                        horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+                    )
+                    rangHorariDao.insert(rangEntity)
+                }
             }
         }
     }
