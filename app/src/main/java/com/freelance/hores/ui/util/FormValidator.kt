@@ -13,10 +13,9 @@ object FormValidator {
     }
 
     fun validateTimeRange(startTime: LocalTime, endTime: LocalTime): ValidationResult {
-        return when {
-            endTime <= startTime -> ValidationResult.Error(R.string.registre_error_hora_invalid)
-            else -> ValidationResult.Success
-        }
+        // En cas de creuament de mitjanit, l'hora de fi és menor que la d'inici,
+        // la qual cosa és vàlida en el context d'aquesta aplicació.
+        return ValidationResult.Success
     }
 
     fun validateConceptesCount(count: Int): ValidationResult {

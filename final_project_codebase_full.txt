@@ -493,14 +493,21 @@ data class RangHorari(
     val horaFi: LocalTime
 ) {
     fun getDuracionaEnHoras(): Double {
-        val minutsTotal = (horaFi.toSecondOfDay() - horaInici.toSecondOfDay()) / 60
-        return minutsTotal / 60.0
+        var seconds = (horaFi.toSecondOfDay() - horaInici.toSecondOfDay()).toLong()
+        if (seconds < 0) {
+            seconds += 24 * 3600 // Afegeix 24 hores si creua la mitjanit
+        }
+        return seconds / 3600.0
     }
 
     fun getDuracionaFormatada(): String {
-        val minutsTotal = (horaFi.toSecondOfDay() - horaInici.toSecondOfDay()) / 60
-        val hores = minutsTotal / 60
-        val minuts = minutsTotal % 60
+        var seconds = (horaFi.toSecondOfDay() - horaInici.toSecondOfDay()).toLong()
+        if (seconds < 0) {
+            seconds += 24 * 3600
+        }
+        val minutes = seconds / 60
+        val hores = minutes / 60
+        val minuts = minutes % 60
         return if (hores > 0) {
             "${hores}h ${minuts}m"
         } else {
@@ -1067,8 +1074,8 @@ class RegistreRepository @Inject constructor(
     }
 
     // Save or update a complete dia with conceptes and rangs horaris
-    suspend fun saveDia(dia: Dia) {
-        database.withTransaction {
+    suspend fun saveDia(dia: Dia): Long {
+        return database.withTransaction {
             // 1. Insert or update the dia
             val diaEntity = DiaEntity(
                 id = dia.id,
@@ -1111,6 +1118,7 @@ class RegistreRepository @Inject constructor(
                     rangHorariDao.insert(rangEntity)
                 }
             }
+            actualDiaId
         }
     }
 
@@ -1750,6 +1758,7 @@ fun DiaDetallScreen(
             )
         }
     ) { paddingValues ->
+        val localDia = dia // Assignació segura
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -1759,7 +1768,7 @@ fun DiaDetallScreen(
             ) {
                 CircularProgressIndicator()
             }
-        } else if (dia != null) {
+        } else if (localDia != null) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1770,12 +1779,12 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = dia!!.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
+                            text = localDia.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
                             style = MaterialTheme.typography.headlineSmall
                         )
-                        if (dia!!.notes.isNotEmpty()) {
+                        if (localDia.notes.isNotEmpty()) {
                             Text(
-                                text = "${stringResource(R.string.dia_detall_notes)}: ${dia!!.notes}",
+                                text = "${stringResource(R.string.dia_detall_notes)}: ${localDia.notes}",
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
@@ -1786,22 +1795,22 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", dia!!.getTotalHoras())),
+                            text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", localDia.getTotalHoras())),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Total Hores: ${String.format("%.2f", dia!!.getTotalDinersHores())} € | Despeses: ${String.format("%.2f", dia!!.getTotalDinersDespeses())} €",
+                            text = "Total Hores: ${String.format("%.2f", localDia.getTotalDinersHores())} € | Despeses: ${String.format("%.2f", localDia.getTotalDinersDespeses())} €",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
 
-                items(dia!!.conceptes) { concepte ->
+                items(localDia.conceptes, key = { it.id }) { concepte ->
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         ConcepteCard(
                             concepte = concepte,
-                            onEdit = { navController.navigate("registre?diaId=${dia!!.id}") },
+                            onEdit = { navController.navigate("registre?diaId=${localDia.id}") },
                             onDelete = { viewModel.deleteConcepte(concepte) }
                         )
                         FilterChip(
@@ -1832,7 +1841,7 @@ fun DiaDetallScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { navController.navigate("registre?diaId=${dia!!.id}") },
+                            onClick = { navController.navigate("registre?diaId=${localDia.id}") },
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = null)
@@ -1849,7 +1858,7 @@ fun DiaDetallScreen(
                 }
             }
 
-            if (showDeleteDialog && dia != null) {
+            if (showDeleteDialog) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
                     title = { Text(stringResource(R.string.common_confirm)) },
@@ -2294,11 +2303,15 @@ class RegistreViewModel @Inject constructor(
                         }
                     )
                 }
-                _formState.value = RegistreFormState(
+                // Modificat per fer un .copy() i evitar que es purgui la llista de clients
+                _formState.value = _formState.value.copy(
                     diaId = dia.id,
                     data = dia.data,
                     notes = dia.notes,
-                    conceptes = concepteForms
+                    conceptes = concepteForms,
+                    success = false,
+                    error = null,
+                    errorResId = null
                 )
             } catch (e: Exception) {
                 _formState.value = _formState.value.copy(error = e.message)
@@ -4168,10 +4181,9 @@ object FormValidator {
     }
 
     fun validateTimeRange(startTime: LocalTime, endTime: LocalTime): ValidationResult {
-        return when {
-            endTime <= startTime -> ValidationResult.Error(R.string.registre_error_hora_invalid)
-            else -> ValidationResult.Success
-        }
+        // En cas de creuament de mitjanit, l'hora de fi és menor que la d'inici,
+        // la qual cosa és vàlida en el context d'aquesta aplicació.
+        return ValidationResult.Success
     }
 
     fun validateConceptesCount(count: Int): ValidationResult {

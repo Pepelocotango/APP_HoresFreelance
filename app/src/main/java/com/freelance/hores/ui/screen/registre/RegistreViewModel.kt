@@ -333,11 +333,15 @@ class RegistreViewModel @Inject constructor(
                         }
                     )
                 }
-                _formState.value = RegistreFormState(
+                // Modificat per fer un .copy() i evitar que es purgui la llista de clients
+                _formState.value = _formState.value.copy(
                     diaId = dia.id,
                     data = dia.data,
                     notes = dia.notes,
-                    conceptes = concepteForms
+                    conceptes = concepteForms,
+                    success = false,
+                    error = null,
+                    errorResId = null
                 )
             } catch (e: Exception) {
                 _formState.value = _formState.value.copy(error = e.message)

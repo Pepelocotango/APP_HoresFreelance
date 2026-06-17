@@ -77,6 +77,7 @@ fun DiaDetallScreen(
             )
         }
     ) { paddingValues ->
+        val localDia = dia // Assignació segura
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -86,7 +87,7 @@ fun DiaDetallScreen(
             ) {
                 CircularProgressIndicator()
             }
-        } else if (dia != null) {
+        } else if (localDia != null) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -97,12 +98,12 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = dia!!.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
+                            text = localDia.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
                             style = MaterialTheme.typography.headlineSmall
                         )
-                        if (dia!!.notes.isNotEmpty()) {
+                        if (localDia.notes.isNotEmpty()) {
                             Text(
-                                text = "${stringResource(R.string.dia_detall_notes)}: ${dia!!.notes}",
+                                text = "${stringResource(R.string.dia_detall_notes)}: ${localDia.notes}",
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
@@ -113,22 +114,22 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", dia!!.getTotalHoras())),
+                            text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", localDia.getTotalHoras())),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Total Hores: ${String.format("%.2f", dia!!.getTotalDinersHores())} € | Despeses: ${String.format("%.2f", dia!!.getTotalDinersDespeses())} €",
+                            text = "Total Hores: ${String.format("%.2f", localDia.getTotalDinersHores())} € | Despeses: ${String.format("%.2f", localDia.getTotalDinersDespeses())} €",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
 
-                items(dia!!.conceptes) { concepte ->
+                items(localDia.conceptes, key = { it.id }) { concepte ->
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         ConcepteCard(
                             concepte = concepte,
-                            onEdit = { navController.navigate("registre?diaId=${dia!!.id}") },
+                            onEdit = { navController.navigate("registre?diaId=${localDia.id}") },
                             onDelete = { viewModel.deleteConcepte(concepte) }
                         )
                         FilterChip(
@@ -159,7 +160,7 @@ fun DiaDetallScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { navController.navigate("registre?diaId=${dia!!.id}") },
+                            onClick = { navController.navigate("registre?diaId=${localDia.id}") },
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = null)
@@ -176,7 +177,7 @@ fun DiaDetallScreen(
                 }
             }
 
-            if (showDeleteDialog && dia != null) {
+            if (showDeleteDialog) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
                     title = { Text(stringResource(R.string.common_confirm)) },

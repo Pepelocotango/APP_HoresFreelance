@@ -118,8 +118,8 @@ class RegistreRepository @Inject constructor(
     }
 
     // Save or update a complete dia with conceptes and rangs horaris
-    suspend fun saveDia(dia: Dia) {
-        database.withTransaction {
+    suspend fun saveDia(dia: Dia): Long {
+        return database.withTransaction {
             // 1. Insert or update the dia
             val diaEntity = DiaEntity(
                 id = dia.id,
@@ -162,6 +162,7 @@ class RegistreRepository @Inject constructor(
                     rangHorariDao.insert(rangEntity)
                 }
             }
+            actualDiaId
         }
     }
 
