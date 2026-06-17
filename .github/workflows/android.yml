@@ -81,6 +81,9 @@ jobs:
       - name: Grant execute permission
         run: chmod +x ./gradlew
 
+      - name: Pre-install cleanup
+        run: rm -rf /usr/local/lib/android/sdk/emulator
+
       - name: Run instrumented tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
