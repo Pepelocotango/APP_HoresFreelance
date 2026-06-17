@@ -32,25 +32,28 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
+                val showBottomBar = currentDestination?.route in listOf("fitxar", "calendari", "resum", "clients")
 
                 Scaffold(
                     bottomBar = {
-                        NavigationBar {
-                            bottomNavScreens.forEach { screen ->
-                                NavigationBarItem(
-                                    icon = { Icon(screen.icon, contentDescription = null) },
-                                    label = { Text(screen.title) },
-                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                    onClick = {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
+                        if (showBottomBar) {
+                            NavigationBar {
+                                bottomNavScreens.forEach { screen ->
+                                    NavigationBarItem(
+                                        icon = { Icon(screen.icon, contentDescription = null) },
+                                        label = { Text(screen.title) },
+                                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                        onClick = {
+                                            navController.navigate(screen.route) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
                                             }
-                                            launchSingleTop = true
-                                            restoreState = true
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
                     }

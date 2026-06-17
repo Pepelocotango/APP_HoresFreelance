@@ -69,9 +69,13 @@ class FitxarViewModel @Inject constructor(
             val existentDia = repository.getDiaByDate(today)
             val diaId = existentDia?.id ?: 0L
 
+            // Comptem quants bolos "Bolo sense títol" ja té aquest dia per posar l'índex correcte
+            val count = existentDia?.conceptes?.count { it.nom.startsWith("Bolo sense títol") } ?: 0
+            val nouNom = "Bolo sense títol ${count + 1}"
+
             val nouConcepte = Concepte(
                 diaId = diaId,
-                nom = "Bolo sense títol",
+                nom = nouNom,
                 preuHora = 0.0,
                 estat = EstatFacturacio.PENDENT,
                 rangsHoraris = listOf(

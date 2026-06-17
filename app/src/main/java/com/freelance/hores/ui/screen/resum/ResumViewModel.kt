@@ -4,21 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.export.ExportService
 import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.Dia
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
 data class ResumState(
     val dias: List<Dia> = emptyList(),
+    val clients: List<Client> = emptyList(),
     val startDate: LocalDate = LocalDate.now().minusWeeks(1),
     val endDate: LocalDate = LocalDate.now(),
     val isLoading: Boolean = false,
@@ -37,7 +34,16 @@ class ResumViewModel @Inject constructor(
 
     init {
         observePeriod()
+        observeClients()
         loadThisWeek()
+    }
+
+    private fun observeClients() {
+        viewModelScope.launch {
+            repository.getClients().collect { clients ->
+                _resumState.value = _resumState.value.copy(clients = clients)
+            }
+        }
     }
 
     private fun observePeriod() {

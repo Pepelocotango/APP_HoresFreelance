@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -200,6 +201,15 @@ fun RegistreScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                Button(
+                    onClick = { viewModel.saveDia() },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                ) {
+                    Text("Desa ràpidament")
+                }
+            }
+            item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.registre_date), style = MaterialTheme.typography.labelMedium)
                     Box(
@@ -349,6 +359,25 @@ fun ConcepteFormItem(
             }
         }
 
+        // Rangs horaris a dalt
+        concepte.rangsHoraris.forEachIndexed { rangIndex, rang ->
+            RangHorariFormItem(
+                rang = rang,
+                onUpdateInici = { onUpdateHoraInici(rangIndex, it) },
+                onUpdateFi = { onUpdateHoraFi(rangIndex, it) },
+                onDelete = { onRemoveRang(rangIndex) }
+            )
+        }
+
+        OutlinedButton(
+            onClick = onAddRang,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Text(stringResource(R.string.registre_add_rang))
+        }
+
+        // Dropdowns i preus
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
@@ -438,29 +467,13 @@ fun ConcepteFormItem(
             )
         }
         
+        // Notes de despeses a baix
         OutlinedTextField(
             value = concepte.despesesNotes,
             onValueChange = onDespesesNotesChange,
             label = { Text("Notes despeses") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        concepte.rangsHoraris.forEachIndexed { rangIndex, rang ->
-            RangHorariFormItem(
-                rang = rang,
-                onUpdateInici = { onUpdateHoraInici(rangIndex, it) },
-                onUpdateFi = { onUpdateHoraFi(rangIndex, it) },
-                onDelete = { onRemoveRang(rangIndex) }
-            )
-        }
-
-        OutlinedButton(
-            onClick = onAddRang,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Text(stringResource(R.string.registre_add_rang))
-        }
     }
 }
 

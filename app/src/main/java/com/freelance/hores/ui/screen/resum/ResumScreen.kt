@@ -2,38 +2,13 @@ package com.freelance.hores.ui.screen.resum
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,7 +21,6 @@ import com.freelance.hores.R
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.DiaCard
 import java.time.Instant
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -60,6 +34,10 @@ fun ResumScreen(
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
     var selectedEstat by remember { mutableStateOf<EstatFacturacio?>(null) }
+    var selectedClient by remember { mutableStateOf<com.freelance.hores.domain.model.Client?>(null) }
+    var expandedClient by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -160,14 +138,52 @@ fun ResumScreen(
                 item {
                     FilterFacturacio(selectedEstat = selectedEstat, onEstatSelected = { selectedEstat = it })
                 }
-                
-                val filteredDias = if (selectedEstat == null) {
-                    resumState.dias
-                } else {
-                    resumState.dias.map { dia ->
-                        dia.copy(conceptes = dia.conceptes.filter { it.estat == selectedEstat })
-                    }.filter { it.conceptes.isNotEmpty() }
+
+                // Selector Client
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedClient,
+                        onExpandedChange = { expandedClient = !expandedClient },
+                        modifier = Modifier.fillMaxWidth().padding(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = selectedClient?.nom ?: "Tots els clients",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Filtrar per client") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedClient) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedClient,
+                            onDismissRequest = { expandedClient = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Tots els clients") },
+                                onClick = {
+                                    selectedClient = null
+                                    expandedClient = false
+                                }
+                            )
+                            resumState.clients.forEach { client ->
+                                DropdownMenuItem(
+                                    text = { Text(client.nom) },
+                                    onClick = {
+                                        selectedClient = client
+                                        expandedClient = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
+                
+                val filteredDias = resumState.dias.map { dia ->
+                    dia.copy(conceptes = dia.conceptes.filter { concepte ->
+                        (selectedEstat == null || concepte.estat == selectedEstat) &&
+                        (selectedClient == null || concepte.clientId == selectedClient?.id)
+                    })
+                }.filter { it.conceptes.isNotEmpty() }
 
                 item {
                     val dadesGrafic = filteredDias.flatMap { it.conceptes }
@@ -175,8 +191,7 @@ fun ResumScreen(
                         .mapValues { entry -> entry.value.sumOf { it.getTotalDiners() } }
                     GraficGuanys(dades = dadesGrafic)
                 }
-                
-                // ... (rest of the content, replace item { ... } with list)
+
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
@@ -274,7 +289,6 @@ fun ResumScreen(
                 }
 
                 item {
-                    val context = LocalContext.current
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -299,6 +313,14 @@ fun ResumScreen(
                         ) {
                             Text(stringResource(R.string.resum_export_pdf))
                         }
+                    }
+                }
+
+                item {
+                    if (filteredDias.isNotEmpty()) {
+                        ConceptesSummary(
+                            conceptesSummary = filteredDias.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry -> entry.value.sumOf { it.getTotalHoras() } }
+                        )
                     }
                 }
             }

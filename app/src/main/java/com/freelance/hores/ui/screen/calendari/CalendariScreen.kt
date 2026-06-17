@@ -1,10 +1,13 @@
 package com.freelance.hores.ui.screen.calendari
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -17,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -120,28 +124,41 @@ fun CalendariScreen(
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Text(
-                        text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${currentMonth.year}",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        textAlign = TextAlign.Center
-                    )
-                    CalendarGrid(
-                        yearMonth = currentMonth,
-                        diasWithRecords = diasWithRecords,
-                        onDateClick = { date ->
-                            val dia = viewModel.getDiasByDate(date)
-                            if (dia != null) {
-                                navController.navigate("dia/${dia.id}")
-                            } else {
-                                navController.navigate("registre?diaId=0&data=${date}")
+                val pagerState = rememberPagerState(initialPage = 1200) { 2400 }
+
+                LaunchedEffect(pagerState.currentPage) {
+                    val month = YearMonth.now().plusMonths((pagerState.currentPage - 1200).toLong())
+                    viewModel.setCurrentMonth(month)
+                }
+
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    val month = YearMonth.now().plusMonths((page - 1200).toLong())
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Text(
+                            text = "${month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${month.year}",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            textAlign = TextAlign.Center
+                        )
+                        CalendarGrid(
+                            yearMonth = month,
+                            diasWithRecords = diasWithRecords,
+                            onDateClick = { date ->
+                                val dia = viewModel.getDiasByDate(date)
+                                if (dia != null) {
+                                    navController.navigate("dia/${dia.id}")
+                                } else {
+                                    navController.navigate("registre?diaId=0&data=${date}")
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -205,9 +222,11 @@ fun CalendarGrid(
                 if (dayOfMonth in 1..daysInMonth) {
                     val date = yearMonth.atDay(dayOfMonth)
                     val hasRecord = date in diasWithRecords
+                    val isToday = date == LocalDate.now()
                     DayCell(
                         day = dayOfMonth,
                         hasRecord = hasRecord,
+                        isToday = isToday,
                         onClick = { onDateClick(date) }
                     )
                 } else {
@@ -222,6 +241,7 @@ fun CalendarGrid(
 fun DayCell(
     day: Int,
     hasRecord: Boolean,
+    isToday: Boolean,
     onClick: () -> Unit
 ) {
     Box(
@@ -231,13 +251,25 @@ fun DayCell(
                 color = if (hasRecord) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                 shape = MaterialTheme.shapes.small
             )
+            .then(
+                if (isToday) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        shape = MaterialTheme.shapes.small
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = day.toString(),
             style = MaterialTheme.typography.bodySmall,
-            color = if (hasRecord) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+            color = if (hasRecord) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
         )
     }
 }

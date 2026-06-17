@@ -93,7 +93,9 @@ fun ConcepteCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -123,13 +125,6 @@ fun ConcepteCard(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(end = 8.dp)
                     )
-                    IconButton(onClick = onEdit) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.common_edit),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Default.Delete,
