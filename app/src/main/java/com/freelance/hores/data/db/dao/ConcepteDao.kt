@@ -28,6 +28,9 @@ interface ConcepteDao {
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
     fun getByDiaId(diaId: Long): Flow<List<ConcepteEntity>>
 
+    @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
+    suspend fun getByDiaIdSync(diaId: Long): List<ConcepteEntity>
+
     @Transaction
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
     suspend fun getByDiaIdWithClientSync(diaId: Long): List<ConcepteWithClient>

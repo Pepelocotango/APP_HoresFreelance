@@ -1,0 +1,7 @@
+﻿2026-06-17T20:50:53.7721407Z ##[group]Run rm -rf /usr/local/lib/android/sdk/emulator
+2026-06-17T20:50:53.7721906Z [36;1mrm -rf /usr/local/lib/android/sdk/emulator[0m
+2026-06-17T20:50:53.7752131Z shell: /usr/bin/bash -e {0}
+2026-06-17T20:50:53.7752430Z env:
+2026-06-17T20:50:53.7752761Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-06-17T20:50:53.7753295Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64
+2026-06-17T20:50:53.7753696Z ##[endgroup]

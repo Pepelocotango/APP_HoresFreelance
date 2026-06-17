@@ -1,0 +1,34 @@
+﻿2026-06-17T20:50:43.9735849Z Current runner version: '2.335.1'
+2026-06-17T20:50:43.9769963Z ##[group]Runner Image Provisioner
+2026-06-17T20:50:43.9771308Z Hosted Compute Agent
+2026-06-17T20:50:43.9772421Z Version: 20260527.539
+2026-06-17T20:50:43.9773525Z Commit: a891dd388383b896fa6ac04a82c0b75cec981078
+2026-06-17T20:50:43.9774753Z Build Date: 2026-05-27T21:39:57Z
+2026-06-17T20:50:43.9776068Z Worker ID: {80b129dc-66d8-45bb-816d-69833f6b8135}
+2026-06-17T20:50:43.9777485Z Azure Region: eastus
+2026-06-17T20:50:43.9778392Z ##[endgroup]
+2026-06-17T20:50:43.9780679Z ##[group]Operating System
+2026-06-17T20:50:43.9781701Z Ubuntu
+2026-06-17T20:50:43.9782719Z 24.04.4
+2026-06-17T20:50:43.9783588Z LTS
+2026-06-17T20:50:43.9784363Z ##[endgroup]
+2026-06-17T20:50:43.9785318Z ##[group]Runner Image
+2026-06-17T20:50:43.9786413Z Image: ubuntu-24.04
+2026-06-17T20:50:43.9788091Z Version: 20260607.184.1
+2026-06-17T20:50:43.9790006Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260607.184/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-17T20:50:43.9792897Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260607.184
+2026-06-17T20:50:43.9794515Z ##[endgroup]
+2026-06-17T20:50:43.9796568Z ##[group]GITHUB_TOKEN Permissions
+2026-06-17T20:50:43.9799317Z Contents: read
+2026-06-17T20:50:43.9800386Z Metadata: read
+2026-06-17T20:50:43.9801299Z Packages: read
+2026-06-17T20:50:43.9802753Z ##[endgroup]
+2026-06-17T20:50:43.9805631Z Secret source: Actions
+2026-06-17T20:50:43.9806941Z Prepare workflow directory
+2026-06-17T20:50:44.0268882Z Prepare all required actions
+2026-06-17T20:50:44.0325724Z Getting action download info
+2026-06-17T20:50:44.4398903Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-17T20:50:44.5164787Z Download action repository 'actions/setup-java@v4' (SHA:c1e323688fd81a25caa38c78aa6df2d33d3e20d9)
+2026-06-17T20:50:44.7974083Z Download action repository 'reactivecircus/android-emulator-runner@v2' (SHA:e89f39f1abbbd05b1113a29cf4db69e7540cae5a)
+2026-06-17T20:50:44.9521060Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-06-17T20:50:45.1726663Z Complete job name: instrumented-tests

@@ -32,6 +32,9 @@ class ResumViewModelTest {
         coEvery {
             repository.getDiasByDateRange(any(), any())
         } returns flowOf(emptyList())
+        coEvery {
+            repository.getClients()
+        } returns flowOf(emptyList())
     }
 
     @Test

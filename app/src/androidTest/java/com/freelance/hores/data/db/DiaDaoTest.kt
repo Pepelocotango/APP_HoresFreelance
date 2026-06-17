@@ -6,14 +6,15 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.freelance.hores.data.db.dao.DiaDao
 import com.freelance.hores.data.db.entity.DiaEntity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class DiaDaoTest {
@@ -26,7 +27,7 @@ class DiaDaoTest {
         database = Room.inMemoryDatabaseBuilder(
             context,
             AppDatabase::class.java
-        ).build()
+        ).allowMainThreadQueries().build()
         diaDao = database.diaDao()
     }
 
@@ -57,38 +58,34 @@ class DiaDaoTest {
         diaDao.insert(dia1)
         diaDao.insert(dia2)
 
-        val allDias = diaDao.getAllDias()
-        var count = 0
-        allDias.collect { dias ->
-            count = dias.size
-        }
-        assertEquals(2, count)
+        val allDias = diaDao.getAllDias().first()
+        assertEquals(2, allDias.size)
     }
 
     @Test
-    fun updateDiaNotes() = runTest {
-        val dia = DiaEntity(data = LocalDate.of(2024, 6, 15).toEpochDay(), notes = "Original")
+    fun updateDia() = runTest {
+        val dia = DiaEntity(id = 1, data = LocalDate.of(2024, 6, 15).toEpochDay(), notes = "Original")
         diaDao.insert(dia)
-        diaDao.updateNotes(dia.id, "Updated")
+        diaDao.update(dia.copy(notes = "Updated"))
 
-        val updated = diaDao.getById(dia.id)
+        val updated = diaDao.getById(1)
         assertEquals("Updated", updated?.notes)
     }
 
     @Test
     fun deleteDia() = runTest {
-        val dia = DiaEntity(data = LocalDate.of(2024, 6, 15).toEpochDay(), notes = "To delete")
-        val insertedId = diaDao.insert(dia).toInt()
-        diaDao.deleteById(insertedId.toLong())
+        val dia = DiaEntity(id = 1, data = LocalDate.of(2024, 6, 15).toEpochDay(), notes = "To delete")
+        diaDao.insert(dia)
+        diaDao.delete(dia)
 
-        val retrieved = diaDao.getById(insertedId.toLong())
+        val retrieved = diaDao.getById(1)
         assertEquals(null, retrieved)
     }
 
     @Test
     fun getDiasByDateRange() = runTest {
-        val startDate = LocalDate.of(2024, 6, 1)
-        val endDate = LocalDate.of(2024, 6, 30)
+        val startDate = LocalDate.of(2024, 6, 1).toEpochDay()
+        val endDate = LocalDate.of(2024, 6, 30).toEpochDay()
         
         val dia1 = DiaEntity(data = LocalDate.of(2024, 6, 15).toEpochDay(), notes = "In range")
         val dia2 = DiaEntity(data = LocalDate.of(2024, 7, 1).toEpochDay(), notes = "Out of range")
@@ -96,11 +93,7 @@ class DiaDaoTest {
         diaDao.insert(dia1)
         diaDao.insert(dia2)
 
-        val result = mutableListOf<DiaEntity>()
-        diaDao.getDiasByDateRange(startDate, endDate).collect { dias ->
-            result.clear()
-            result.addAll(dias)
-        }
+        val result = diaDao.getDiasByDateRange(startDate, endDate).first()
         
         assertEquals(1, result.size)
         assertEquals("In range", result[0].notes)
@@ -108,10 +101,7 @@ class DiaDaoTest {
 
     @Test
     fun emptyDatabase() = runTest {
-        var result = emptyList<DiaEntity>()
-        diaDao.getAllDias().collect { dias ->
-            result = dias
-        }
+        val result = diaDao.getAllDias().first()
         assertTrue(result.isEmpty())
     }
 }
