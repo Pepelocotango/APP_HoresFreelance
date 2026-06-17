@@ -1,15 +1,19 @@
 package com.freelance.hores.data.repository
 
 import app.cash.turbine.test
+import com.freelance.hores.data.db.AppDatabase
+import com.freelance.hores.data.db.dao.ClientDao
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
 import com.freelance.hores.data.db.dao.RangHorariDao
 import com.freelance.hores.data.db.entity.ConcepteEntity
+import com.freelance.hores.data.db.entity.ConcepteWithClient
 import com.freelance.hores.data.db.entity.DiaEntity
 import com.freelance.hores.data.db.entity.RangHorariEntity
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -20,13 +24,20 @@ import java.time.LocalTime
 
 class RegistreRepositoryTest {
     private lateinit var repository: RegistreRepository
+    private val appDatabase: AppDatabase = mockk()
     private val diaDao: DiaDao = mockk()
     private val concepteDao: ConcepteDao = mockk()
     private val rangHorariDao: RangHorariDao = mockk()
+    private val clientDao: ClientDao = mockk()
 
     @Before
     fun setup() {
-        repository = RegistreRepository(diaDao, concepteDao, rangHorariDao)
+        mockkStatic("androidx.room.RoomDatabaseKt")
+        coEvery { appDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
+            block.invoke()
+        }
+        repository = RegistreRepository(appDatabase, diaDao, concepteDao, rangHorariDao, clientDao)
     }
 
     @Test
@@ -41,8 +52,8 @@ class RegistreRepositoryTest {
         coEvery {
             diaDao.getDiasByDateRange(startDate.toEpochDay(), endDate.toEpochDay())
         } returns flowOf(diasEntity)
-        coEvery { concepteDao.getByDiaIdSync(1) } returns emptyList()
-        coEvery { concepteDao.getByDiaIdSync(2) } returns emptyList()
+        coEvery { concepteDao.getByDiaIdWithClientSync(1) } returns emptyList()
+        coEvery { concepteDao.getByDiaIdWithClientSync(2) } returns emptyList()
 
         repository.getDiasByDateRange(startDate, endDate).test {
             val resultado = awaitItem()
@@ -63,7 +74,11 @@ class RegistreRepositoryTest {
         )
 
         coEvery { diaDao.getById(1) } returns diaEntity
-        coEvery { concepteDao.getByDiaIdSync(1) } returns listOf(concepteEntity)
+        val concepteWithClient = ConcepteWithClient(
+            concepte = concepteEntity,
+            client = null
+        )
+        coEvery { concepteDao.getByDiaIdWithClientSync(1) } returns listOf(concepteWithClient)
         coEvery { rangHorariDao.getByConcepteIdSync(1) } returns listOf(rangEntity)
 
         val result = repository.getDiaWithDetails(1)
