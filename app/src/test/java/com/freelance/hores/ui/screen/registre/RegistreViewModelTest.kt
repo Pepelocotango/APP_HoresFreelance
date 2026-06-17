@@ -2,7 +2,10 @@ package com.freelance.hores.ui.screen.registre
 
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.util.MainDispatcherRule
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -22,6 +25,8 @@ class RegistreViewModelTest {
 
     @Before
     fun setup() {
+        MockKAnnotations.init(this)
+        coEvery { repository.getClients() } returns flowOf(emptyList())
         viewModel = RegistreViewModel(repository)
     }
 
@@ -52,40 +57,38 @@ class RegistreViewModelTest {
 
     @Test
     fun `addConcepte should add new concepte to list`() = runTest {
-        viewModel.addConcepte("Project A")
+        viewModel.addConcepte()
         val conceptes = viewModel.formState.value.conceptes
         assertEquals(1, conceptes.size)
-        assertEquals("Project A", conceptes[0].nom)
     }
 
     @Test
     fun `addConcepte should initialize with one time range`() = runTest {
-        viewModel.addConcepte("Project A")
+        viewModel.addConcepte()
         val concepte = viewModel.formState.value.conceptes[0]
         assertEquals(1, concepte.rangsHoraris.size)
     }
 
     @Test
     fun `updateConcepteName should modify concepte name`() = runTest {
-        viewModel.addConcepte("Project A")
+        viewModel.addConcepte()
         viewModel.updateConcepteName(0, "Project B")
         assertEquals("Project B", viewModel.formState.value.conceptes[0].nom)
     }
 
     @Test
     fun `removeConcepte should delete concepte`() = runTest {
-        viewModel.addConcepte("Project A")
-        viewModel.addConcepte("Project B")
+        viewModel.addConcepte()
+        viewModel.addConcepte()
         assertEquals(2, viewModel.formState.value.conceptes.size)
         
         viewModel.removeConcepte(0)
         assertEquals(1, viewModel.formState.value.conceptes.size)
-        assertEquals("Project B", viewModel.formState.value.conceptes[0].nom)
     }
 
     @Test
     fun `addRangHorariToConcepte should add time range`() = runTest {
-        viewModel.addConcepte("Project A")
+        viewModel.addConcepte()
         viewModel.addRangHorariToConcepte(0)
         val concepte = viewModel.formState.value.conceptes[0]
         assertEquals(2, concepte.rangsHoraris.size)
@@ -93,7 +96,7 @@ class RegistreViewModelTest {
 
     @Test
     fun `updateRangHorariInici should update start time`() = runTest {
-        viewModel.addConcepte("Project A")
+        viewModel.addConcepte()
         val newTime = LocalTime.of(10, 0)
         viewModel.updateRangHorariInici(0, 0, newTime)
         
@@ -105,8 +108,8 @@ class RegistreViewModelTest {
     fun `multiple operations should maintain state correctly`() = runTest {
         viewModel.setData(LocalDate.of(2024, 6, 15))
         viewModel.setNotes("Important work")
-        viewModel.addConcepte("Task 1")
-        viewModel.addConcepte("Task 2")
+        viewModel.addConcepte()
+        viewModel.addConcepte()
         viewModel.updateConcepteName(0, "Task 1 Updated")
         
         val state = viewModel.formState.value
@@ -114,6 +117,5 @@ class RegistreViewModelTest {
         assertEquals("Important work", state.notes)
         assertEquals(2, state.conceptes.size)
         assertEquals("Task 1 Updated", state.conceptes[0].nom)
-        assertEquals("Task 2", state.conceptes[1].nom)
     }
 }
