@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
+import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.DiaCard
 import java.time.Instant
 import java.time.ZoneId
@@ -58,6 +59,7 @@ fun ResumScreen(
     val resumState by viewModel.resumState.collectAsState()
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
+    var selectedEstat by remember { mutableStateOf<EstatFacturacio?>(null) }
 
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -156,6 +158,26 @@ fun ResumScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
+                    FilterFacturacio(selectedEstat = selectedEstat, onEstatSelected = { selectedEstat = it })
+                }
+                
+                val filteredDias = if (selectedEstat == null) {
+                    resumState.dias
+                } else {
+                    resumState.dias.map { dia ->
+                        dia.copy(conceptes = dia.conceptes.filter { it.estat == selectedEstat })
+                    }.filter { it.conceptes.isNotEmpty() }
+                }
+
+                item {
+                    val dadesGrafic = filteredDias.flatMap { it.conceptes }
+                        .groupBy { it.clientNom ?: "Sense Client" }
+                        .mapValues { entry -> entry.value.sumOf { it.getTotalDiners() } }
+                    GraficGuanys(dades = dadesGrafic)
+                }
+                
+                // ... (rest of the content, replace item { ... } with list)
+                item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -214,14 +236,14 @@ fun ResumScreen(
 
                 item {
                     Text(
-                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", viewModel.getTotalHoras()), String.format("%.2f", viewModel.getTotalDiners())),
+                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalHoras() }), String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalDiners() })),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
 
-                if (resumState.dias.isNotEmpty()) {
-                    items(resumState.dias) { dia ->
+                if (filteredDias.isNotEmpty()) {
+                    items(filteredDias) { dia ->
                         DiaCard(
                             data = dia.data,
                             conceptes = dia.conceptes,
@@ -244,9 +266,9 @@ fun ResumScreen(
                 }
 
                 item {
-                    if (resumState.dias.isNotEmpty()) {
+                    if (filteredDias.isNotEmpty()) {
                         ConceptesSummary(
-                            conceptesSummary = viewModel.getConceptesSummary()
+                            conceptesSummary = filteredDias.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry -> entry.value.sumOf { it.getTotalHoras() } }
                         )
                     }
                 }

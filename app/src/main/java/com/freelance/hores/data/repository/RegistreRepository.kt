@@ -1,11 +1,14 @@
 package com.freelance.hores.data.repository
 
+import com.freelance.hores.data.db.dao.ClientDao
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
 import com.freelance.hores.data.db.dao.RangHorariDao
+import com.freelance.hores.data.db.entity.ClientEntity
 import com.freelance.hores.data.db.entity.ConcepteEntity
 import com.freelance.hores.data.db.entity.DiaEntity
 import com.freelance.hores.data.db.entity.RangHorariEntity
+import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
@@ -18,8 +21,25 @@ import javax.inject.Inject
 class RegistreRepository @Inject constructor(
     private val diaDao: DiaDao,
     private val concepteDao: ConcepteDao,
-    private val rangHorariDao: RangHorariDao
+    private val rangHorariDao: RangHorariDao,
+    private val clientDao: ClientDao
 ) {
+    // --- Client operations ---
+    fun getClients(): Flow<List<Client>> {
+        return clientDao.getAllClients().map { entities ->
+            entities.map { Client(it.id, it.nom, it.preuHoraDefecte) }
+        }
+    }
+
+    suspend fun saveClient(client: Client) {
+        clientDao.insert(ClientEntity(id = client.id, nom = client.nom, preuHoraDefecte = client.preuHoraDefecte))
+    }
+
+    suspend fun deleteClient(client: Client) {
+        clientDao.delete(ClientEntity(id = client.id, nom = client.nom, preuHoraDefecte = client.preuHoraDefecte))
+    }
+
+    // --- Registre operations ---
     // Get all dias with concepts and time ranges
     fun getAllDiasWithDetails(): Flow<List<Dia>> {
         return diaDao.getAllDias().map { diasEntity ->
@@ -48,14 +68,19 @@ class RegistreRepository @Inject constructor(
 
     // Get conceptes with their time ranges for a specific dia
     private suspend fun getConceptesForDia(diaId: Long): List<Concepte> {
-        val concepteEntities = concepteDao.getByDiaIdSync(diaId)
-        return concepteEntities.map { concepteEntity ->
-            val rangsHoraris = getRangsForConcepte(concepteEntity.id)
+        val concepteWithClient = concepteDao.getByDiaIdWithClientSync(diaId)
+        return concepteWithClient.map { data ->
+            val rangsHoraris = getRangsForConcepte(data.concepte.id)
             Concepte(
-                id = concepteEntity.id,
-                diaId = concepteEntity.diaId,
-                nom = concepteEntity.nom,
-                preuHora = concepteEntity.preuHora,
+                id = data.concepte.id,
+                diaId = data.concepte.diaId,
+                nom = data.concepte.nom,
+                preuHora = data.concepte.preuHora,
+                clientId = data.concepte.clientId,
+                clientNom = data.client?.nom,
+                estat = data.concepte.estat,
+                despeses = data.concepte.despeses,
+                despesesNotes = data.concepte.despesesNotes,
                 rangsHoraris = rangsHoraris
             )
         }
@@ -105,17 +130,21 @@ class RegistreRepository @Inject constructor(
         }
 
         // 2. Clear existing relations to avoid duplicates and handle deletions
-        val existingConceptes = concepteDao.getByDiaIdSync(actualDiaId)
-        for (concepte in existingConceptes) {
-            concepteDao.delete(concepte) // Cascade will delete rangs horaris
+        val existingConceptes = concepteDao.getByDiaIdWithClientSync(actualDiaId)
+        for (concepteData in existingConceptes) {
+            concepteDao.delete(concepteData.concepte) // Cascade will delete rangs horaris
         }
 
         // 3. Save new conceptes and their time ranges
         for (concepte in dia.conceptes) {
             val concepteEntity = ConcepteEntity(
                 diaId = actualDiaId,
+                clientId = concepte.clientId,
                 nom = concepte.nom,
-                preuHora = concepte.preuHora
+                preuHora = concepte.preuHora,
+                estat = concepte.estat,
+                despeses = concepte.despeses,
+                despesesNotes = concepte.despesesNotes
             )
             val concepteId = concepteDao.insert(concepteEntity)
 
@@ -138,7 +167,18 @@ class RegistreRepository @Inject constructor(
 
     // Delete a concepte
     suspend fun deleteConcepte(concepte: Concepte) {
-        concepteDao.delete(ConcepteEntity(id = concepte.id, diaId = concepte.diaId, nom = concepte.nom, preuHora = concepte.preuHora))
+        concepteDao.delete(
+            ConcepteEntity(
+                id = concepte.id,
+                diaId = concepte.diaId,
+                clientId = concepte.clientId,
+                nom = concepte.nom,
+                preuHora = concepte.preuHora,
+                estat = concepte.estat,
+                despeses = concepte.despeses,
+                despesesNotes = concepte.despesesNotes
+            )
+        )
     }
 
     // Delete a rang horari

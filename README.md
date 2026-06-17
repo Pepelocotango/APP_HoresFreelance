@@ -10,10 +10,12 @@ HoresFreelance is a native Android application designed to help freelancers trac
 
 ### Features
 - 📅 **Calendar View**: Visual calendar showing work days.
-- ⏱️ **Time Tracking**: Record work hours by "Bolo" (concept) and define an individual price per hour.
-- 📊 **Hours Summary**: View work hours and earnings by week, month, or custom range.
+- ⏱️ **Time Tracking**: Record work hours by "Bolo" (concept), individual rates, **billing status (Pending/Invoiced/Paid)**, and **expenses**.
+- 📊 **Hours Summary**: View work hours, earnings, and **expenses** by week, month, or custom range with **visual charts**.
+- 👥 **Client Management**: Dedicated screen to manage clients and their default rates.
 - 💾 **Local Storage**: All data stored offline on device using Room.
-- 📥 **Export**: Export reports as CSV and PDF.
+- 🔄 **Backup/Restore**: Backup and restore database functionality.
+- 📥 **Export**: Export reports as CSV and PDF with full financial breakdown.
 
 ### Project Structure
 ```text

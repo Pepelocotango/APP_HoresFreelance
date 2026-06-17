@@ -2,6 +2,7 @@ package com.freelance.hores.di
 
 import android.content.Context
 import com.freelance.hores.data.db.AppDatabase
+import com.freelance.hores.data.db.dao.ClientDao
 import com.freelance.hores.data.db.dao.ConcepteDao
 import com.freelance.hores.data.db.dao.DiaDao
 import com.freelance.hores.data.db.dao.RangHorariDao
@@ -40,5 +41,11 @@ object DatabaseModule {
     @Provides
     fun provideRangHorariDao(database: AppDatabase): RangHorariDao {
         return database.rangHorariDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideClientDao(database: AppDatabase): ClientDao {
+        return database.clientDao()
     }
 }

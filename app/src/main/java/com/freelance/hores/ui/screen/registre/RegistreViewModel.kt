@@ -3,7 +3,9 @@ package com.freelance.hores.ui.screen.registre
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.freelance.hores.R
+import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
@@ -23,6 +25,7 @@ data class RegistreFormState(
     val data: LocalDate = LocalDate.now(),
     val notes: String = "",
     val conceptes: List<ConcepteForm> = emptyList(),
+    val clients: List<Client> = emptyList(),
     val isSaving: Boolean = false,
     val errorResId: Int? = null,
     val error: String? = null,
@@ -33,7 +36,11 @@ data class ConcepteForm(
     val id: Long = 0,
     val nom: String = "",
     val preuHora: Double = 0.0,
-    val rangsHoraris: List<RangHorariForm> = emptyList()
+    val clientId: Long? = null,
+    val rangsHoraris: List<RangHorariForm> = emptyList(),
+    val estat: EstatFacturacio = EstatFacturacio.PENDENT,
+    val despeses: Double = 0.0,
+    val despesesNotes: String = ""
 )
 
 data class RangHorariForm(
@@ -49,6 +56,18 @@ class RegistreViewModel @Inject constructor(
     private val _formState = MutableStateFlow(RegistreFormState())
     val formState: StateFlow<RegistreFormState> = _formState.asStateFlow()
 
+    init {
+        observeClients()
+    }
+
+    private fun observeClients() {
+        viewModelScope.launch {
+            repository.getClients().collect { clients ->
+                _formState.value = _formState.value.copy(clients = clients)
+            }
+        }
+    }
+
     fun setData(data: LocalDate) {
         _formState.value = _formState.value.copy(data = data)
     }
@@ -57,12 +76,13 @@ class RegistreViewModel @Inject constructor(
         _formState.value = _formState.value.copy(notes = notes)
     }
 
-    fun addConcepte(concepteName: String = "", preu: Double = 0.0) {
+    fun addConcepte(concepteName: String = "", preu: Double = 0.0, clientId: Long? = null) {
         val currentConceptes = _formState.value.conceptes.toMutableList()
         currentConceptes.add(
             ConcepteForm(
                 nom = concepteName,
                 preuHora = preu,
+                clientId = clientId,
                 rangsHoraris = listOf(RangHorariForm())
             )
         )
@@ -82,6 +102,48 @@ class RegistreViewModel @Inject constructor(
         if (index >= 0 && index < currentConceptes.size) {
             currentConceptes[index] = currentConceptes[index].copy(preuHora = preu)
             _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteClient(index: Int, clientId: Long?) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            val client = _formState.value.clients.find { it.id == clientId }
+            currentConceptes[index] = currentConceptes[index].copy(
+                clientId = clientId,
+                preuHora = client?.preuHoraDefecte ?: currentConceptes[index].preuHora
+            )
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteEstat(index: Int, estat: EstatFacturacio) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(estat = estat)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteDespeses(index: Int, despeses: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(despeses = despeses)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteDespesesNotes(index: Int, notes: String) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(despesesNotes = notes)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun createClient(nom: String, preuDefecte: Double) {
+        viewModelScope.launch {
+            repository.saveClient(Client(nom = nom, preuHoraDefecte = preuDefecte))
         }
     }
 
@@ -200,6 +262,10 @@ class RegistreViewModel @Inject constructor(
                         diaId = state.diaId,
                         nom = concepteForm.nom,
                         preuHora = concepteForm.preuHora,
+                        clientId = concepteForm.clientId,
+                        estat = concepteForm.estat,
+                        despeses = concepteForm.despeses,
+                        despesesNotes = concepteForm.despesesNotes,
                         rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
                             RangHorari(
                                 id = rangForm.id,
@@ -251,6 +317,10 @@ class RegistreViewModel @Inject constructor(
                         id = concepte.id,
                         nom = concepte.nom,
                         preuHora = concepte.preuHora,
+                        clientId = concepte.clientId,
+                        estat = concepte.estat,
+                        despeses = concepte.despeses,
+                        despesesNotes = concepte.despesesNotes,
                         rangsHoraris = concepte.rangsHoraris.map { rang ->
                             RangHorariForm(
                                 id = rang.id,

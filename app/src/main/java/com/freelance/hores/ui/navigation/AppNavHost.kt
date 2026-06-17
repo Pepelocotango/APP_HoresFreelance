@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.freelance.hores.ui.screen.calendari.CalendariScreen
+import com.freelance.hores.ui.screen.clients.ClientsScreen
 import com.freelance.hores.ui.screen.dia.DiaDetallScreen
 import com.freelance.hores.ui.screen.registre.RegistreScreen
 import com.freelance.hores.ui.screen.resum.ResumScreen
@@ -59,6 +60,10 @@ fun AppNavHost(navController: NavHostController) {
 
         composable("resum") {
             ResumScreen(navController = navController)
+        }
+
+        composable("clients") {
+            ClientsScreen(navController = navController)
         }
     }
 }

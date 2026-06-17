@@ -5,8 +5,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.freelance.hores.data.db.entity.ConcepteEntity
+import com.freelance.hores.data.db.entity.ConcepteWithClient
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -26,6 +28,7 @@ interface ConcepteDao {
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
     fun getByDiaId(diaId: Long): Flow<List<ConcepteEntity>>
 
+    @Transaction
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
-    suspend fun getByDiaIdSync(diaId: Long): List<ConcepteEntity>
+    suspend fun getByDiaIdWithClientSync(diaId: Long): List<ConcepteWithClient>
 }

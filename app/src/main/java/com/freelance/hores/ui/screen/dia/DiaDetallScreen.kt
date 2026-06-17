@@ -17,6 +17,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
+import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.ConcepteCard
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -108,19 +111,46 @@ fun DiaDetallScreen(
                 }
 
                 item {
-                    Text(
-                        text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", dia!!.getTotalHoras())),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Column {
+                        Text(
+                            text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", dia!!.getTotalHoras())),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Total Hores: ${String.format("%.2f", dia!!.getTotalDinersHores())} € | Despeses: ${String.format("%.2f", dia!!.getTotalDinersDespeses())} €",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
 
                 items(dia!!.conceptes) { concepte ->
-                    ConcepteCard(
-                        concepte = concepte,
-                        onEdit = { navController.navigate("registre?diaId=${dia!!.id}") },
-                        onDelete = { viewModel.deleteConcepte(concepte) }
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ConcepteCard(
+                            concepte = concepte,
+                            onEdit = { navController.navigate("registre?diaId=${dia!!.id}") },
+                            onDelete = { viewModel.deleteConcepte(concepte) }
+                        )
+                        FilterChip(
+                            selected = true,
+                            onClick = {},
+                            label = { Text(concepte.estat.name) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = when (concepte.estat) {
+                                    EstatFacturacio.PENDENT -> MaterialTheme.colorScheme.surfaceVariant
+                                    EstatFacturacio.FACTURAT -> MaterialTheme.colorScheme.tertiaryContainer
+                                    EstatFacturacio.COBRAT -> MaterialTheme.colorScheme.primaryContainer
+                                }
+                            )
+                        )
+                        if (concepte.despeses > 0) {
+                            Text(
+                                text = "Despeses (${String.format("%.2f", concepte.despeses)} €): ${concepte.despesesNotes}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                 }
 
                 item {

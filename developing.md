@@ -1,36 +1,17 @@
-# Documentació Final del Projecte: HoresFreelance
+# Guia de Desenvolupament: HoresFreelance
 
-## Resum del Projecte
-HoresFreelance és una aplicació Android nativa per a autònoms per registrar hores de treball, organitzar-les per "Bolos" (projectes/clients), i generar informes (CSV/PDF) per a la facturació.
+## Estat Actual (v4)
+L'aplicació ha evolucionat per incloure:
+- **Persistència v4**: Migració de Room que suporta l'estat de facturació i despeses associades als conceptes.
+- **UI Material 3**: Navegació inferior integrada i pantalles actualitzades (Resum, Clients, Registre).
+- **Funcionalitat Backup**: Servei de còpia de seguretat de la base de dades local.
 
-## Stack Tecnològic
-- **Llenguatge:** Kotlin
-- **UI:** Jetpack Compose (Material Design 3)
-- **Arquitectura:** MVVM + Repository Pattern
-- **Persistència:** Room Database (SQLite)
-- **Injecció de Dependències:** Hilt
-- **Asincronia:** Kotlin Coroutines & Flow
-- **Navegació:** Navigation Compose
+## Com afegir noves funcionalitats
+1. **Models/BD**: Si calen noves dades, actualitzar l'entitat, crear la migració a `AppDatabase.kt` i actualitzar els convertidors.
+2. **Repositori**: Assegurar la injecció de nous DAOs si és necessari.
+3. **UI**: Seguir les convencions de Material 3 i `Navigation Compose` definides a `MainActivity` i `AppNavHost`.
 
-## Evolució i Correccions Realitzades (Històric)
-1. **Configuració Inicial i CI/CD:** S'han afegit fitxers crítics (`AndroidManifest.xml`, `build.gradle.kts`, `file_paths.xml`, etc.) per garantir la compilació i la funcionalitat de `FileProvider`.
-2. **Correcció de Bugs Crítics:**
-    - **Persistència:** Refactorització del `saveDia()` al Repository per evitar duplicats en editar (esborrat previ de relacions).
-    - **Exportació:** Modificació d'`ExportService` per retornar `Intent` i ser llançat des de l'Activity, evitant crashes de seguretat en Android 10+.
-    - **Race Conditions:** Implementació de `flatMapLatest` al `CalendariViewModel` i `ResumViewModel` per gestionar correctament les subscripcions asíncrones.
-    - **Integritat BD:** Activació explícita de `PRAGMA foreign_keys=ON;` al callback de Room.
-3. **Millores Beta:**
-    - **UI/UX:** Marcador visual per al dia actual al calendari i suport per preu/hora variable per bolo.
-    - **Terminologia:** Adaptació de tota la interfície gràfica de "Concepte" a "Bolo".
-    - **Localització:** Implementació robusta de traductors (`strings.xml`) per a Català, Castellà i Anglès, amb formatatge de dates `Locale.getDefault()` i separadors decimals `Locale.US` per a CSVs.
-4. **Optimitzacions:**
-    - Eliminació de permisos innecessaris (`WRITE/READ_EXTERNAL_STORAGE`).
-    - Neteja de dependències no utilitzades (calendari extern eliminat).
-    - Correcció del format dels `strings.xml` per a múltiples paràmetres (`%1$s`, `%2$s`).
-
-## CI/CD (GitHub Actions)
-La pipeline a `.github/workflows/android.yml` està configurada per:
-- Compilar l'app (`assembleDebug`).
-- Executar tests unitaris (`test`).
-- Executar tests instrumentats en emulador (API 31, arquitectura `x86_64` optimitzada).
-- Generar artefactes d'instal·lació.
+## Normes de codi
+- Idioma: Comentaris i missatges en català.
+- Arquitectura: MVVM estricte.
+- Tests: Afegir tests unitaris als nous viewmodels i repositoris abans de commitejar.

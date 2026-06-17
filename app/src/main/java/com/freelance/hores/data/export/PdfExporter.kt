@@ -101,9 +101,11 @@ class PdfExporter(private val context: Context) {
                     }
 
                     val duracion = rang.getDuracionaEnHoras()
-                    val cost = duracion * concepte.preuHora
+                    val costHores = duracion * concepte.preuHora
+                    val costTotalBolo = costHores + concepte.despeses
+                    
                     totalHoras += duracion
-                    totalDiners += cost
+                    totalDiners += costTotalBolo
 
                     canvas.drawText(dia.data.toString(), margin, y, textPaint)
                     
@@ -113,7 +115,7 @@ class PdfExporter(private val context: Context) {
                     canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 290, y, textPaint)
                     canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 350, y, textPaint)
                     canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
-                    canvas.drawText("%.2f".format(cost), margin + 480, y, textPaint)
+                    canvas.drawText("%.2f".format(costTotalBolo), margin + 480, y, textPaint)
 
                     y += lineHeight
                 }
@@ -123,7 +125,7 @@ class PdfExporter(private val context: Context) {
         // Total
         y += lineHeight
         canvas.drawLine(margin, y - 15, pageWidth - margin.toFloat(), y - 15, textPaint)
-        canvas.drawText(context.getString(R.string.resum_total_diners, "%.2f".format(totalHoras), "%.2f".format(totalDiners)), margin, y, footerPaint)
+        canvas.drawText("Total Hores: %.2f | Total Factura: %.2f €".format(totalHoras, totalDiners), margin, y, footerPaint)
 
         pdfDocument.finishPage(page)
         pdfDocument.writeTo(file.outputStream())

@@ -15,11 +15,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
+import com.freelance.hores.data.db.entity.EstatFacturacio
+import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.RangHorari
 import java.time.Instant
 import java.time.LocalDate
@@ -71,6 +78,7 @@ fun RegistreScreen(
     val formState by viewModel.formState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showNewClientDialog by remember { mutableStateOf(false) }
     val savedMessage = stringResource(R.string.common_saved)
     val defaultErrorMessage = stringResource(R.string.common_error)
 
@@ -138,6 +146,35 @@ fun RegistreScreen(
             DatePicker(state = datePickerState)
         }
     }
+    
+    if (showNewClientDialog) {
+        var nom by remember { mutableStateOf("") }
+        var preu by remember { mutableDoubleStateOf(0.0) }
+        AlertDialog(
+            onDismissRequest = { showNewClientDialog = false },
+            title = { Text("Nou Client") },
+            text = {
+                Column {
+                    OutlinedTextField(value = nom, onValueChange = { nom = it }, label = { Text("Nom del Client") })
+                    OutlinedTextField(
+                        value = if (preu > 0) preu.toString() else "",
+                        onValueChange = { input ->
+                            val normalized = input.replace(',', '.')
+                            preu = normalized.toDoubleOrNull() ?: 0.0
+                        },
+                        label = { Text("Preu per defecte") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.createClient(nom, preu)
+                    showNewClientDialog = false
+                }) { Text("Desa") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -202,8 +239,11 @@ fun RegistreScreen(
             items(formState.conceptes.size) { concepteIndex ->
                 ConcepteFormItem(
                     concepte = formState.conceptes[concepteIndex],
+                    clients = formState.clients,
                     onNameChange = { viewModel.updateConcepteName(concepteIndex, it) },
                     onPreuChange = { viewModel.updateConceptePreu(concepteIndex, it) },
+                    onClientChange = { viewModel.updateConcepteClient(concepteIndex, it) },
+                    onCreateClient = { showNewClientDialog = true },
                     onAddRang = { viewModel.addRangHorariToConcepte(concepteIndex) },
                     onRemoveRang = { rangIndex -> viewModel.removeRangHorari(concepteIndex, rangIndex) },
                     onUpdateHoraInici = { rangIndex, hora ->
@@ -212,7 +252,10 @@ fun RegistreScreen(
                     onUpdateHoraFi = { rangIndex, hora ->
                         viewModel.updateRangHorariFi(concepteIndex, rangIndex, hora)
                     },
-                    onDelete = { viewModel.removeConcepte(concepteIndex) }
+                    onDelete = { viewModel.removeConcepte(concepteIndex) },
+                    onEstatChange = { viewModel.updateConcepteEstat(concepteIndex, it) },
+                    onDespesesChange = { viewModel.updateConcepteDespeses(concepteIndex, it) },
+                    onDespesesNotesChange = { viewModel.updateConcepteDespesesNotes(concepteIndex, it) }
                 )
             }
 
@@ -259,18 +302,28 @@ fun RegistreScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConcepteFormItem(
     concepte: ConcepteForm,
+    clients: List<Client>,
     onNameChange: (String) -> Unit,
     onPreuChange: (Double) -> Unit,
+    onClientChange: (Long?) -> Unit,
+    onCreateClient: () -> Unit,
     onAddRang: () -> Unit,
     onRemoveRang: (Int) -> Unit,
     onUpdateHoraInici: (Int, LocalTime) -> Unit,
     onUpdateHoraFi: (Int, LocalTime) -> Unit,
     onDelete: () -> Unit,
+    onEstatChange: (EstatFacturacio) -> Unit,
+    onDespesesChange: (Double) -> Unit,
+    onDespesesNotesChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    var expandedEstat by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -298,20 +351,100 @@ fun ConcepteFormItem(
             }
         }
 
-        OutlinedTextField(
-            value = if (concepte.preuHora > 0) concepte.preuHora.toString() else "",
-            onValueChange = { input ->
-                val normalized = input.replace(',', '.')
-                if (normalized.isEmpty()) {
-                    onPreuChange(0.0)
-                } else if (normalized.toDoubleOrNull() != null) {
-                    onPreuChange(normalized.toDouble())
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = clients.find { it.id == concepte.clientId }?.nom ?: "Selecciona client",
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                clients.forEach { client ->
+                    DropdownMenuItem(
+                        text = { Text(client.nom) },
+                        onClick = {
+                            onClientChange(client.id)
+                            expanded = false
+                        }
+                    )
                 }
-                // Si és un punt sol o una coma sola, no actualitzem el ViewModel, deixem que l'usuari continuï escrivint
-            },
-            label = { Text(stringResource(R.string.registre_preu_hora)) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                DropdownMenuItem(
+                    text = { Text("+ Nou client") },
+                    onClick = {
+                        onCreateClient()
+                        expanded = false
+                    }
+                )
+            }
+        }
+
+        ExposedDropdownMenuBox(
+            expanded = expandedEstat,
+            onExpandedChange = { expandedEstat = !expandedEstat }
+        ) {
+            OutlinedTextField(
+                value = concepte.estat.name,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Estat de facturació") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEstat) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = expandedEstat,
+                onDismissRequest = { expandedEstat = false }
+            ) {
+                EstatFacturacio.values().forEach { estat ->
+                    DropdownMenuItem(
+                        text = { Text(estat.name) },
+                        onClick = {
+                            onEstatChange(estat)
+                            expandedEstat = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = if (concepte.preuHora > 0) concepte.preuHora.toString() else "",
+                onValueChange = { input ->
+                    val normalized = input.replace(',', '.')
+                    if (normalized.isEmpty()) onPreuChange(0.0) else normalized.toDoubleOrNull()?.let { onPreuChange(it) }
+                },
+                label = { Text(stringResource(R.string.registre_preu_hora)) },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            )
+            OutlinedTextField(
+                value = if (concepte.despeses > 0) concepte.despeses.toString() else "",
+                onValueChange = { input ->
+                    val normalized = input.replace(',', '.')
+                    if (normalized.isEmpty()) onDespesesChange(0.0) else normalized.toDoubleOrNull()?.let { onDespesesChange(it) }
+                },
+                label = { Text("Despeses (€)") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            )
+        }
+        
+        OutlinedTextField(
+            value = concepte.despesesNotes,
+            onValueChange = onDespesesNotesChange,
+            label = { Text("Notes despeses") },
+            modifier = Modifier.fillMaxWidth()
         )
 
         concepte.rangsHoraris.forEachIndexed { rangIndex, rang ->
