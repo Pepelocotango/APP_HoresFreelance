@@ -82,4 +82,8 @@
     <string name="csv_header_duration">Duration (h)</string>
     <string name="csv_header_notes">Day Notes</string>
     <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Status</string>
+    <string name="csv_header_price_hour">Price/h</string>
+    <string name="csv_header_expenses">Expenses</string>
+    <string name="csv_header_expenses_notes">Expense Notes</string>
 </resources>

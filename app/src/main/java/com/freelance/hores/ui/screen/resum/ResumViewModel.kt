@@ -102,13 +102,13 @@ class ResumViewModel @Inject constructor(
         return summary.toSortedMap()
     }
 
-    fun exportCsv(): android.content.Intent {
+    fun exportCsv(filteredDias: List<Dia>): android.content.Intent {
         val state = _resumState.value
-        return exportService.exportCsv(state.dias, state.startDate, state.endDate)
+        return exportService.exportCsv(filteredDias, state.startDate, state.endDate)
     }
 
-    fun exportPdf(): android.content.Intent {
+    fun exportPdf(filteredDias: List<Dia>): android.content.Intent {
         val state = _resumState.value
-        return exportService.exportPdf(state.dias, state.startDate, state.endDate)
+        return exportService.exportPdf(filteredDias, state.startDate, state.endDate)
     }
 }

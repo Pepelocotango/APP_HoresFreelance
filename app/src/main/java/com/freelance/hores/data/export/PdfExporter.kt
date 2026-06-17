@@ -102,7 +102,10 @@ class PdfExporter(private val context: Context) {
 
                     val duracion = rang.getDuracionaEnHoras()
                     val costHores = duracion * concepte.preuHora
-                    val costTotalBolo = costHores + concepte.despeses
+                    
+                    // Afegim la despesa només al primer rang horari d'aquest bolo per evitar duplicats
+                    val despesesAplicar = if (rang == concepte.rangsHoraris.firstOrNull()) concepte.despeses else 0.0
+                    val costTotalBolo = costHores + despesesAplicar
                     
                     totalHoras += duracion
                     totalDiners += costTotalBolo

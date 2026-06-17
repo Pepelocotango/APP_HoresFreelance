@@ -75,4 +75,8 @@
     <string name="csv_header_duration">Duración (h)</string>
     <string name="csv_header_notes">Notas día</string>
     <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Estado</string>
+    <string name="csv_header_price_hour">Precio/h</string>
+    <string name="csv_header_expenses">Gastos</string>
+    <string name="csv_header_expenses_notes">Notas gastos</string>
 </resources>

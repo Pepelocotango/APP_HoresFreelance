@@ -47,6 +47,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "hores_database"
                 )
                 .addMigrations(MIGRATION_3_4)
+                .fallbackToDestructiveMigration()
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         super.onOpen(db)

@@ -263,6 +263,10 @@ L'aplicació ha evolucionat per incloure:
     <string name="csv_header_duration">Duration (h)</string>
     <string name="csv_header_notes">Day Notes</string>
     <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Status</string>
+    <string name="csv_header_price_hour">Price/h</string>
+    <string name="csv_header_expenses">Expenses</string>
+    <string name="csv_header_expenses_notes">Expense Notes</string>
 </resources>
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -350,6 +354,10 @@ L'aplicació ha evolucionat per incloure:
     <string name="csv_header_duration">Durada (h)</string>
     <string name="csv_header_notes">Notes dia</string>
     <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Estat</string>
+    <string name="csv_header_price_hour">Preu/h</string>
+    <string name="csv_header_expenses">Despeses</string>
+    <string name="csv_header_expenses_notes">Notes despeses</string>
 </resources>
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -428,6 +436,10 @@ L'aplicació ha evolucionat per incloure:
     <string name="csv_header_duration">Duración (h)</string>
     <string name="csv_header_notes">Notas día</string>
     <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Estado</string>
+    <string name="csv_header_price_hour">Precio/h</string>
+    <string name="csv_header_expenses">Gastos</string>
+    <string name="csv_header_expenses_notes">Notas gastos</string>
 </resources>
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -735,7 +747,10 @@ class PdfExporter(private val context: Context) {
 
                     val duracion = rang.getDuracionaEnHoras()
                     val costHores = duracion * concepte.preuHora
-                    val costTotalBolo = costHores + concepte.despeses
+                    
+                    // Afegim la despesa només al primer rang horari d'aquest bolo per evitar duplicats
+                    val despesesAplicar = if (rang == concepte.rangsHoraris.firstOrNull()) concepte.despeses else 0.0
+                    val costTotalBolo = costHores + despesesAplicar
                     
                     totalHoras += duracion
                     totalDiners += costTotalBolo
@@ -840,10 +855,10 @@ class CsvExporter(private val context: Context) {
             val headers = listOf(
                 context.getString(R.string.csv_header_date),
                 context.getString(R.string.csv_header_concept),
-                "Estat", // TODO: Add to strings.xml
-                "Preu/h",
-                "Despeses",
-                "Notes despeses",
+                context.getString(R.string.csv_header_status),
+                context.getString(R.string.csv_header_price_hour),
+                context.getString(R.string.csv_header_expenses),
+                context.getString(R.string.csv_header_expenses_notes),
                 context.getString(R.string.csv_header_start),
                 context.getString(R.string.csv_header_end),
                 context.getString(R.string.csv_header_duration),
@@ -879,7 +894,7 @@ class CsvExporter(private val context: Context) {
             }
 
             // Total
-            writer.write(",,,,,,,,${String.format(Locale.US, "%.2f", totalHoras)},${String.format(Locale.US, "%.2f", totalDespeses)},${String.format(Locale.US, "%.2f", totalDiners)},${context.getString(R.string.csv_header_total)}\n")
+            writer.write(",,,TOTAL:,${String.format(Locale.US, "%.2f", totalDespeses)},,,,${String.format(Locale.US, "%.2f", totalHoras)},${String.format(Locale.US, "%.2f", totalDiners)}\n")
         }
         return file
     }
@@ -900,13 +915,15 @@ class BackupService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     fun exportDatabase(): File {
+        // Tanquem la base de dades abans de fer la còpia per assegurar-nos que 
+        // tot el registre WAL s'ha bolcat (checkpoint) al fitxer principal .db
+        AppDatabase.getDatabase(context).close()
+        AppDatabase.resetInstance()
+
         val dbFile = context.getDatabasePath("hores_database")
         val backupFile = File(context.cacheDir, "hores_database_backup.db")
-        
         dbFile.inputStream().use { input ->
-            backupFile.outputStream().use { output ->
-                input.copyTo(output)
-            }
+            backupFile.outputStream().use { output -> input.copyTo(output) }
         }
         return backupFile
     }
@@ -914,9 +931,14 @@ class BackupService @Inject constructor(
     fun importDatabase(inputStream: java.io.InputStream) {
         val dbFile = context.getDatabasePath("hores_database")
         
-        // Close DB before restoring
         AppDatabase.getDatabase(context).close()
         AppDatabase.resetInstance()
+        
+        // Eliminem els fitxers temporals del WAL abans d'escriure el nou fitxer
+        val walFile = File(dbFile.path + "-wal")
+        val shmFile = File(dbFile.path + "-shm")
+        if (walFile.exists()) walFile.delete()
+        if (shmFile.exists()) shmFile.delete()
         
         inputStream.use { input ->
             dbFile.outputStream().use { output ->
@@ -1287,6 +1309,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "hores_database"
                 )
                 .addMigrations(MIGRATION_3_4)
+                .fallbackToDestructiveMigration()
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         super.onOpen(db)
@@ -2193,11 +2216,17 @@ class RegistreViewModel @Inject constructor(
                         return@launch
                     }
 
-                    // 5. Validació solapaments
-                    if (i > 0) {
-                        val previous = sortedRangs[i - 1]
+                    // 5. Validació solapaments (entre tots els conceptes del dia)
+                    val totsElsRangs = state.conceptes.flatMap { concepte ->
+                        concepte.rangsHoraris.map { it to concepte.nom }
+                    }.sortedBy { it.first.horaInici }
+
+                    for (i in 1 until totsElsRangs.size) {
+                        val current = totsElsRangs[i].first
+                        val previous = totsElsRangs[i - 1].first
+
                         if (current.horaInici < previous.horaFi) {
-                            _formState.value = state.copy(errorResId = R.string.registre_error_overlapping_ranges)
+                            _formState.value = state.copy(error = "Solapament horari entre: ${totsElsRangs[i-1].second} i ${totsElsRangs[i].second}")
                             return@launch
                         }
                     }
@@ -2443,7 +2472,7 @@ fun RegistreScreen(
     
     if (showNewClientDialog) {
         var nom by remember { mutableStateOf("") }
-        var preu by remember { mutableDoubleStateOf(0.0) }
+        var preuInput by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showNewClientDialog = false },
             title = { Text("Nou Client") },
@@ -2451,11 +2480,8 @@ fun RegistreScreen(
                 Column {
                     OutlinedTextField(value = nom, onValueChange = { nom = it }, label = { Text("Nom del Client") })
                     OutlinedTextField(
-                        value = if (preu > 0) preu.toString() else "",
-                        onValueChange = { input ->
-                            val normalized = input.replace(',', '.')
-                            preu = normalized.toDoubleOrNull() ?: 0.0
-                        },
+                        value = preuInput,
+                        onValueChange = { preuInput = it },
                         label = { Text("Preu per defecte") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
@@ -2463,7 +2489,8 @@ fun RegistreScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.createClient(nom, preu)
+                    val parsedPreu = preuInput.replace(',', '.').toDoubleOrNull() ?: 0.0
+                    viewModel.createClient(nom, parsedPreu)
                     showNewClientDialog = false
                 }) { Text("Desa") }
             }
@@ -2713,20 +2740,20 @@ fun ConcepteFormItem(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
-                value = if (concepte.preuHora > 0) concepte.preuHora.toString() else "",
+                value = if (concepte.preuHora > 0) concepte.preuHora.toString().replace('.', ',') else "",
                 onValueChange = { input ->
                     val normalized = input.replace(',', '.')
-                    if (normalized.isEmpty()) onPreuChange(0.0) else normalized.toDoubleOrNull()?.let { onPreuChange(it) }
+                    onPreuChange(normalized.toDoubleOrNull() ?: 0.0)
                 },
                 label = { Text(stringResource(R.string.registre_preu_hora)) },
                 modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
             OutlinedTextField(
-                value = if (concepte.despeses > 0) concepte.despeses.toString() else "",
+                value = if (concepte.despeses > 0) concepte.despeses.toString().replace('.', ',') else "",
                 onValueChange = { input ->
                     val normalized = input.replace(',', '.')
-                    if (normalized.isEmpty()) onDespesesChange(0.0) else normalized.toDoubleOrNull()?.let { onDespesesChange(it) }
+                    onDespesesChange(normalized.toDoubleOrNull() ?: 0.0)
                 },
                 label = { Text("Despeses (€)") },
                 modifier = Modifier.weight(1f),
@@ -2901,14 +2928,7 @@ package com.freelance.hores.ui.screen.calendari
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
@@ -2916,28 +2936,21 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
+import com.freelance.hores.data.backup.BackupService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -2953,6 +2966,40 @@ fun CalendariScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val dias by viewModel.dias.collectAsState()
     val diasWithRecords = remember(dias) { dias.map { it.data } }
+    val context = LocalContext.current
+    val backupService = remember { BackupService(context) }
+    var showBackupDialog by remember { mutableStateOf(false) }
+
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-sqlite3")) { uri ->
+        uri?.let {
+            context.contentResolver.openOutputStream(it)?.use { output ->
+                val backupFile = backupService.exportDatabase()
+                backupFile.inputStream().use { input -> input.copyTo(output) }
+            }
+        }
+    }
+
+    val loadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let {
+            context.contentResolver.openInputStream(it)?.use { input ->
+                backupService.importDatabase(input)
+                // Necessari per recarregar dades si s'han sobreescrit
+                viewModel.loadDias() 
+            }
+        }
+    }
+
+    if (showBackupDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackupDialog = false },
+            title = { Text("Còpia de seguretat") },
+            text = { Text("Gestió de la base de dades local.") },
+            confirmButton = {
+                TextButton(onClick = { saveLauncher.launch("hores_backup.db"); showBackupDialog = false }) { Text("Exportar") }
+                TextButton(onClick = { loadLauncher.launch(arrayOf("application/x-sqlite3")); showBackupDialog = false }) { Text("Importar") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -2964,6 +3011,9 @@ fun CalendariScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showBackupDialog = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Configuració")
+                    }
                     IconButton(onClick = { viewModel.nextMonth() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                     }
@@ -3182,6 +3232,11 @@ class CalendariViewModel @Inject constructor(
         _currentMonth.value = yearMonth
     }
 
+    fun loadDias() {
+        // Això forçarà el recarregat del corrent flatMapLatest sense obrir noves coroutines
+        _currentMonth.value = _currentMonth.value
+    }
+
     fun nextMonth() {
         setCurrentMonth(_currentMonth.value.plusMonths(1))
     }
@@ -3302,14 +3357,14 @@ class ResumViewModel @Inject constructor(
         return summary.toSortedMap()
     }
 
-    fun exportCsv(): android.content.Intent {
+    fun exportCsv(filteredDias: List<Dia>): android.content.Intent {
         val state = _resumState.value
-        return exportService.exportCsv(state.dias, state.startDate, state.endDate)
+        return exportService.exportCsv(filteredDias, state.startDate, state.endDate)
     }
 
-    fun exportPdf(): android.content.Intent {
+    fun exportPdf(filteredDias: List<Dia>): android.content.Intent {
         val state = _resumState.value
-        return exportService.exportPdf(state.dias, state.startDate, state.endDate)
+        return exportService.exportPdf(filteredDias, state.startDate, state.endDate)
     }
 }
 package com.freelance.hores.ui.screen.resum
@@ -3597,7 +3652,7 @@ fun ResumScreen(
                     ) {
                         Button(
                             onClick = { 
-                                val intent = viewModel.exportCsv()
+                                val intent = viewModel.exportCsv(filteredDias)
                                 context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f)
@@ -3606,7 +3661,7 @@ fun ResumScreen(
                         }
                         Button(
                             onClick = { 
-                                val intent = viewModel.exportPdf()
+                                val intent = viewModel.exportPdf(filteredDias)
                                 context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f)
@@ -3860,18 +3915,6 @@ class ClientsViewModel @Inject constructor(
             repository.deleteClient(client)
         }
     }
-}
-package com.freelance.hores.ui.util
-
-/**
- * UI Event sealed class for handling one-time events like showing snackbars, navigation, etc.
- */
-sealed class UiEvent {
-    data class ShowSnackbar(val message: String) : UiEvent()
-    data class ShowError(val title: String, val message: String) : UiEvent()
-    object NavigateBack : UiEvent()
-    data class Navigate(val route: String) : UiEvent()
-    object DismissDialog : UiEvent()
 }
 package com.freelance.hores.ui.util
 

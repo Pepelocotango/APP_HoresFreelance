@@ -149,7 +149,7 @@ fun RegistreScreen(
     
     if (showNewClientDialog) {
         var nom by remember { mutableStateOf("") }
-        var preu by remember { mutableDoubleStateOf(0.0) }
+        var preuInput by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showNewClientDialog = false },
             title = { Text("Nou Client") },
@@ -157,11 +157,8 @@ fun RegistreScreen(
                 Column {
                     OutlinedTextField(value = nom, onValueChange = { nom = it }, label = { Text("Nom del Client") })
                     OutlinedTextField(
-                        value = if (preu > 0) preu.toString() else "",
-                        onValueChange = { input ->
-                            val normalized = input.replace(',', '.')
-                            preu = normalized.toDoubleOrNull() ?: 0.0
-                        },
+                        value = preuInput,
+                        onValueChange = { preuInput = it },
                         label = { Text("Preu per defecte") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
@@ -169,7 +166,8 @@ fun RegistreScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.createClient(nom, preu)
+                    val parsedPreu = preuInput.replace(',', '.').toDoubleOrNull() ?: 0.0
+                    viewModel.createClient(nom, parsedPreu)
                     showNewClientDialog = false
                 }) { Text("Desa") }
             }
@@ -419,20 +417,20 @@ fun ConcepteFormItem(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
-                value = if (concepte.preuHora > 0) concepte.preuHora.toString() else "",
+                value = if (concepte.preuHora > 0) concepte.preuHora.toString().replace('.', ',') else "",
                 onValueChange = { input ->
                     val normalized = input.replace(',', '.')
-                    if (normalized.isEmpty()) onPreuChange(0.0) else normalized.toDoubleOrNull()?.let { onPreuChange(it) }
+                    onPreuChange(normalized.toDoubleOrNull() ?: 0.0)
                 },
                 label = { Text(stringResource(R.string.registre_preu_hora)) },
                 modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
             OutlinedTextField(
-                value = if (concepte.despeses > 0) concepte.despeses.toString() else "",
+                value = if (concepte.despeses > 0) concepte.despeses.toString().replace('.', ',') else "",
                 onValueChange = { input ->
                     val normalized = input.replace(',', '.')
-                    if (normalized.isEmpty()) onDespesesChange(0.0) else normalized.toDoubleOrNull()?.let { onDespesesChange(it) }
+                    onDespesesChange(normalized.toDoubleOrNull() ?: 0.0)
                 },
                 label = { Text("Despeses (€)") },
                 modifier = Modifier.weight(1f),

@@ -15,10 +15,10 @@ class CsvExporter(private val context: Context) {
             val headers = listOf(
                 context.getString(R.string.csv_header_date),
                 context.getString(R.string.csv_header_concept),
-                "Estat", // TODO: Add to strings.xml
-                "Preu/h",
-                "Despeses",
-                "Notes despeses",
+                context.getString(R.string.csv_header_status),
+                context.getString(R.string.csv_header_price_hour),
+                context.getString(R.string.csv_header_expenses),
+                context.getString(R.string.csv_header_expenses_notes),
                 context.getString(R.string.csv_header_start),
                 context.getString(R.string.csv_header_end),
                 context.getString(R.string.csv_header_duration),
@@ -54,7 +54,7 @@ class CsvExporter(private val context: Context) {
             }
 
             // Total
-            writer.write(",,,,,,,,${String.format(Locale.US, "%.2f", totalHoras)},${String.format(Locale.US, "%.2f", totalDespeses)},${String.format(Locale.US, "%.2f", totalDiners)},${context.getString(R.string.csv_header_total)}\n")
+            writer.write(",,,TOTAL:,${String.format(Locale.US, "%.2f", totalDespeses)},,,,${String.format(Locale.US, "%.2f", totalHoras)},${String.format(Locale.US, "%.2f", totalDiners)}\n")
         }
         return file
     }

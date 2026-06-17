@@ -243,11 +243,17 @@ class RegistreViewModel @Inject constructor(
                         return@launch
                     }
 
-                    // 5. Validació solapaments
-                    if (i > 0) {
-                        val previous = sortedRangs[i - 1]
+                    // 5. Validació solapaments (entre tots els conceptes del dia)
+                    val totsElsRangs = state.conceptes.flatMap { concepte ->
+                        concepte.rangsHoraris.map { it to concepte.nom }
+                    }.sortedBy { it.first.horaInici }
+
+                    for (i in 1 until totsElsRangs.size) {
+                        val current = totsElsRangs[i].first
+                        val previous = totsElsRangs[i - 1].first
+
                         if (current.horaInici < previous.horaFi) {
-                            _formState.value = state.copy(errorResId = R.string.registre_error_overlapping_ranges)
+                            _formState.value = state.copy(error = "Solapament horari entre: ${totsElsRangs[i-1].second} i ${totsElsRangs[i].second}")
                             return@launch
                         }
                     }

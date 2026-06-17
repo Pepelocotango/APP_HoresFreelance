@@ -2,14 +2,7 @@ package com.freelance.hores.ui.screen.calendari
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
@@ -17,28 +10,21 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
+import com.freelance.hores.data.backup.BackupService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -54,6 +40,40 @@ fun CalendariScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val dias by viewModel.dias.collectAsState()
     val diasWithRecords = remember(dias) { dias.map { it.data } }
+    val context = LocalContext.current
+    val backupService = remember { BackupService(context) }
+    var showBackupDialog by remember { mutableStateOf(false) }
+
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/x-sqlite3")) { uri ->
+        uri?.let {
+            context.contentResolver.openOutputStream(it)?.use { output ->
+                val backupFile = backupService.exportDatabase()
+                backupFile.inputStream().use { input -> input.copyTo(output) }
+            }
+        }
+    }
+
+    val loadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let {
+            context.contentResolver.openInputStream(it)?.use { input ->
+                backupService.importDatabase(input)
+                // Necessari per recarregar dades si s'han sobreescrit
+                viewModel.loadDias() 
+            }
+        }
+    }
+
+    if (showBackupDialog) {
+        AlertDialog(
+            onDismissRequest = { showBackupDialog = false },
+            title = { Text("Còpia de seguretat") },
+            text = { Text("Gestió de la base de dades local.") },
+            confirmButton = {
+                TextButton(onClick = { saveLauncher.launch("hores_backup.db"); showBackupDialog = false }) { Text("Exportar") }
+                TextButton(onClick = { loadLauncher.launch(arrayOf("application/x-sqlite3")); showBackupDialog = false }) { Text("Importar") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -65,6 +85,9 @@ fun CalendariScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showBackupDialog = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Configuració")
+                    }
                     IconButton(onClick = { viewModel.nextMonth() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                     }

@@ -283,7 +283,7 @@ fun ResumScreen(
                     ) {
                         Button(
                             onClick = { 
-                                val intent = viewModel.exportCsv()
+                                val intent = viewModel.exportCsv(filteredDias)
                                 context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f)
@@ -292,7 +292,7 @@ fun ResumScreen(
                         }
                         Button(
                             onClick = { 
-                                val intent = viewModel.exportPdf()
+                                val intent = viewModel.exportPdf(filteredDias)
                                 context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f)

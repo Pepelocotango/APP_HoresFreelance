@@ -63,6 +63,11 @@ class CalendariViewModel @Inject constructor(
         _currentMonth.value = yearMonth
     }
 
+    fun loadDias() {
+        // Això forçarà el recarregat del corrent flatMapLatest sense obrir noves coroutines
+        _currentMonth.value = _currentMonth.value
+    }
+
     fun nextMonth() {
         setCurrentMonth(_currentMonth.value.plusMonths(1))
     }
