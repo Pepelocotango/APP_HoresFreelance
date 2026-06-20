@@ -78,6 +78,7 @@ class PdfExporter(private val context: Context) {
         var totalDiners = 0.0
         for (dia in dias) {
             for (concepte in dia.conceptes) {
+                totalDiners += concepte.getTotalDiners()
                 for (rang in concepte.rangsHoraris) {
                     if (y > pageHeight - 100) {
                         pdfDocument.finishPage(page)
@@ -101,24 +102,24 @@ class PdfExporter(private val context: Context) {
                     }
 
                     val duracion = rang.getDuracionaEnHoras()
-                    val costHores = duracion * concepte.preuHora
-                    
-                    // Afegim la despesa només al primer rang horari d'aquest bolo per evitar duplicats
-                    val despesesAplicar = if (rang == concepte.rangsHoraris.firstOrNull()) concepte.despeses else 0.0
-                    val costTotalBolo = costHores + despesesAplicar
-                    
                     totalHoras += duracion
-                    totalDiners += costTotalBolo
 
                     canvas.drawText(dia.data.toString(), margin, y, textPaint)
                     
                     val conceptName = if (concepte.nom.length > 20) concepte.nom.substring(0, 17) + "..." else concepte.nom
                     canvas.drawText(conceptName, margin + 80, y, textPaint)
-                    canvas.drawText("%.2f".format(concepte.preuHora), margin + 220, y, textPaint)
+
+                    val preuText = if (concepte.esPreuFix) "FIX: %.2f".format(concepte.importPreuFix) else "%.2f".format(concepte.preuHora)
+                    canvas.drawText(preuText, margin + 220, y, textPaint)
+
                     canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 290, y, textPaint)
                     canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 350, y, textPaint)
                     canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
-                    canvas.drawText("%.2f".format(costTotalBolo), margin + 480, y, textPaint)
+
+                    // Mostrem l'import total del bolo (hores/fix + despeses) només a la primera fila del bolo per claredat
+                    if (rang == concepte.rangsHoraris.firstOrNull()) {
+                        canvas.drawText("%.2f".format(concepte.getTotalDiners()), margin + 480, y, textPaint)
+                    }
 
                     y += lineHeight
                 }

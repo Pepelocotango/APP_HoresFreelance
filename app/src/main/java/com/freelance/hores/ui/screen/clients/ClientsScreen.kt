@@ -7,8 +7,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -29,33 +31,55 @@ fun ClientsScreen(
     viewModel: ClientsViewModel = hiltViewModel()
 ) {
     val clients by viewModel.clients.collectAsState()
-    var showNewClientDialog by remember { mutableStateOf(false) }
+    var showClientDialog by remember { mutableStateOf(false) }
+    var editingClient by remember { mutableStateOf<com.freelance.hores.domain.model.Client?>(null) }
 
-    if (showNewClientDialog) {
-        var nom by remember { mutableStateOf("") }
-        var preu by remember { mutableDoubleStateOf(0.0) }
+    if (showClientDialog) {
+        var nom by remember { mutableStateOf(editingClient?.nom ?: "") }
+        var preuInput by remember { mutableStateOf(editingClient?.preuHoraDefecte?.toString() ?: "") }
+
         AlertDialog(
-            onDismissRequest = { showNewClientDialog = false },
-            title = { Text("Nou Client") },
+            onDismissRequest = {
+                showClientDialog = false
+                editingClient = null
+            },
+            title = { Text(if (editingClient == null) "Nou Client" else "Editar Client") },
             text = {
-                Column {
-                    OutlinedTextField(value = nom, onValueChange = { nom = it }, label = { Text("Nom del Client") })
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value = if (preu > 0) preu.toString() else "",
-                        onValueChange = { input ->
-                            val normalized = input.replace(',', '.')
-                            preu = normalized.toDoubleOrNull() ?: 0.0
-                        },
-                        label = { Text("Preu per defecte") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                        value = nom,
+                        onValueChange = { nom = it },
+                        label = { Text("Nom del Client") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = preuInput,
+                        onValueChange = { preuInput = it },
+                        label = { Text("Preu per defecte (€/h)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.saveClient(com.freelance.hores.domain.model.Client(nom = nom, preuHoraDefecte = preu))
-                    showNewClientDialog = false
+                    val preu = preuInput.replace(',', '.').toDoubleOrNull() ?: 0.0
+                    viewModel.saveClient(
+                        com.freelance.hores.domain.model.Client(
+                            id = editingClient?.id ?: 0L,
+                            nom = nom,
+                            preuHoraDefecte = preu
+                        )
+                    )
+                    showClientDialog = false
+                    editingClient = null
                 }) { Text("Desa") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showClientDialog = false
+                    editingClient = null
+                }) { Text("Cancel·la") }
             }
         )
     }
@@ -63,7 +87,10 @@ fun ClientsScreen(
     Scaffold(
         topBar = { TopAppBar(title = { Text("Clients") }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showNewClientDialog = true }) {
+            FloatingActionButton(onClick = {
+                editingClient = null
+                showClientDialog = true
+            }) {
                 Icon(Icons.Default.Add, contentDescription = "Afegir client")
             }
         }
@@ -86,12 +113,20 @@ fun ClientsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(text = client.nom, style = MaterialTheme.typography.titleMedium)
                             Text(text = "${client.preuHoraDefecte} €/h", style = MaterialTheme.typography.bodyMedium)
                         }
-                        IconButton(onClick = { viewModel.deleteClient(client) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                        Row {
+                            IconButton(onClick = {
+                                editingClient = client
+                                showClientDialog = true
+                            }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Editar")
+                            }
+                            IconButton(onClick = { viewModel.deleteClient(client) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar")
+                            }
                         }
                     }
                 }

@@ -35,7 +35,12 @@ class RegistreRepository @Inject constructor(
     }
 
     suspend fun saveClient(client: Client) {
-        clientDao.insert(ClientEntity(id = client.id, nom = client.nom, preuHoraDefecte = client.preuHoraDefecte))
+        database.withTransaction {
+            clientDao.insert(ClientEntity(id = client.id, nom = client.nom, preuHoraDefecte = client.preuHoraDefecte))
+            if (client.id > 0) {
+                concepteDao.updatePreuHoraForPendent(client.id, client.preuHoraDefecte)
+            }
+        }
     }
 
     suspend fun deleteClient(client: Client) {
@@ -84,6 +89,8 @@ class RegistreRepository @Inject constructor(
                 estat = data.concepte.estat,
                 despeses = data.concepte.despeses,
                 despesesNotes = data.concepte.despesesNotes,
+                esPreuFix = data.concepte.esPreuFix,
+                importPreuFix = data.concepte.importPreuFix,
                 rangsHoraris = rangsHoraris
             )
         }
@@ -148,7 +155,9 @@ class RegistreRepository @Inject constructor(
                     preuHora = concepte.preuHora,
                     estat = concepte.estat,
                     despeses = concepte.despeses,
-                    despesesNotes = concepte.despesesNotes
+                    despesesNotes = concepte.despesesNotes,
+                    esPreuFix = concepte.esPreuFix,
+                    importPreuFix = concepte.importPreuFix
                 )
                 val concepteId = concepteDao.insert(concepteEntity)
 
@@ -182,7 +191,9 @@ class RegistreRepository @Inject constructor(
                 preuHora = concepte.preuHora,
                 estat = concepte.estat,
                 despeses = concepte.despeses,
-                despesesNotes = concepte.despesesNotes
+                despesesNotes = concepte.despesesNotes,
+                esPreuFix = concepte.esPreuFix,
+                importPreuFix = concepte.importPreuFix
             )
         )
     }

@@ -88,4 +88,26 @@ class ConcepteTest {
 
         assert(concepte.getTotalHoras() in 5.99..6.01)
     }
+
+    @Test
+    fun testPreuFix() {
+        val concepte = Concepte(
+            diaId = 1,
+            nom = "Task Fix",
+            esPreuFix = true,
+            importPreuFix = 100.0,
+            despeses = 20.0,
+            rangsHoraris = listOf(
+                RangHorari(
+                    concepteId = 1,
+                    horaInici = LocalTime.of(9, 0),
+                    horaFi = LocalTime.of(12, 0)
+                )
+            )
+        )
+
+        // Tot i tenir 3 hores, el preu és fix de 100€ + 20€ de despeses
+        assert(concepte.getTotalDiners() == 120.0)
+        assert(concepte.getDinersHores() == 0.0)
+    }
 }

@@ -17,7 +17,7 @@ import com.freelance.hores.data.db.entity.RangHorariEntity
 
 @Database(
     entities = [DiaEntity::class, ConcepteEntity::class, RangHorariEntity::class, ClientEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -36,6 +36,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE conceptes ADD COLUMN esPreuFix INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE conceptes ADD COLUMN importPreuFix REAL NOT NULL DEFAULT 0.0")
+            }
+        }
+
         @Volatile
         private var Instance: AppDatabase? = null
 
@@ -46,7 +53,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "hores_database"
                 )
-                .addMigrations(MIGRATION_3_4)
+                .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
                 .fallbackToDestructiveMigration()
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onOpen(db: SupportSQLiteDatabase) {

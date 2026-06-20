@@ -263,7 +263,9 @@ fun RegistreScreen(
                     onDelete = { viewModel.removeConcepte(concepteIndex) },
                     onEstatChange = { viewModel.updateConcepteEstat(concepteIndex, it) },
                     onDespesesChange = { viewModel.updateConcepteDespeses(concepteIndex, it) },
-                    onDespesesNotesChange = { viewModel.updateConcepteDespesesNotes(concepteIndex, it) }
+                    onDespesesNotesChange = { viewModel.updateConcepteDespesesNotes(concepteIndex, it) },
+                    onEsPreuFixChange = { viewModel.updateConcepteEsPreuFix(concepteIndex, it) },
+                    onImportPreuFixChange = { viewModel.updateConcepteImportPreuFix(concepteIndex, it) }
                 )
             }
 
@@ -327,6 +329,8 @@ fun ConcepteFormItem(
     onEstatChange: (EstatFacturacio) -> Unit,
     onDespesesChange: (Double) -> Unit,
     onDespesesNotesChange: (String) -> Unit,
+    onEsPreuFixChange: (Boolean) -> Unit,
+    onImportPreuFixChange: (Double) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -375,6 +379,32 @@ fun ConcepteFormItem(
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Text(stringResource(R.string.registre_add_rang))
+        }
+
+        // Preu Fix Toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Preu fix per bolo", style = MaterialTheme.typography.bodyMedium)
+            androidx.compose.material3.Switch(
+                checked = concepte.esPreuFix,
+                onCheckedChange = onEsPreuFixChange
+            )
+        }
+
+        if (concepte.esPreuFix) {
+            OutlinedTextField(
+                value = if (concepte.importPreuFix > 0) concepte.importPreuFix.toString().replace('.', ',') else "",
+                onValueChange = { input ->
+                    val normalized = input.replace(',', '.')
+                    onImportPreuFixChange(normalized.toDoubleOrNull() ?: 0.0)
+                },
+                label = { Text("Import Preu Fix (€)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            )
         }
 
         // Dropdowns i preus
