@@ -1,4 +1,4 @@
-# Informe d'Anàlisi del Projecte: HoresFreelance
+# Informe d'Anàlisi del Projecte: HoresFreelance pre-monorepo multiplataforma
 
 ## 1. Introducció
 HoresFreelance és una aplicació Android nativa dissenyada per a treballadors autònoms. Permet portar un control exhaustiu de les hores de treball, organitzades per "Bolos" (projectes o tasques), gestionar clients, preus per hora, despeses associades i generar informes per a la facturació.
