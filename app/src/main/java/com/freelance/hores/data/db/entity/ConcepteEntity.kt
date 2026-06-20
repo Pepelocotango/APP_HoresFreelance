@@ -34,5 +34,7 @@ data class ConcepteEntity(
     val preuHora: Double = 0.0,
     val estat: EstatFacturacio = EstatFacturacio.PENDENT,
     val despeses: Double = 0.0,
-    val despesesNotes: String = ""
+    val despesesNotes: String = "",
+    val esPreuFix: Boolean = false,
+    val importPreuFix: Double = 0.0
 )

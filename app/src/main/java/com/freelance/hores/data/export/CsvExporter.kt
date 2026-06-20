@@ -32,17 +32,17 @@ class CsvExporter(private val context: Context) {
             var totalDespeses = 0.0
             for (dia in dias) {
                 for (concepte in dia.conceptes) {
+                    totalDiners += concepte.getTotalDiners()
+                    totalDespeses += concepte.despeses
                     for ((index, rang) in concepte.rangsHoraris.withIndex()) {
                         val duracio = rang.getDuracionaEnHoras()
                         totalHoras += duracio
-                        totalDiners += concepte.getTotalDiners()
-                        totalDespeses += concepte.despeses
                         writer.write(
                             "${dia.data}," +
                             "${concepte.nom.replace(",", " ")}," +
                             "${concepte.estat.name}," +
-                            "${String.format(Locale.US, "%.2f", concepte.preuHora)}," +
-                            "${String.format(Locale.US, "%.2f", concepte.despeses)}," +
+                            "${if (concepte.esPreuFix) "FIX: ${String.format(Locale.US, "%.2f", concepte.importPreuFix)}" else String.format(Locale.US, "%.2f", concepte.preuHora)}," +
+                            "${if (index == 0) String.format(Locale.US, "%.2f", concepte.despeses) else "0.00"}," +
                             "${concepte.despesesNotes.replace(",", " ")}," +
                             "${rang.horaInici}," +
                             "${rang.horaFi}," +

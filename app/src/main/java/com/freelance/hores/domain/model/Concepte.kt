@@ -12,14 +12,16 @@ data class Concepte(
     val rangsHoraris: List<RangHorari> = emptyList(),
     val estat: EstatFacturacio = EstatFacturacio.PENDENT,
     val despeses: Double = 0.0,
-    val despesesNotes: String = ""
+    val despesesNotes: String = "",
+    val esPreuFix: Boolean = false,
+    val importPreuFix: Double = 0.0
 ) {
     fun getTotalHoras(): Double {
         return rangsHoraris.sumOf { it.getDuracionaEnHoras() }
     }
 
     fun getDinersHores(): Double {
-        return getTotalHoras() * preuHora
+        return if (esPreuFix) 0.0 else getTotalHoras() * preuHora
     }
 
     fun getDinersDespeses(): Double {
@@ -27,6 +29,7 @@ data class Concepte(
     }
 
     fun getTotalDiners(): Double {
-        return getDinersHores() + getDinersDespeses()
+        val base = if (esPreuFix) importPreuFix else getDinersHores()
+        return base + getDinersDespeses()
     }
 }

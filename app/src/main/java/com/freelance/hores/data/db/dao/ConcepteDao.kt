@@ -34,4 +34,7 @@ interface ConcepteDao {
     @Transaction
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
     suspend fun getByDiaIdWithClientSync(diaId: Long): List<ConcepteWithClient>
+
+    @Query("UPDATE conceptes SET preuHora = :nouPreu WHERE clientId = :clientId AND estat = 'PENDENT'")
+    suspend fun updatePreuHoraForPendent(clientId: Long, nouPreu: Double)
 }

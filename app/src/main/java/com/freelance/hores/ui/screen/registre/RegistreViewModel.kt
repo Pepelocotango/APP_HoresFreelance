@@ -40,7 +40,9 @@ data class ConcepteForm(
     val rangsHoraris: List<RangHorariForm> = emptyList(),
     val estat: EstatFacturacio = EstatFacturacio.PENDENT,
     val despeses: Double = 0.0,
-    val despesesNotes: String = ""
+    val despesesNotes: String = "",
+    val esPreuFix: Boolean = false,
+    val importPreuFix: Double = 0.0
 )
 
 data class RangHorariForm(
@@ -93,6 +95,22 @@ class RegistreViewModel @Inject constructor(
         val currentConceptes = _formState.value.conceptes.toMutableList()
         if (index >= 0 && index < currentConceptes.size) {
             currentConceptes[index] = currentConceptes[index].copy(nom = nom)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteEsPreuFix(index: Int, esPreuFix: Boolean) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(esPreuFix = esPreuFix)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteImportPreuFix(index: Int, import: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(importPreuFix = import)
             _formState.value = _formState.value.copy(conceptes = currentConceptes)
         }
     }
@@ -269,6 +287,8 @@ class RegistreViewModel @Inject constructor(
                         estat = concepteForm.estat,
                         despeses = concepteForm.despeses,
                         despesesNotes = concepteForm.despesesNotes,
+                        esPreuFix = concepteForm.esPreuFix,
+                        importPreuFix = concepteForm.importPreuFix,
                         rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
                             RangHorari(
                                 id = rangForm.id,
@@ -324,6 +344,8 @@ class RegistreViewModel @Inject constructor(
                         estat = concepte.estat,
                         despeses = concepte.despeses,
                         despesesNotes = concepte.despesesNotes,
+                        esPreuFix = concepte.esPreuFix,
+                        importPreuFix = concepte.importPreuFix,
                         rangsHoraris = concepte.rangsHoraris.map { rang ->
                             RangHorariForm(
                                 id = rang.id,
