@@ -5,11 +5,9 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfDocument.PageInfo
-import com.freelance.hores.R
 import com.freelance.hores.domain.model.Dia
 import java.io.File
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
 
 class PdfExporter(private val context: Context) {
     fun exportToPdf(
@@ -54,20 +52,19 @@ class PdfExporter(private val context: Context) {
 
         // Title
         val periodTitle = if (startDate != null && endDate != null) {
-            "${context.getString(R.string.resum_title)} — ${startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)} ${context.getString(R.string.resum_to)} ${endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
+            "Resum d'hores — $startDate a $endDate"
         } else {
-            context.getString(R.string.resum_title)
+            "Resum d'hores"
         }
         canvas.drawText(periodTitle, margin, y, titlePaint)
         y += lineHeight * 2
 
-        // Headers
-        canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
+        canvas.drawText("Data", margin, y, headerPaint)
+        canvas.drawText("Concepte", margin + 80, y, headerPaint)
+        canvas.drawText("Preu/h", margin + 220, y, headerPaint)
+        canvas.drawText("Inici", margin + 290, y, headerPaint)
+        canvas.drawText("Fi", margin + 350, y, headerPaint)
+        canvas.drawText("Durada", margin + 410, y, headerPaint)
         canvas.drawText("Total €", margin + 480, y, headerPaint)
 
         y += lineHeight
@@ -89,12 +86,12 @@ class PdfExporter(private val context: Context) {
                         y = 50f
                         
                         // Redraw headers on new page
-                        canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
+                        canvas.drawText("Data", margin, y, headerPaint)
+                        canvas.drawText("Concepte", margin + 80, y, headerPaint)
+                        canvas.drawText("Preu/h", margin + 220, y, headerPaint)
+                        canvas.drawText("Inici", margin + 290, y, headerPaint)
+                        canvas.drawText("Fi", margin + 350, y, headerPaint)
+                        canvas.drawText("Durada", margin + 410, y, headerPaint)
                         canvas.drawText("Total €", margin + 480, y, headerPaint)
                         y += lineHeight
                         canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
@@ -112,8 +109,8 @@ class PdfExporter(private val context: Context) {
                     val preuText = if (concepte.esPreuFix) "FIX: %.2f".format(concepte.importPreuFix) else "%.2f".format(concepte.preuHora)
                     canvas.drawText(preuText, margin + 220, y, textPaint)
 
-                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 290, y, textPaint)
-                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 350, y, textPaint)
+                    canvas.drawText("${rang.horaInici.hour}:${"%02d".format(rang.horaInici.minute)}", margin + 290, y, textPaint)
+                    canvas.drawText("${rang.horaFi.hour}:${"%02d".format(rang.horaFi.minute)}", margin + 350, y, textPaint)
                     canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
 
                     // Mostrem l'import total del bolo (hores/fix + despeses) només a la primera fila del bolo per claredat

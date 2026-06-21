@@ -4,16 +4,17 @@ import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalTime
+import com.freelance.hores.util.todayLocalDate
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 class RangHorariTest {
     @Test
     fun testDuracionaEnHoras() {
         val rang = RangHorari(
             concepteId = 1,
-            horaInici = LocalTime.of(9, 0),
-            horaFi = LocalTime.of(11, 30)
+            horaInici = LocalTime(9, 0),
+            horaFi = LocalTime(11, 30)
         )
         val duracio = rang.getDuracionaEnHoras()
         assert(duracio in 2.49..2.51)
@@ -23,8 +24,8 @@ class RangHorariTest {
     fun testDuracionaFormatada() {
         val rang = RangHorari(
             concepteId = 1,
-            horaInici = LocalTime.of(9, 0),
-            horaFi = LocalTime.of(11, 30)
+            horaInici = LocalTime(9, 0),
+            horaFi = LocalTime(11, 30)
         )
         val formatted = rang.getDuracionaFormatada()
         assert(formatted.contains("2h") || formatted.contains("30m"))
@@ -40,8 +41,8 @@ class DiaTest {
             rangsHoraris = listOf(
                 RangHorari(
                     concepteId = 1,
-                    horaInici = LocalTime.of(9, 0),
-                    horaFi = LocalTime.of(11, 0)
+                    horaInici = LocalTime(9, 0),
+                    horaFi = LocalTime(11, 0)
                 )
             )
         )
@@ -51,14 +52,14 @@ class DiaTest {
             rangsHoraris = listOf(
                 RangHorari(
                     concepteId = 2,
-                    horaInici = LocalTime.of(14, 0),
-                    horaFi = LocalTime.of(17, 0)
+                    horaInici = LocalTime(14, 0),
+                    horaFi = LocalTime(17, 0)
                 )
             )
         )
 
         val dia = Dia(
-            data = LocalDate.now(),
+            data = todayLocalDate(),
             conceptes = listOf(concepte1, concepte2)
         )
 
@@ -75,13 +76,13 @@ class ConcepteTest {
             rangsHoraris = listOf(
                 RangHorari(
                     concepteId = 1,
-                    horaInici = LocalTime.of(9, 0),
-                    horaFi = LocalTime.of(12, 0)
+                    horaInici = LocalTime(9, 0),
+                    horaFi = LocalTime(12, 0)
                 ),
                 RangHorari(
                     concepteId = 1,
-                    horaInici = LocalTime.of(14, 0),
-                    horaFi = LocalTime.of(17, 0)
+                    horaInici = LocalTime(14, 0),
+                    horaFi = LocalTime(17, 0)
                 )
             )
         )
@@ -100,8 +101,8 @@ class ConcepteTest {
             rangsHoraris = listOf(
                 RangHorari(
                     concepteId = 1,
-                    horaInici = LocalTime.of(9, 0),
-                    horaFi = LocalTime.of(12, 0)
+                    horaInici = LocalTime(9, 0),
+                    horaFi = LocalTime(12, 0)
                 )
             )
         )

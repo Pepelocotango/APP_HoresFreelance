@@ -4,6 +4,9 @@ import app.cash.turbine.test
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.util.MainDispatcherRule
+import com.freelance.hores.util.minusMonths
+import com.freelance.hores.util.plusMonths
+import com.freelance.hores.util.todayYearMonth
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -13,8 +16,8 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-import java.time.YearMonth
+import kotlinx.datetime.LocalDate
+import com.freelance.hores.util.YearMonth
 
 class CalendariViewModelTest {
     @get:Rule
@@ -37,15 +40,15 @@ class CalendariViewModelTest {
         
         viewModel.currentMonth.test {
             val emission = awaitItem()
-            assertEquals(YearMonth.now(), emission)
+            assertEquals(todayYearMonth(), emission)
         }
     }
 
     @Test
     fun `loadDias should update dias state`() = runTest {
         val testDias = listOf(
-            Dia(id = 1, data = LocalDate.of(2024, 1, 1), notes = "Test 1", conceptes = emptyList()),
-            Dia(id = 2, data = LocalDate.of(2024, 1, 2), notes = "Test 2", conceptes = emptyList())
+            Dia(id = 1, data = LocalDate(2024, 1, 1), notes = "Test 1", conceptes = emptyList()),
+            Dia(id = 2, data = LocalDate(2024, 1, 2), notes = "Test 2", conceptes = emptyList())
         )
 
         coEvery {
@@ -61,7 +64,7 @@ class CalendariViewModelTest {
     fun `nextMonth should increment current month`() = runTest {
         viewModel = CalendariViewModel(repository)
         
-        val initialMonth = YearMonth.now()
+        val initialMonth = todayYearMonth()
         viewModel.nextMonth()
         
         viewModel.currentMonth.test {
@@ -74,7 +77,7 @@ class CalendariViewModelTest {
     fun `previousMonth should decrement current month`() = runTest {
         viewModel = CalendariViewModel(repository)
         
-        val initialMonth = YearMonth.now()
+        val initialMonth = todayYearMonth()
         viewModel.previousMonth()
         
         viewModel.currentMonth.test {
@@ -85,10 +88,10 @@ class CalendariViewModelTest {
 
     @Test
     fun `getDiasByDate should return matching dia or null`() = runTest {
-        val targetDate = LocalDate.of(2024, 1, 15)
+        val targetDate = LocalDate(2024, 1, 15)
         val testDias = listOf(
             Dia(id = 1, data = targetDate, notes = "Target dia", conceptes = emptyList()),
-            Dia(id = 2, data = LocalDate.of(2024, 1, 16), notes = "Other dia", conceptes = emptyList())
+            Dia(id = 2, data = LocalDate(2024, 1, 16), notes = "Other dia", conceptes = emptyList())
         )
         
         coEvery {
@@ -110,15 +113,15 @@ class CalendariViewModelTest {
     fun `getDiasByDate should return null when date not found`() = runTest {
         viewModel = CalendariViewModel(repository)
         
-        val result = viewModel.getDiasByDate(LocalDate.of(2025, 12, 31))
+        val result = viewModel.getDiasByDate(LocalDate(2025, 12, 31))
         assertNull(result)
     }
 
     @Test
     fun `getDiasWithRecords should return list of dates`() = runTest {
         val testDias = listOf(
-            Dia(id = 1, data = LocalDate.of(2024, 1, 1), notes = "Test 1", conceptes = emptyList()),
-            Dia(id = 2, data = LocalDate.of(2024, 1, 5), notes = "Test 2", conceptes = emptyList())
+            Dia(id = 1, data = LocalDate(2024, 1, 1), notes = "Test 1", conceptes = emptyList()),
+            Dia(id = 2, data = LocalDate(2024, 1, 5), notes = "Test 2", conceptes = emptyList())
         )
         
         coEvery {
@@ -134,8 +137,8 @@ class CalendariViewModelTest {
         
         val result = viewModel.getDiasWithRecords()
         assertEquals(2, result.size)
-        assertEquals(LocalDate.of(2024, 1, 1), result[0])
-        assertEquals(LocalDate.of(2024, 1, 5), result[1])
+        assertEquals(LocalDate(2024, 1, 1), result[0])
+        assertEquals(LocalDate(2024, 1, 5), result[1])
     }
 
     @Test

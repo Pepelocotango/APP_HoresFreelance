@@ -1,7 +1,10 @@
 package com.freelance.hores.data.db.entity
 
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 
-// Entity for time ranges within a concept
 @Entity(
     tableName = "rangs_horaris",
     foreignKeys = [
@@ -17,6 +20,6 @@ package com.freelance.hores.data.db.entity
 data class RangHorariEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val concepteId: Long,
-    val horaInici: Long,  // Stored as seconds of day
-    val horaFi: Long      // Stored as seconds of day
+    val horaInici: Long,
+    val horaFi: Long
 )

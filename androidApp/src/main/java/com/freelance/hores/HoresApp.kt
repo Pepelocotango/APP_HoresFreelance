@@ -1,7 +1,14 @@
 package com.freelance.hores
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
+import com.freelance.hores.di.initKoin
+import org.koin.android.ext.koin.androidContext
 
-@HiltAndroidApp
-class HoresApp : Application()
+class HoresApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        initKoin {
+            androidContext(this@HoresApp)
+        }
+    }
+}

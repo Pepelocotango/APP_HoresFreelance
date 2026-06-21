@@ -1,57 +1,66 @@
 package com.freelance.hores.ui.screen.calendari
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
-import com.freelance.hores.data.backup.BackupService
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
+import com.freelance.hores.util.atDay
+import com.freelance.hores.util.atEndOfMonth
+import com.freelance.hores.util.plusMonths
+import com.freelance.hores.util.isoDayOfWeek
+import com.freelance.hores.util.todayLocalDate
+import com.freelance.hores.util.todayYearMonth
+import kotlinx.datetime.LocalDate
+import com.freelance.hores.util.YearMonth
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CalendariScreen(
     navController: NavHostController,
-    viewModel: CalendariViewModel = koinViewModel()
+    viewModel: CalendariViewModel = koinInject()
 ) {
     val currentMonth by viewModel.currentMonth.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val dias by viewModel.dias.collectAsState()
     val diasWithRecords = remember(dias) { dias.map { it.data } }
-    val context = LocalContext.current
-    val backupService = remember { BackupService(context) }
     var showBackupDialog by remember { mutableStateOf(false) }
 
-    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-        uri?.let {
-            context.contentResolver.openOutputStream(it)?.use { output ->
-                val backupFile = backupService.exportDatabase()
-                backupFile.inputStream().use { input -> input.copyTo(output) }
-            }
-        }
-    }
-
-    val loadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let {
-            context.contentResolver.openInputStream(it)?.use { input ->
-                backupService.importDatabase(input)
-                // Necessari per recarregar dades si s'han sobreescrit
-                viewModel.loadDias() 
-            }
-        }
-    }
-
-    if (showBackupDialog) {
-        AlertDialog(
-            onDismissRequest = { showBackupDialog = false },
-            title = { Text("Còpia de seguretat") },
-            text = { Text("Gestió de la base de dades local.") },
-            confirmButton = {
-                TextButton(onClick = { saveLauncher.launch("hores_backup.db"); showBackupDialog = false }) { Text("Exportar") }
-                TextButton(onClick = { loadLauncher.launch(arrayOf("*/*")); showBackupDialog = false }) { Text("Importar") }
-            }
-        )
-    }
+    CalendariBackupDialog(
+        visible = showBackupDialog,
+        onDismiss = { showBackupDialog = false },
+        onImportComplete = { viewModel.loadDias() }
+    )
 
     Scaffold(
         topBar = {
@@ -59,7 +68,7 @@ fun CalendariScreen(
                 title = { Text("Calendari") },
                 navigationIcon = {
                     IconButton(onClick = { viewModel.previousMonth() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel·la")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Cancel·la")
                     }
                 },
                 actions = {
@@ -67,10 +76,10 @@ fun CalendariScreen(
                         Icon(Icons.Default.Settings, contentDescription = "Configuració")
                     }
                     IconButton(onClick = { viewModel.nextMonth() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                        Icon(Icons.Default.ArrowForward, contentDescription = null)
                     }
                     IconButton(onClick = { navController.navigate("resum") }) {
-                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Valor")
+                        Icon(Icons.Default.List, contentDescription = "Valor")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -101,7 +110,7 @@ fun CalendariScreen(
                 val pagerState = rememberPagerState(initialPage = 1200) { 2400 }
 
                 LaunchedEffect(pagerState.currentPage) {
-                    val month = YearMonth.now().plusMonths((pagerState.currentPage - 1200).toLong())
+                    val month = todayYearMonth().plusMonths((pagerState.currentPage - 1200).toLong())
                     viewModel.setCurrentMonth(month)
                 }
 
@@ -109,11 +118,10 @@ fun CalendariScreen(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
-                    val month = YearMonth.now().plusMonths((page - 1200).toLong())
+                    val month = todayYearMonth().plusMonths((page - 1200).toLong())
                     Column(modifier = Modifier.fillMaxSize()) {
                         Text(
-                            text = "${month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${month.year}",
+                            text = "${month.monthNumber}/${month.year}",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -157,17 +165,9 @@ fun CalendarGrid(
                 .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            listOf(
-                R.string.day_mon,
-                R.string.day_tue,
-                R.string.day_wed,
-                R.string.day_thu,
-                R.string.day_fri,
-                R.string.day_sat,
-                R.string.day_sun
-            ).forEach { dayRes ->
+            listOf("L", "M", "X", "J", "V", "S", "D").forEach { dayLabel ->
                 Text(
-                    text = stringResource(dayRes),
+                    text = dayLabel,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
@@ -177,7 +177,7 @@ fun CalendarGrid(
 
         val firstDay = yearMonth.atDay(1)
         val lastDay = yearMonth.atEndOfMonth()
-        val firstDayOfWeek = firstDay.dayOfWeek.value // 1 (Mon) to 7 (Sun)
+        val firstDayOfWeek = firstDay.isoDayOfWeek()
         val daysInMonth = lastDay.dayOfMonth
         
         // Adjust index to start Monday at 0
@@ -196,7 +196,7 @@ fun CalendarGrid(
                 if (dayOfMonth in 1..daysInMonth) {
                     val date = yearMonth.atDay(dayOfMonth)
                     val hasRecord = date in diasWithRecords
-                    val isToday = date == LocalDate.now()
+                    val isToday = date == todayLocalDate()
                     DayCell(
                         day = dayOfMonth,
                         hasRecord = hasRecord,

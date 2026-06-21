@@ -1,18 +1,39 @@
 package com.freelance.hores.ui.screen.dia
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.ConcepteCard
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaDetallScreen(
     navController: NavHostController,
     diaId: Long,
-    viewModel: DiaDetallViewModel = koinViewModel()
+    viewModel: DiaDetallViewModel = koinInject()
 ) {
     val dia by viewModel.dia.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -28,7 +49,7 @@ fun DiaDetallScreen(
                 title = { Text("Detall del dia") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel·la")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Cancel·la")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -60,7 +81,7 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = localDia.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
+                            text = localDia.data.toString(),
                             style = MaterialTheme.typography.headlineSmall
                         )
                         if (localDia.notes.isNotEmpty()) {
@@ -76,7 +97,7 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = stringResource(R.string.dia_detall_total_hours, String.format("%.2f", localDia.getTotalHoras())),
+                            text = "Total hores: ${String.format("%.2f", localDia.getTotalHoras())}",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )

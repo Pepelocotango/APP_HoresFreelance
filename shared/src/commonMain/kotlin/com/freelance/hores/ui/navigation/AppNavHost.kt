@@ -6,7 +6,22 @@ import com.freelance.hores.ui.screen.dia.DiaDetallScreen
 import com.freelance.hores.ui.screen.fitxar.FitxarScreen
 import com.freelance.hores.ui.screen.registre.RegistreScreen
 import com.freelance.hores.ui.screen.resum.ResumScreen
-import java.time.LocalDate
+import kotlinx.datetime.LocalDate
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 
 @Composable
 fun AppNavHost(navController: NavHostController) {

@@ -1,8 +1,8 @@
 package com.freelance.hores.data.db.entity
 
-import java.time.LocalDate
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-// Entity for workdays
 @Entity(tableName = "dies")
 data class DiaEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

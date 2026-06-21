@@ -13,8 +13,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 class RegistreViewModelTest {
     @get:Rule
@@ -33,7 +33,7 @@ class RegistreViewModelTest {
     @Test
     fun `initial formState should have default values`() = runTest {
         val state = viewModel.formState.value
-        assertEquals(LocalDate.now(), state.data)
+        assertEquals(com.freelance.hores.util.todayLocalDate(), state.data)
         assertEquals("", state.notes)
         assertEquals(0, state.conceptes.size)
         assertFalse(state.isSaving)
@@ -43,7 +43,7 @@ class RegistreViewModelTest {
 
     @Test
     fun `setData should update data field`() = runTest {
-        val newDate = LocalDate.of(2024, 6, 15)
+        val newDate = LocalDate(2024, 6, 15)
         viewModel.setData(newDate)
         assertEquals(newDate, viewModel.formState.value.data)
     }
@@ -97,7 +97,7 @@ class RegistreViewModelTest {
     @Test
     fun `updateRangHorariInici should update start time`() = runTest {
         viewModel.addConcepte()
-        val newTime = LocalTime.of(10, 0)
+        val newTime = LocalTime(10, 0)
         viewModel.updateRangHorariInici(0, 0, newTime)
         
         val rang = viewModel.formState.value.conceptes[0].rangsHoraris[0]
@@ -106,14 +106,14 @@ class RegistreViewModelTest {
 
     @Test
     fun `multiple operations should maintain state correctly`() = runTest {
-        viewModel.setData(LocalDate.of(2024, 6, 15))
+        viewModel.setData(LocalDate(2024, 6, 15))
         viewModel.setNotes("Important work")
         viewModel.addConcepte()
         viewModel.addConcepte()
         viewModel.updateConcepteName(0, "Task 1 Updated")
         
         val state = viewModel.formState.value
-        assertEquals(LocalDate.of(2024, 6, 15), state.data)
+        assertEquals(LocalDate(2024, 6, 15), state.data)
         assertEquals("Important work", state.notes)
         assertEquals(2, state.conceptes.size)
         assertEquals("Task 1 Updated", state.conceptes[0].nom)

@@ -1,13 +1,40 @@
 package com.freelance.hores.ui.screen.clients
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.text.input.KeyboardType
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientsScreen(
     navController: NavHostController,
-    viewModel: ClientsViewModel = koinViewModel()
+    viewModel: ClientsViewModel = koinInject()
 ) {
     val clients by viewModel.clients.collectAsState()
     var showClientDialog by remember { mutableStateOf(false) }

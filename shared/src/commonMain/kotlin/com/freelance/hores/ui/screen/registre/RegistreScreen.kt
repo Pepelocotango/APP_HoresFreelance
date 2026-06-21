@@ -1,25 +1,59 @@
 package com.freelance.hores.ui.screen.registre
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.RangHorari
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import com.freelance.hores.util.epochMillisToLocalDate
+import com.freelance.hores.util.localDateToEpochMillis
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.text.input.KeyboardType
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistreScreen(
     navController: NavHostController,
     diaId: Long = 0,
     initialDate: LocalDate? = null,
-    viewModel: RegistreViewModel = koinViewModel()
+    viewModel: RegistreViewModel = koinInject()
 ) {
-    val context = LocalContext.current
     val formState by viewModel.formState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -29,7 +63,7 @@ fun RegistreScreen(
 
     val datePickerState = key(formState.data) {
         rememberDatePickerState(
-            initialSelectedDateMillis = formState.data.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            initialSelectedDateMillis = localDateToEpochMillis(formState.data)
         )
     }
 
@@ -54,9 +88,9 @@ fun RegistreScreen(
         }
     }
 
-    LaunchedEffect(formState.errorResId, formState.error) {
-        if (formState.errorResId != null) {
-            snackbarHostState.showSnackbar(context.getString(formState.errorResId!!))
+    LaunchedEffect(formState.errorMessage, formState.error) {
+        if (formState.errorMessage != null) {
+            snackbarHostState.showSnackbar(formState.errorMessage!!)
             viewModel.clearError()
         } else if (formState.error != null) {
             snackbarHostState.showSnackbar(formState.error ?: defaultErrorMessage)
@@ -71,9 +105,7 @@ fun RegistreScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
+                            val date = epochMillisToLocalDate(millis)
                             viewModel.setData(date)
                         }
                         showDatePicker = false
@@ -125,7 +157,7 @@ fun RegistreScreen(
                 title = { Text("Registre") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -162,7 +194,7 @@ fun RegistreScreen(
                             .clickable { showDatePicker = true }
                     ) {
                         OutlinedTextField(
-                            value = formState.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy")),
+                            value = formState.data.toString(),
                             onValueChange = {},
                             modifier = Modifier.fillMaxWidth(),
                             readOnly = true,
@@ -256,7 +288,7 @@ fun RegistreScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConcepteFormItem(
     concepte: ConcepteForm,
@@ -451,7 +483,7 @@ fun ConcepteFormItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RangHorariFormItem(
     rang: RangHorariForm,
@@ -462,7 +494,6 @@ fun RangHorariFormItem(
 ) {
     var showStartPicker by remember { mutableStateOf(false) }
     var showEndPicker by remember { mutableStateOf(false) }
-    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
 
     if (showStartPicker) {
         val timeState = rememberTimePickerState(
@@ -475,7 +506,7 @@ fun RangHorariFormItem(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onUpdateInici(LocalTime.of(timeState.hour, timeState.minute))
+                        onUpdateInici(LocalTime(timeState.hour, timeState.minute))
                         showStartPicker = false
                     }
                 ) {
@@ -504,7 +535,7 @@ fun RangHorariFormItem(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onUpdateFi(LocalTime.of(timeState.hour, timeState.minute))
+                        onUpdateFi(LocalTime(timeState.hour, timeState.minute))
                         showEndPicker = false
                     }
                 ) {
@@ -548,7 +579,7 @@ fun RangHorariFormItem(
                     .clickable { showStartPicker = true }
             ) {
                 OutlinedTextField(
-                    value = rang.horaInici.format(timeFormatter),
+                    value = "%02d:%02d".format(rang.horaInici.hour, rang.horaInici.minute),
                     onValueChange = {},
                     label = { Text("Valor") },
                     modifier = Modifier.fillMaxWidth(),
@@ -562,7 +593,7 @@ fun RangHorariFormItem(
                     .clickable { showEndPicker = true }
             ) {
                 OutlinedTextField(
-                    value = rang.horaFi.format(timeFormatter),
+                    value = "%02d:%02d".format(rang.horaFi.hour, rang.horaFi.minute),
                     onValueChange = {},
                     label = { Text("Valor") },
                     modifier = Modifier.fillMaxWidth(),
@@ -582,7 +613,7 @@ fun RangHorariFormItem(
         ).getDuracionaFormatada()
 
         Text(
-            text = stringResource(R.string.registre_duracio, duration),
+            text = "Durada: $duration",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary
         )

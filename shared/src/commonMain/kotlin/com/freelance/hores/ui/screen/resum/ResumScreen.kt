@@ -1,18 +1,48 @@
 package com.freelance.hores.ui.screen.resum
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.DiaCard
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import com.freelance.hores.util.epochMillisToLocalDate
+import com.freelance.hores.util.localDateToEpochMillis
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import androidx.compose.foundation.border
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.text.style.TextAlign
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResumScreen(
     navController: NavHostController,
-    viewModel: ResumViewModel = koinViewModel()
+    viewModel: ResumViewModel = koinInject()
 ) {
     val resumState by viewModel.resumState.collectAsState()
     var showStartDatePicker by remember { mutableStateOf(false) }
@@ -21,11 +51,9 @@ fun ResumScreen(
     var selectedClient by remember { mutableStateOf<com.freelance.hores.domain.model.Client?>(null) }
     var expandedClient by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            initialSelectedDateMillis = localDateToEpochMillis(resumState.startDate)
         )
         DatePickerDialog(
             onDismissRequest = { showStartDatePicker = false },
@@ -33,9 +61,7 @@ fun ResumScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
+                            val date = epochMillisToLocalDate(millis)
                             viewModel.loadCustomPeriod(date, resumState.endDate)
                         }
                         showStartDatePicker = false
@@ -56,7 +82,7 @@ fun ResumScreen(
 
     if (showEndDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = resumState.endDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            initialSelectedDateMillis = localDateToEpochMillis(resumState.endDate)
         )
         DatePickerDialog(
             onDismissRequest = { showEndDatePicker = false },
@@ -64,9 +90,7 @@ fun ResumScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val date = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
+                            val date = epochMillisToLocalDate(millis)
                             viewModel.loadCustomPeriod(resumState.startDate, date)
                         }
                         showEndDatePicker = false
@@ -91,7 +115,7 @@ fun ResumScreen(
                 title = { Text("Resum") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel·la")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Cancel·la")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -235,7 +259,7 @@ fun ResumScreen(
 
                 item {
                     Text(
-                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalHoras() }), String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalDiners() })),
+                        text = "Total: ${String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalHoras() })} h | ${String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalDiners() })} €",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -280,19 +304,13 @@ fun ResumScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { 
-                                val intent = viewModel.exportCsv(filteredDias)
-                                context.startActivity(intent)
-                            },
+                            onClick = { viewModel.exportCsv(filteredDias) },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Valor")
                         }
                         Button(
-                            onClick = { 
-                                val intent = viewModel.exportPdf(filteredDias)
-                                context.startActivity(intent)
-                            },
+                            onClick = { viewModel.exportPdf(filteredDias) },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Valor")

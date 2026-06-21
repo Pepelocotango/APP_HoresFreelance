@@ -1,7 +1,7 @@
 package com.freelance.hores.ui.screen.registre
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Client
@@ -10,21 +10,24 @@ import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
 import com.freelance.hores.ui.util.FormValidator
 import com.freelance.hores.ui.util.ValidationResult
+import com.freelance.hores.util.localTimeFromSecondOfDay
+import com.freelance.hores.util.todayLocalDate
+import com.freelance.hores.util.totalSecondsFromMidnight
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 data class RegistreFormState(
     val diaId: Long = 0,
-    val data: LocalDate = LocalDate.now(),
+    val data: LocalDate = todayLocalDate(),
     val notes: String = "",
     val conceptes: List<ConcepteForm> = emptyList(),
     val clients: List<Client> = emptyList(),
     val isSaving: Boolean = false,
-    val errorResId: Int? = null,
+    val errorMessage: String? = null,
     val error: String? = null,
     val success: Boolean = false
 )
@@ -44,8 +47,8 @@ data class ConcepteForm(
 
 data class RangHorariForm(
     val id: Long = 0,
-    val horaInici: LocalTime = LocalTime.of(9, 0),
-    val horaFi: LocalTime = LocalTime.of(17, 0)
+    val horaInici: LocalTime = LocalTime(9, 0),
+    val horaFi: LocalTime = LocalTime(17, 0)
 )
 
 class RegistreViewModel constructor(
@@ -226,7 +229,7 @@ class RegistreViewModel constructor(
             // 1. Validació general de quantitat de conceptes
             val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
             if (countValidation is ValidationResult.Error) {
-                _formState.value = state.copy(errorResId = countValidation.resId)
+                _formState.value = state.copy(errorMessage = countValidation.message)
                 return@launch
             }
 
@@ -234,20 +237,20 @@ class RegistreViewModel constructor(
             for (concepte in state.conceptes) {
                 val nameValidation = FormValidator.validateConcepteName(concepte.nom)
                 if (nameValidation is ValidationResult.Error) {
-                    _formState.value = state.copy(errorResId = nameValidation.resId)
+                    _formState.value = state.copy(errorMessage = nameValidation.message)
                     return@launch
                 }
 
                 val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
                 if (rangsCountValidation is ValidationResult.Error) {
-                    _formState.value = state.copy(errorResId = rangsCountValidation.resId)
+                    _formState.value = state.copy(errorMessage = rangsCountValidation.message)
                     return@launch
                 }
                 
                 for (rang in concepte.rangsHoraris) {
                     val rangeValidation = FormValidator.validateTimeRange(rang.horaInici, rang.horaFi)
                     if (rangeValidation is ValidationResult.Error) {
-                        _formState.value = state.copy(errorResId = rangeValidation.resId)
+                        _formState.value = state.copy(errorMessage = rangeValidation.message)
                         return@launch
                     }
                 }
@@ -271,7 +274,7 @@ class RegistreViewModel constructor(
             }
 
             // 4. Flux de desat de les dades
-            _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
+            _formState.value = state.copy(isSaving = true, errorMessage = null, error = null)
             try {
                 val conceptesForSave = state.conceptes.map { concepteForm ->
                     Concepte(
@@ -307,7 +310,7 @@ class RegistreViewModel constructor(
                 _formState.value = state.copy(
                     isSaving = false,
                     success = true,
-                    errorResId = null,
+                    errorMessage = null,
                     error = null
                 )
             } catch (e: Exception) {
@@ -320,7 +323,7 @@ class RegistreViewModel constructor(
     }
 
     fun clearError() {
-        _formState.value = _formState.value.copy(errorResId = null, error = null)
+        _formState.value = _formState.value.copy(errorMessage = null, error = null)
     }
 
     fun resetSuccess() {
@@ -359,7 +362,7 @@ class RegistreViewModel constructor(
                     conceptes = concepteForms,
                     success = false,
                     error = null,
-                    errorResId = null
+                    errorMessage = null
                 )
             } catch (e: Exception) {
                 _formState.value = _formState.value.copy(error = e.message)

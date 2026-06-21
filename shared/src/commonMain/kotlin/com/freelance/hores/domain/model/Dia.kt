@@ -1,6 +1,6 @@
 package com.freelance.hores.domain.model
 
-import java.time.LocalDate
+import kotlinx.datetime.LocalDate
 
 data class Dia(
     val id: Long = 0,
@@ -8,19 +8,11 @@ data class Dia(
     val notes: String = "",
     val conceptes: List<Concepte> = emptyList()
 ) {
-    fun getTotalHoras(): Double {
-        return conceptes.sumOf { it.getTotalHoras() }
-    }
+    fun getTotalHoras(): Double = conceptes.sumOf { it.getTotalHoras() }
 
-    fun getTotalDiners(): Double {
-        return conceptes.sumOf { it.getTotalDiners() }
-    }
+    fun getTotalDiners(): Double = conceptes.sumOf { it.getTotalDiners() }
 
-    fun getTotalDinersHores(): Double {
-        return conceptes.sumOf { it.getDinersHores() }
-    }
+    fun getTotalDinersHores(): Double = conceptes.sumOf { it.getDinersHores() }
 
-    fun getTotalDinersDespeses(): Double {
-        return conceptes.sumOf { it.getDinersDespeses() }
-    }
+    fun getTotalDinersDespeses(): Double = conceptes.sumOf { it.getDinersDespeses() }
 }

@@ -21,9 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.freelance.hores.ui.navigation.AppNavHost
 import com.freelance.hores.ui.navigation.bottomNavScreens
 import com.freelance.hores.ui.theme.HoresFreelanceTheme
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

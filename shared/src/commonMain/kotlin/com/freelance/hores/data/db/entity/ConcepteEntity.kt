@@ -1,9 +1,11 @@
 package com.freelance.hores.data.db.entity
 
-
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import com.freelance.hores.data.db.entity.EstatFacturacio
 
-// Entity for work concepts (e.g., "Client Meeting", "Web Development")
 @Entity(
     tableName = "conceptes",
     foreignKeys = [

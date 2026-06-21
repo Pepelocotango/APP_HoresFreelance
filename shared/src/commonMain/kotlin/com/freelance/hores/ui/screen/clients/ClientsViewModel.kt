@@ -1,7 +1,7 @@
 package com.freelance.hores.ui.screen.clients
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Client
 import kotlinx.coroutines.flow.SharingStarted

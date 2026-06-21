@@ -1,24 +1,43 @@
 package com.freelance.hores.ui.screen.fitxar
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import com.freelance.hores.util.todayLocalDate
 
-@OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import org.koin.compose.koinInject
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FitxarScreen(
     navController: NavHostController,
-    viewModel: FitxarViewModel = koinViewModel()
+    viewModel: FitxarViewModel = koinInject()
 ) {
     val isFitxant by viewModel.isFitxant.collectAsState()
     val horaIniciArrodonida by viewModel.horaIniciArrodonida.collectAsState()
 
-    val formattedDate = remember {
-        LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault()))
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    }
+    val formattedDate = remember { todayLocalDate().toString() }
 
     Scaffold(
         topBar = {

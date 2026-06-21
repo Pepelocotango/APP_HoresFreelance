@@ -1,7 +1,7 @@
 package com.freelance.hores.ui.screen.dia
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Dia
 import kotlinx.coroutines.flow.MutableStateFlow

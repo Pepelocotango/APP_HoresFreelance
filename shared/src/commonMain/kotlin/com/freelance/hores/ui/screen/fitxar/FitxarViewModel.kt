@@ -1,49 +1,48 @@
 package com.freelance.hores.ui.screen.fitxar
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.di.AppPrefs
 import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
 import com.freelance.hores.ui.util.FormValidator
+import com.freelance.hores.util.nowLocalTime
+import com.freelance.hores.util.todayLocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
-class FitxarViewModel constructor(
+class FitxarViewModel(
     private val repository: RegistreRepository,
-    private val prefs: SharedPreferences
+    private val prefs: AppPrefs
 ) : ViewModel() {
 
     private val _isFitxant = MutableStateFlow(prefs.getBoolean("is_fitxant", false))
     val isFitxant: StateFlow<Boolean> = _isFitxant.asStateFlow()
 
-    private val _horaIniciArrodonida = MutableStateFlow(prefs.getString("hora_inici_arrodonida", "") ?: "")
+    private val _horaIniciArrodonida = MutableStateFlow(prefs.getString("hora_inici_arrodonida", ""))
     val horaIniciArrodonida: StateFlow<String> = _horaIniciArrodonida.asStateFlow()
 
-    private val _dataFitxatge = MutableStateFlow(prefs.getString("data_fitxatge", "") ?: "")
+    private val _dataFitxatge = MutableStateFlow(prefs.getString("data_fitxatge", ""))
     val dataFitxatge: StateFlow<String> = _dataFitxatge.asStateFlow()
 
     fun startFitxar() {
-        val now = LocalTime.now()
+        val now = nowLocalTime()
         val rounded = FormValidator.roundToNearest15Minutes(now)
-        val today = LocalDate.now()
+        val today = todayLocalDate()
 
-        val roundedStr = rounded.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val roundedStr = formatTime(rounded)
         val todayStr = today.toString()
 
-        prefs.edit().apply {
-            putBoolean("is_fitxant", true)
-            putString("hora_inici_arrodonida", roundedStr)
-            putString("data_fitxatge", todayStr)
-            apply()
-        }
+        prefs.putBoolean("is_fitxant", true)
+        prefs.putString("hora_inici_arrodonida", roundedStr)
+        prefs.putString("data_fitxatge", todayStr)
 
         _isFitxant.value = true
         _horaIniciArrodonida.value = roundedStr
@@ -58,14 +57,12 @@ class FitxarViewModel constructor(
 
         viewModelScope.launch {
             val today = LocalDate.parse(dateStr)
-            val startLocalTime = LocalTime.parse(startStr)
-            val endLocalTime = FormValidator.roundToNearest15Minutes(LocalTime.now())
+            val startLocalTime = parseTime(startStr)
+            val endLocalTime = FormValidator.roundToNearest15Minutes(nowLocalTime())
 
-            // Recupera o crea el Dia per a la data desada
             val existentDia = repository.getDiaByDate(today)
             val diaId = existentDia?.id ?: 0L
 
-            // Comptem quants bolos "Bolo sense títol" ja té aquest dia per posar l'índex correcte
             val count = existentDia?.conceptes?.count { it.nom.startsWith("Bolo sense títol") } ?: 0
             val nouNom = "Bolo sense títol ${count + 1}"
 
@@ -86,25 +83,17 @@ class FitxarViewModel constructor(
             val diaAGuardar = if (existentDia != null) {
                 existentDia.copy(conceptes = existentDia.conceptes + nouConcepte)
             } else {
-                Dia(
-                    data = today,
-                    conceptes = listOf(nouConcepte)
-                )
+                Dia(data = today, conceptes = listOf(nouConcepte))
             }
 
             repository.saveDia(diaAGuardar)
 
-            // Obtenim l'ID definitiu de la DB
             val diaGuardat = repository.getDiaByDate(today)
             val finalDiaId = diaGuardat?.id ?: 0L
 
-            // Esborrem dades temporals
-            prefs.edit().apply {
-                putBoolean("is_fitxant", false)
-                putString("hora_inici_arrodonida", "")
-                putString("data_fitxatge", "")
-                apply()
-            }
+            prefs.putBoolean("is_fitxant", false)
+            prefs.putString("hora_inici_arrodonida", "")
+            prefs.putString("data_fitxatge", "")
 
             _isFitxant.value = false
             _horaIniciArrodonida.value = ""
@@ -112,5 +101,13 @@ class FitxarViewModel constructor(
 
             onSuccess(finalDiaId)
         }
+    }
+
+    private fun formatTime(time: LocalTime): String =
+        "%02d:%02d".format(time.hour, time.minute)
+
+    private fun parseTime(value: String): LocalTime {
+        val parts = value.split(":")
+        return LocalTime(parts[0].toInt(), parts[1].toInt())
     }
 }

@@ -6,6 +6,10 @@ import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
 import com.freelance.hores.util.MainDispatcherRule
+import com.freelance.hores.util.lengthOfMonth
+import com.freelance.hores.util.minusDays
+import com.freelance.hores.util.plusDays
+import com.freelance.hores.util.withDayOfMonth
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -16,8 +20,8 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 class ResumViewModelTest {
     @get:Rule
@@ -42,7 +46,7 @@ class ResumViewModelTest {
         viewModel = ResumViewModel(repository, exportService)
 
         val state = viewModel.resumState.value
-        val today = LocalDate.now()
+        val today = com.freelance.hores.util.todayLocalDate()
         val expectedMonday = today.minusDays(today.dayOfWeek.value.toLong() - 1)
         val expectedSunday = expectedMonday.plusDays(6)
 
@@ -57,7 +61,7 @@ class ResumViewModelTest {
         viewModel = ResumViewModel(repository, exportService)
         viewModel.loadThisMonth()
 
-        val today = LocalDate.now()
+        val today = com.freelance.hores.util.todayLocalDate()
         val firstDay = today.withDayOfMonth(1)
         val lastDay = today.withDayOfMonth(today.lengthOfMonth())
 
@@ -68,8 +72,8 @@ class ResumViewModelTest {
     @Test
     fun `loadCustomPeriod should set custom date range`() = runTest {
         viewModel = ResumViewModel(repository, exportService)
-        val startDate = LocalDate.of(2024, 1, 1)
-        val endDate = LocalDate.of(2024, 1, 31)
+        val startDate = LocalDate(2024, 1, 1)
+        val endDate = LocalDate(2024, 1, 31)
 
         viewModel.loadCustomPeriod(startDate, endDate)
 
@@ -79,10 +83,10 @@ class ResumViewModelTest {
 
     @Test
     fun `getTotalHoras should sum all horas from all conceptes`() = runTest {
-        val rang1 = RangHorari(concepteId = 1, horaInici = LocalTime.of(9, 0), horaFi = LocalTime.of(12, 0))
-        val rang2 = RangHorari(concepteId = 1, horaInici = LocalTime.of(13, 0), horaFi = LocalTime.of(17, 0))
+        val rang1 = RangHorari(concepteId = 1, horaInici = LocalTime(9, 0), horaFi = LocalTime(12, 0))
+        val rang2 = RangHorari(concepteId = 1, horaInici = LocalTime(13, 0), horaFi = LocalTime(17, 0))
         val concepte = Concepte(diaId = 1, nom = "Work", rangsHoraris = listOf(rang1, rang2))
-        val dia = Dia(data = LocalDate.now(), conceptes = listOf(concepte))
+        val dia = Dia(data = com.freelance.hores.util.todayLocalDate(), conceptes = listOf(concepte))
 
         coEvery {
             repository.getDiasByDateRange(any(), any())
@@ -95,10 +99,10 @@ class ResumViewModelTest {
 
     @Test
     fun `getConceptesSummary should group horas by concepte name`() = runTest {
-        val rang1 = RangHorari(concepteId = 1, horaInici = LocalTime.of(9, 0), horaFi = LocalTime.of(12, 0))
+        val rang1 = RangHorari(concepteId = 1, horaInici = LocalTime(9, 0), horaFi = LocalTime(12, 0))
         val concepteA = Concepte(diaId = 1, nom = "Project A", rangsHoraris = listOf(rang1))
         val concepteB = Concepte(diaId = 1, nom = "Project B", rangsHoraris = listOf(rang1))
-        val dia = Dia(data = LocalDate.now(), conceptes = listOf(concepteA, concepteB))
+        val dia = Dia(data = com.freelance.hores.util.todayLocalDate(), conceptes = listOf(concepteA, concepteB))
 
         coEvery {
             repository.getDiasByDateRange(any(), any())

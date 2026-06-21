@@ -1,7 +1,12 @@
 package com.freelance.hores.data.db.dao
 
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.freelance.hores.data.db.entity.ConcepteEntity
-import com.freelance.hores.data.db.entity.ConcepteWithClient
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,10 +28,6 @@ interface ConcepteDao {
 
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
     suspend fun getByDiaIdSync(diaId: Long): List<ConcepteEntity>
-
-    @Transaction
-    @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
-    suspend fun getByDiaIdWithClientSync(diaId: Long): List<ConcepteWithClient>
 
     @Query("UPDATE conceptes SET preuHora = :nouPreu WHERE clientId = :clientId AND estat = 'PENDENT'")
     suspend fun updatePreuHoraForPendent(clientId: Long, nouPreu: Double)

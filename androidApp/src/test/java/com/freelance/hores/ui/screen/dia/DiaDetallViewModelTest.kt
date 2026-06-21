@@ -13,7 +13,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
+import kotlinx.datetime.LocalDate
 
 class DiaDetallViewModelTest {
     @get:Rule
@@ -28,7 +28,7 @@ class DiaDetallViewModelTest {
             repository.getDiaWithDetails(any())
         } returns Dia(
             id = 1,
-            data = LocalDate.now(),
+            data = com.freelance.hores.util.todayLocalDate(),
             notes = "Test",
             conceptes = emptyList()
         )

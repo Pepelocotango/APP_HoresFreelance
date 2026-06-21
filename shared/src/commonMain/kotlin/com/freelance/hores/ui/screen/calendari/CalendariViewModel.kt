@@ -1,9 +1,14 @@
 package com.freelance.hores.ui.screen.calendari
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Dia
+import com.freelance.hores.util.atDay
+import com.freelance.hores.util.atEndOfMonth
+import com.freelance.hores.util.minusMonths
+import com.freelance.hores.util.plusMonths
+import com.freelance.hores.util.todayYearMonth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,14 +17,14 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.YearMonth
+import kotlinx.datetime.LocalDate
+import com.freelance.hores.util.YearMonth
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class CalendariViewModel constructor(
+class CalendariViewModel(
     private val repository: RegistreRepository
 ) : ViewModel() {
-    private val _currentMonth = MutableStateFlow(YearMonth.now())
+    private val _currentMonth = MutableStateFlow(todayYearMonth())
     val currentMonth: StateFlow<YearMonth> = _currentMonth.asStateFlow()
 
     private val _dias = MutableStateFlow<List<Dia>>(emptyList())
@@ -61,7 +66,6 @@ class CalendariViewModel constructor(
     }
 
     fun loadDias() {
-        // Això forçarà el recarregat del corrent flatMapLatest sense obrir noves coroutines
         _currentMonth.value = _currentMonth.value
     }
 
@@ -73,11 +77,9 @@ class CalendariViewModel constructor(
         setCurrentMonth(_currentMonth.value.minusMonths(1))
     }
 
-    fun getDiasByDate(date: LocalDate): Dia? {
-        return _dias.value.find { it.data == date }
-    }
+    fun getDiasByDate(date: LocalDate): Dia? =
+        _dias.value.find { it.data == date }
 
-    fun getDiasWithRecords(): List<LocalDate> {
-        return _dias.value.map { it.data }
-    }
+    fun getDiasWithRecords(): List<LocalDate> =
+        _dias.value.map { it.data }
 }
