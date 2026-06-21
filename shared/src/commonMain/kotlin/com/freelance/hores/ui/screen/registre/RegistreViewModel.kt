@@ -1,0 +1,369 @@
+package com.freelance.hores.ui.screen.registre
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
+
+import com.freelance.hores.data.db.entity.EstatFacturacio
+import com.freelance.hores.data.repository.RegistreRepository
+import com.freelance.hores.domain.model.Client
+import com.freelance.hores.domain.model.Concepte
+import com.freelance.hores.domain.model.Dia
+import com.freelance.hores.domain.model.RangHorari
+import com.freelance.hores.ui.util.FormValidator
+import com.freelance.hores.ui.util.ValidationResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+
+data class RegistreFormState(
+    val diaId: Long = 0,
+    val data: LocalDate = LocalDate.now(),
+    val notes: String = "",
+    val conceptes: List<ConcepteForm> = emptyList(),
+    val clients: List<Client> = emptyList(),
+    val isSaving: Boolean = false,
+    val errorResId: Int? = null,
+    val error: String? = null,
+    val success: Boolean = false
+)
+
+data class ConcepteForm(
+    val id: Long = 0,
+    val nom: String = "",
+    val preuHora: Double = 0.0,
+    val clientId: Long? = null,
+    val rangsHoraris: List<RangHorariForm> = emptyList(),
+    val estat: EstatFacturacio = EstatFacturacio.PENDENT,
+    val despeses: Double = 0.0,
+    val despesesNotes: String = "",
+    val esPreuFix: Boolean = false,
+    val importPreuFix: Double = 0.0
+)
+
+data class RangHorariForm(
+    val id: Long = 0,
+    val horaInici: LocalTime = LocalTime.of(9, 0),
+    val horaFi: LocalTime = LocalTime.of(17, 0)
+)
+
+class RegistreViewModel constructor(
+    private val repository: RegistreRepository
+) : ViewModel() {
+    private val _formState = MutableStateFlow(RegistreFormState())
+    val formState: StateFlow<RegistreFormState> = _formState.asStateFlow()
+
+    init {
+        observeClients()
+    }
+
+    private fun observeClients() {
+        viewModelScope.launch {
+            repository.getClients().collect { clients ->
+                _formState.value = _formState.value.copy(clients = clients)
+            }
+        }
+    }
+
+    fun setData(data: LocalDate) {
+        _formState.value = _formState.value.copy(data = data)
+    }
+
+    fun setNotes(notes: String) {
+        _formState.value = _formState.value.copy(notes = notes)
+    }
+
+    fun addConcepte(concepteName: String = "", preu: Double = 0.0, clientId: Long? = null) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        currentConceptes.add(
+            ConcepteForm(
+                nom = concepteName,
+                preuHora = preu,
+                clientId = clientId,
+                rangsHoraris = listOf(RangHorariForm())
+            )
+        )
+        _formState.value = _formState.value.copy(conceptes = currentConceptes)
+    }
+
+    fun updateConcepteName(index: Int, nom: String) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(nom = nom)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteEsPreuFix(index: Int, esPreuFix: Boolean) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(esPreuFix = esPreuFix)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteImportPreuFix(index: Int, import: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(importPreuFix = import)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConceptePreu(index: Int, preu: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(preuHora = preu)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteClient(index: Int, clientId: Long?) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            val client = _formState.value.clients.find { it.id == clientId }
+            currentConceptes[index] = currentConceptes[index].copy(
+                clientId = clientId,
+                preuHora = client?.preuHoraDefecte ?: currentConceptes[index].preuHora
+            )
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteEstat(index: Int, estat: EstatFacturacio) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(estat = estat)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteDespeses(index: Int, despeses: Double) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(despeses = despeses)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateConcepteDespesesNotes(index: Int, notes: String) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes[index] = currentConceptes[index].copy(despesesNotes = notes)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun createClient(nom: String, preuDefecte: Double) {
+        viewModelScope.launch {
+            repository.saveClient(Client(nom = nom, preuHoraDefecte = preuDefecte))
+        }
+    }
+
+    fun removeConcepte(index: Int) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (index >= 0 && index < currentConceptes.size) {
+            currentConceptes.removeAt(index)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun addRangHorariToConcepte(concepteIndex: Int) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            newRangs.add(RangHorariForm())
+            currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+            _formState.value = _formState.value.copy(conceptes = currentConceptes)
+        }
+    }
+
+    fun updateRangHorariInici(concepteIndex: Int, rangIndex: Int, hora: LocalTime) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            if (rangIndex >= 0 && rangIndex < newRangs.size) {
+                newRangs[rangIndex] = newRangs[rangIndex].copy(horaInici = hora)
+                currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+                _formState.value = _formState.value.copy(conceptes = currentConceptes)
+            }
+        }
+    }
+
+    fun updateRangHorariFi(concepteIndex: Int, rangIndex: Int, hora: LocalTime) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            if (rangIndex >= 0 && rangIndex < newRangs.size) {
+                newRangs[rangIndex] = newRangs[rangIndex].copy(horaFi = hora)
+                currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+                _formState.value = _formState.value.copy(conceptes = currentConceptes)
+            }
+        }
+    }
+
+    fun removeRangHorari(concepteIndex: Int, rangIndex: Int) {
+        val currentConceptes = _formState.value.conceptes.toMutableList()
+        if (concepteIndex >= 0 && concepteIndex < currentConceptes.size) {
+            val concepte = currentConceptes[concepteIndex]
+            val newRangs = concepte.rangsHoraris.toMutableList()
+            if (rangIndex >= 0 && rangIndex < newRangs.size) {
+                newRangs.removeAt(rangIndex)
+                currentConceptes[concepteIndex] = concepte.copy(rangsHoraris = newRangs)
+                _formState.value = _formState.value.copy(conceptes = currentConceptes)
+            }
+        }
+    }
+
+    fun saveDia() {
+        viewModelScope.launch {
+            val state = _formState.value
+            
+            // 1. Validació general de quantitat de conceptes
+            val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
+            if (countValidation is ValidationResult.Error) {
+                _formState.value = state.copy(errorResId = countValidation.resId)
+                return@launch
+            }
+
+            // 2. Validacions individuals de cada concepte i els seus rangs
+            for (concepte in state.conceptes) {
+                val nameValidation = FormValidator.validateConcepteName(concepte.nom)
+                if (nameValidation is ValidationResult.Error) {
+                    _formState.value = state.copy(errorResId = nameValidation.resId)
+                    return@launch
+                }
+
+                val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
+                if (rangsCountValidation is ValidationResult.Error) {
+                    _formState.value = state.copy(errorResId = rangsCountValidation.resId)
+                    return@launch
+                }
+                
+                for (rang in concepte.rangsHoraris) {
+                    val rangeValidation = FormValidator.validateTimeRange(rang.horaInici, rang.horaFi)
+                    if (rangeValidation is ValidationResult.Error) {
+                        _formState.value = state.copy(errorResId = rangeValidation.resId)
+                        return@launch
+                    }
+                }
+            }
+
+            // 3. Validació global de solapaments horaris del dia
+            val totsElsRangs = state.conceptes.flatMap { concepte ->
+                concepte.rangsHoraris.map { it to concepte.nom }
+            }.sortedBy { it.first.horaInici }
+
+            for (idx in 1 until totsElsRangs.size) {
+                val currentRang = totsElsRangs[idx].first
+                val previousRang = totsElsRangs[idx - 1].first
+
+                if (currentRang.horaInici < previousRang.horaFi) {
+                    _formState.value = state.copy(
+                        error = "Solapament horari entre: ${totsElsRangs[idx - 1].second} i ${totsElsRangs[idx].second}"
+                    )
+                    return@launch
+                }
+            }
+
+            // 4. Flux de desat de les dades
+            _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
+            try {
+                val conceptesForSave = state.conceptes.map { concepteForm ->
+                    Concepte(
+                        id = concepteForm.id,
+                        diaId = state.diaId,
+                        nom = concepteForm.nom,
+                        preuHora = concepteForm.preuHora,
+                        clientId = concepteForm.clientId,
+                        estat = concepteForm.estat,
+                        despeses = concepteForm.despeses,
+                        despesesNotes = concepteForm.despesesNotes,
+                        esPreuFix = concepteForm.esPreuFix,
+                        importPreuFix = concepteForm.importPreuFix,
+                        rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
+                            RangHorari(
+                                id = rangForm.id,
+                                concepteId = concepteForm.id,
+                                horaInici = rangForm.horaInici,
+                                horaFi = rangForm.horaFi
+                            )
+                        }
+                    )
+                }
+
+                val diaToSave = Dia(
+                    id = state.diaId,
+                    data = state.data,
+                    notes = state.notes,
+                    conceptes = conceptesForSave
+                )
+
+                repository.saveDia(diaToSave)
+                _formState.value = state.copy(
+                    isSaving = false,
+                    success = true,
+                    errorResId = null,
+                    error = null
+                )
+            } catch (e: Exception) {
+                _formState.value = state.copy(
+                    isSaving = false,
+                    error = e.message ?: "An error occurred"
+                )
+            }
+        }
+    }
+
+    fun clearError() {
+        _formState.value = _formState.value.copy(errorResId = null, error = null)
+    }
+
+    fun resetSuccess() {
+        _formState.value = _formState.value.copy(success = false)
+    }
+
+    fun loadDiaForEditing(diaId: Long) {
+        viewModelScope.launch {
+            try {
+                val dia = repository.getDiaWithDetails(diaId)
+                val concepteForms = dia.conceptes.map { concepte ->
+                    ConcepteForm(
+                        id = concepte.id,
+                        nom = concepte.nom,
+                        preuHora = concepte.preuHora,
+                        clientId = concepte.clientId,
+                        estat = concepte.estat,
+                        despeses = concepte.despeses,
+                        despesesNotes = concepte.despesesNotes,
+                        esPreuFix = concepte.esPreuFix,
+                        importPreuFix = concepte.importPreuFix,
+                        rangsHoraris = concepte.rangsHoraris.map { rang ->
+                            RangHorariForm(
+                                id = rang.id,
+                                horaInici = rang.horaInici,
+                                horaFi = rang.horaFi
+                            )
+                        }
+                    )
+                }
+                // Modificat per fer un .copy() i evitar que es purgui la llista de clients
+                _formState.value = _formState.value.copy(
+                    diaId = dia.id,
+                    data = dia.data,
+                    notes = dia.notes,
+                    conceptes = concepteForms,
+                    success = false,
+                    error = null,
+                    errorResId = null
+                )
+            } catch (e: Exception) {
+                _formState.value = _formState.value.copy(error = e.message)
+            }
+        }
+    }
+}
