@@ -1,13 +1,12 @@
 package com.freelance.hores.data.export
 
-import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import com.freelance.hores.domain.model.Dia
 import kotlinx.datetime.LocalDate
 import java.io.File
 
-class AndroidExportService(private val context: android.content.Context) : com.freelance.hores.data.export.ExportService {
+class AndroidExportService(private val context: android.content.Context) : ExportService {
 
     private val csvExporter = CsvExporter(context)
     private val pdfExporter = PdfExporter(context)
@@ -42,6 +41,8 @@ class AndroidExportService(private val context: android.content.Context) : com.f
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        context.startActivity(
+            Intent.createChooser(intent, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 }

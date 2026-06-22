@@ -15,6 +15,9 @@ import org.koin.dsl.module
 fun commonModule() = module {
     single { RegistreRepository(get(), get(), get(), get(), get()) }
 
+    // A Koin 3.5.x, viewModel{} del DSL no existeix al commonMain KMP.
+    // S'usa factory{} aquí. koin-compose:1.1.2 gestiona el cicle de vida
+    // correctament via koinViewModel() gràcies a lifecycle-viewmodel de AndroidX.
     factory { CalendariViewModel(get()) }
     factory { ClientsViewModel(get()) }
     factory { DiaDetallViewModel(get()) }
