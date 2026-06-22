@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ConcepteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(concepte: ConcepteEntity): Long
+    suspend fun insert(concepte: ConcepteEntity)
 
     @Update
     suspend fun update(concepte: ConcepteEntity)
@@ -23,15 +23,15 @@ interface ConcepteDao {
     suspend fun delete(concepte: ConcepteEntity)
 
     @Query("SELECT * FROM conceptes WHERE id = :id")
-    suspend fun getById(id: Long): ConcepteEntity?
+    suspend fun getById(id: String): ConcepteEntity?
 
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
-    fun getByDiaId(diaId: Long): Flow<List<ConcepteEntity>>
+    fun getByDiaId(diaId: String): Flow<List<ConcepteEntity>>
 
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
-    suspend fun getByDiaIdSync(diaId: Long): List<ConcepteEntity>
+    suspend fun getByDiaIdSync(diaId: String): List<ConcepteEntity>
 
     @Transaction
     @Query("SELECT * FROM conceptes WHERE diaId = :diaId ORDER BY id ASC")
-    suspend fun getByDiaIdWithClientSync(diaId: Long): List<ConcepteWithClient>
+    suspend fun getByDiaIdWithClientSync(diaId: String): List<ConcepteWithClient>
 }

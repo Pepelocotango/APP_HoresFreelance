@@ -38,12 +38,12 @@ export default function ResumScreen() {
       if (start && end && !isWithinInterval(dDate, { start, end })) return;
 
       dia.conceptes.forEach(concepte => {
-        if (statusFilter !== "Tots" && concepte.estatFacturacio !== statusFilter) return;
+        if (statusFilter !== "Tots" && concepte.estat !== statusFilter) return;
         if (clientFilter !== "Tots" && concepte.clientId !== clientFilter) return;
 
         const client = clients.find(c => c.id === concepte.clientId);
-        const hours = concepte.rangs.reduce((acc, r) => acc + calculateRangHours(r.inici, r.fi), 0);
-        const earnings = concepte.preuFix ? concepte.importFix : hours * (client?.tarifaHoraria || 0);
+        const hours = concepte.rangsHoraris.reduce((acc, r) => acc + calculateRangHours(r.horaInici, r.horaFi), 0);
+        const earnings = concepte.preuFix ? concepte.importFix : hours * (concepte.preuHora || client?.preuHoraDefecte || 0);
 
         flatRecords.push({
           diaId: dia.id,
@@ -52,7 +52,7 @@ export default function ResumScreen() {
           clientNom: client?.nom || "Desconegut",
           hours,
           earnings,
-          despeses: concepte.importDespeses
+          despeses: concepte.despeses
         });
       });
     });
@@ -80,7 +80,7 @@ export default function ResumScreen() {
   const exportCSV = () => {
     const header = "Data,Client,Bolo,Hores,Ingressos,Despeses,Estat\n";
     const body = filteredData.map(r => {
-      return `${r.data},"${r.clientNom}","${r.concepte.nom}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${r.concepte.estatFacturacio}`;
+      return `${r.data},"${r.clientNom}","${r.concepte.nom}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${r.concepte.estat}`;
     }).join("\n");
     
     const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
@@ -131,9 +131,9 @@ export default function ResumScreen() {
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
               >
                 <option value="Tots">Tots els estats</option>
-                <option value="Pendent">Pendent</option>
-                <option value="Facturat">Facturat</option>
-                <option value="Cobrat">Cobrat</option>
+                <option value="PENDENT">Pendent</option>
+                <option value="FACTURAT">Facturat</option>
+                <option value="COBRAT">Cobrat</option>
               </select>
             </div>
             <div>
@@ -201,7 +201,7 @@ export default function ResumScreen() {
                <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-600 transition">
                  <div>
                    <div className="font-medium text-sm text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.concepte.nom}</div>
-                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {item.concepte.estatFacturacio}</div>
+                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {item.concepte.estat}</div>
                  </div>
                  <div className="text-right">
                    <div className="font-bold text-sm text-indigo-600 dark:text-indigo-400">{item.earnings.toFixed(2)} €</div>

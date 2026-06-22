@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface RangHorariDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(rangHorari: RangHorariEntity): Long
+    suspend fun insert(rangHorari: RangHorariEntity)
 
     @Update
     suspend fun update(rangHorari: RangHorariEntity)
@@ -21,11 +21,11 @@ interface RangHorariDao {
     suspend fun delete(rangHorari: RangHorariEntity)
 
     @Query("SELECT * FROM rangs_horaris WHERE id = :id")
-    suspend fun getById(id: Long): RangHorariEntity?
+    suspend fun getById(id: String): RangHorariEntity?
 
     @Query("SELECT * FROM rangs_horaris WHERE concepteId = :concepteId ORDER BY horaInici ASC")
-    fun getByConcepteId(concepteId: Long): Flow<List<RangHorariEntity>>
+    fun getByConcepteId(concepteId: String): Flow<List<RangHorariEntity>>
 
     @Query("SELECT * FROM rangs_horaris WHERE concepteId = :concepteId ORDER BY horaInici ASC")
-    suspend fun getByConcepteIdSync(concepteId: Long): List<RangHorariEntity>
+    suspend fun getByConcepteIdSync(concepteId: String): List<RangHorariEntity>
 }

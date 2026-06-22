@@ -1,9 +1,7 @@
 package com.freelance.hores.ui.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -33,11 +30,11 @@ import java.util.Locale
 fun DiaCard(
     data: LocalDate,
     conceptes: List<Concepte>,
-    totalHoras: Double,
-    totalDiners: Double,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val dia = com.freelance.hores.domain.model.Dia(id = "", data = data.toString(), conceptes = conceptes)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -77,7 +74,7 @@ fun DiaCard(
             }
 
             Text(
-                text = stringResource(R.string.resum_total_diners, String.format("%.2f", totalHoras), String.format("%.2f", totalDiners)),
+                text = stringResource(R.string.resum_total_diners, String.format("%.2f", dia.getTotalHoras()), String.format("%.2f", dia.getTotalDiners())),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -151,43 +148,6 @@ fun ConcepteCard(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun RangHorariCard(
-    horaInici: String,
-    horaFi: String,
-    duracio: String,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "$horaInici → $horaFi",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.weight(1f)
-            )
-
-            Text(
-                text = duracio,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }

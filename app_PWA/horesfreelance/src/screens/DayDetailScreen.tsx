@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "../store/useStore";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
-import { ArrowLeft, Trash2, Edit, Plus } from "lucide-react";
+import { ArrowLeft, Trash2, Edit } from "lucide-react";
 import { calculateRangHours } from "../lib/utils";
 
 export default function DayDetailScreen() {
@@ -43,10 +43,10 @@ export default function DayDetailScreen() {
       </header>
 
       <div className="p-4 flex-1 overflow-y-auto">
-        {dia.notesGlobals && (
+        {dia.notes && (
           <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-3 rounded-lg mb-4 text-amber-900 dark:text-amber-200 text-sm">
             <span className="font-semibold block mb-1">Notes del dia:</span>
-            {dia.notesGlobals}
+            {dia.notes}
           </div>
         )}
 
@@ -63,17 +63,17 @@ export default function DayDetailScreen() {
         <div className="space-y-4">
           {dia.conceptes.map(concepte => {
             const client = clients.find(c => c.id === concepte.clientId);
-            const totalHours = concepte.rangs.reduce((acc, r) => acc + calculateRangHours(r.inici, r.fi), 0);
+            const totalHours = concepte.rangsHoraris.reduce((acc, r) => acc + calculateRangHours(r.horaInici, r.horaFi), 0);
             
             // Calc earnings
             const earnings = concepte.preuFix 
               ? concepte.importFix 
-              : totalHours * (client?.tarifaHoraria || 0);
+              : totalHours * (concepte.preuHora || client?.preuHoraDefecte || 0);
             
-            const estatColors = {
-              "Pendent": "bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300",
-              "Facturat": "bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300",
-              "Cobrat": "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300"
+            const estatColors: Record<string, string> = {
+              "PENDENT": "bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300",
+              "FACTURAT": "bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300",
+              "COBRAT": "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300"
             };
 
             return (
@@ -83,8 +83,8 @@ export default function DayDetailScreen() {
                     <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-100">{concepte.nom}</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400">{client?.nom || "Client Desconegut"}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estatColors[concepte.estatFacturacio]}`}>
-                    {concepte.estatFacturacio}
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estatColors[concepte.estat] || estatColors["PENDENT"]}`}>
+                    {concepte.estat}
                   </span>
                 </div>
                 
@@ -99,17 +99,17 @@ export default function DayDetailScreen() {
                   </div>
                 </div>
                 
-                {concepte.rangs.length > 0 && (
+                {concepte.rangsHoraris.length > 0 && (
                   <div className="px-4 py-2 text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-600/50">
                     <span className="font-medium mr-2">Rangs:</span>
-                    {concepte.rangs.map(r => `${r.inici} - ${r.fi || '??'}`).join(', ')}
+                    {concepte.rangsHoraris.map(r => `${r.horaInici} - ${r.horaFi}`).join(', ')}
                   </div>
                 )}
 
-                {concepte.importDespeses > 0 && (
+                {concepte.despeses > 0 && (
                   <div className="px-4 py-2 text-xs bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-t border-red-100 dark:border-red-500/20">
-                    <span className="font-medium mr-1">Despeses:</span> {concepte.importDespeses.toFixed(2)} €
-                    {concepte.notesDespeses && <span className="opacity-75"> ({concepte.notesDespeses})</span>}
+                    <span className="font-medium mr-1">Despeses:</span> {concepte.despeses.toFixed(2)} €
+                    {concepte.despesesNotes && <span className="opacity-75"> ({concepte.despesesNotes})</span>}
                   </div>
                 )}
                 

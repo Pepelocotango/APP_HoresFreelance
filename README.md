@@ -1,93 +1,66 @@
 # HoresFreelance
 
-A native Android app for freelancers to track their work hours, manage projects ("Bolos"), and generate invoices.
+A native Android app and PWA/Desktop app for freelancers to track their work hours, manage projects ("Bolos"), and generate invoices.
 
 ---
 
 ## 🇬🇧 English
 
-HoresFreelance is a native Android application designed to help freelancers track their work hours, organize them by "Bolos" (projects/clients) with individual hourly rates, and generate invoices in CSV or PDF formats.
+HoresFreelance is a dual-platform application (Native Android + React PWA) designed to help freelancers track their work hours, organize them by "Bolos" (projects/clients) with individual hourly rates, and generate invoices.
 
 ### Features
-- 📅 **Calendar View**: Visual calendar showing work days.
+- 📅 **Calendar View**: Visual calendar showing work days on both platforms.
 - ⏱️ **Time Tracking**: Record work hours by "Bolo" (concept), individual rates, **billing status (Pending/Invoiced/Paid)**, and **expenses**.
-- 📊 **Hours Summary**: View work hours, earnings, and **expenses** by week, month, or custom range with **visual charts**.
-- 👥 **Client Management**: Dedicated screen to manage clients and their default rates.
-- 💾 **Local Storage**: All data stored offline on device using Room.
-- 🔄 **Backup/Restore**: Backup and restore database functionality.
-- 📥 **Export**: Export reports as CSV and PDF with full financial breakdown.
+- 📊 **Hours Summary**: View work hours, earnings, and **expenses** with visual charts.
+- 👥 **Client Management**: Manage clients and their default rates.
+- 💾 **Local Storage**: Data stored offline (Room on Android, LocalStorage on PWA).
+- 🔄 **Cross-Platform Compatibility**: Full data compatibility via **JSON export/import**. Start tracking on Android and continue on Desktop/PWA.
+- 📥 **Export**: Export reports as CSV and PDF.
 
 ### Project Structure
 ```text
 HoresFreelance/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/freelance/hores/
-│   │   │   │   ├── HoresApp.kt              # Application class
-│   │   │   │   ├── MainActivity.kt
-│   │   │   │   ├── data/
-│   │   │   │   │   ├── db/                 # Room database & Entities
-│   │   │   │   │   ├── repository/         # Data layer
-│   │   │   │   │   └── export/             # CSV/PDF exporters
-│   │   │   │   ├── domain/
-│   │   │   │   │   └── model/              # Domain models
-│   │   │   │   └── ui/
-│   │   │   │       ├── screen/             # UI screens
-│   │   │   │       ├── component/          # Reusable components
-│   │   │   │       └── theme/              # Material 3 theme
-│   │   │   └── res/                        # Resources (XML, values, mipmap)
-│   │   ├── test/                           # Unit tests
-│   │   └── androidTest/                    # Instrumented tests
-│   └── build.gradle.kts
+├── app/                    # Native Android Application (Kotlin, Compose, Room)
+├── app_PWA/                # Desktop/Web Application (React, Vite, Zustand)
 ├── .github/workflows/
-│   └── android.yml                         # CI/CD workflow
-├── build.gradle.kts
-└── settings.gradle.kts
+│   ├── android.yml         # Android CI/CD
+│   └── pwa.yml             # PWA CI/CD
+└── ...
 ```
 
 ---
 
 ## [CAT] Català
 
-HoresFreelance és una aplicació Android nativa dissenyada per ajudar els treballadors autònoms a registrar les seves hores de treball, organitzar-les per "Bolos" (projectes/clients) amb preus per hora individuals, i generar informes en format CSV o PDF per a la facturació.
+HoresFreelance és una aplicació multiplataforma (Android Nativa + PWA React) dissenyada per ajudar els treballadors autònoms a registrar les seves hores de treball, organitzar-les per "Bolos" (projectes/tasques) i generar informes de facturació.
 
-### Funcionalitats
-- 📅 **Vista Calendari**: Calendari visual per veure els dies de treball.
-- ⏱️ **Registre d'Hores**: Registra hores de treball per "Bolo" (concepte) i defineix un preu per hora individual.
-- 📊 **Resum d'Hores**: Consulta les hores treballades i els guanys per setmana, mes o període personalitzat.
-- 💾 **Emmagatzematge Local**: Totes les dades s'emmagatzemen offline al dispositiu mitjançant Room.
-- 📥 **Exportació**: Exporta informes en format CSV i PDF.
-
-### Estructura del Projecte
-(Vegeu l'arbre de fitxers a la secció en anglès superior)
+### Funcionalitats Principals
+- 📅 **Vista Calendari**: Calendari visual per gestionar els dies de treball.
+- ⏱️ **Registre d'Hores**: Registra hores per "Bolo" amb preu hora, estat de facturació i despeses.
+- 📊 **Resum i Gràfics**: Consulta guanys i hores per períodes amb desglossament detallat.
+- 👥 **Gestió de Clients**: Defineix clients amb tarifes personalitzades.
+- 🔄 **Compatibilitat Total**: Les dades són compatibles entre Android i PWA mitjançant un format **JSON unificat**. Pots moure les teves dades d'un dispositiu a un altre fàcilment.
+- 💾 **Emmagatzematge Local**: Les dades es guarden al dispositiu per a total privadesa.
 
 ---
 
 ## ⚙️ CI/CD (GitHub Actions)
-The project includes an automated pipeline in `.github/workflows/android.yml` that handles:
-- Compiling the app (`assembleDebug`).
-- Running unit tests (`test`).
-- Running instrumented tests in an emulator (API 31, `x86_64`).
-- Generating installable artifacts (APKs).
+The project includes automated pipelines for both platforms:
+- **Android**: Compiles APKs (Debug/Release), runs unit and instrumented tests.
+- **PWA**: Installs dependencies, lints code, builds the production bundle, and generates a ZIP artifact.
 
-El projecte inclou una pipeline automatitzada a `.github/workflows/android.yml` que s'encarrega de:
-- Compilar l'app (`assembleDebug`).
-- Executar tests unitaris (`test`).
-- Executar tests instrumentats en emulador (API 31, `x86_64`).
-- Generar artefactes d'instal·lació (APKs).
+## 🚀 Building
 
-## 🚀 Building & Running
-
-### Requirements
-- Android 8.0+ (API level 26)
-- JDK 17
-- Android SDK 35
-- Gradle 8.0+
-
-### Build
+### Android
 ```bash
 ./gradlew assembleDebug
+```
+
+### PWA
+```bash
+cd app_PWA/horesfreelance
+npm install
+npm run build
 ```
 
 ## License

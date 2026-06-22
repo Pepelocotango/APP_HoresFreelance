@@ -9,6 +9,7 @@ import com.freelance.hores.R
 import com.freelance.hores.domain.model.Dia
 import java.io.File
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 class PdfExporter(private val context: Context) {
@@ -100,7 +101,12 @@ class PdfExporter(private val context: Context) {
                         y += 10f
                     }
 
-                    val duracion = rang.getDuracionaEnHoras()
+                    val hInici = LocalTime.parse(rang.horaInici)
+                    val hFi = LocalTime.parse(rang.horaFi)
+                    var seconds = (hFi.toSecondOfDay() - hInici.toSecondOfDay()).toLong()
+                    if (seconds < 0) seconds += 24 * 3600
+                    val duracion = seconds / 3600.0
+
                     val costHores = duracion * concepte.preuHora
                     
                     // Afegim la despesa només al primer rang horari d'aquest bolo per evitar duplicats
@@ -110,13 +116,13 @@ class PdfExporter(private val context: Context) {
                     totalHoras += duracion
                     totalDiners += costTotalBolo
 
-                    canvas.drawText(dia.data.toString(), margin, y, textPaint)
+                    canvas.drawText(dia.data, margin, y, textPaint)
                     
                     val conceptName = if (concepte.nom.length > 20) concepte.nom.substring(0, 17) + "..." else concepte.nom
                     canvas.drawText(conceptName, margin + 80, y, textPaint)
                     canvas.drawText("%.2f".format(concepte.preuHora), margin + 220, y, textPaint)
-                    canvas.drawText(rang.horaInici.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 290, y, textPaint)
-                    canvas.drawText(rang.horaFi.format(DateTimeFormatter.ofPattern("HH:mm")), margin + 350, y, textPaint)
+                    canvas.drawText(rang.horaInici, margin + 290, y, textPaint)
+                    canvas.drawText(rang.horaFi, margin + 350, y, textPaint)
                     canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
                     canvas.drawText("%.2f".format(costTotalBolo), margin + 480, y, textPaint)
 

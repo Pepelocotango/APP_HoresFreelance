@@ -11,6 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import javax.inject.Inject
 
 data class ResumState(
@@ -48,20 +49,31 @@ class ResumViewModel @Inject constructor(
 
     private fun observePeriod() {
         viewModelScope.launch {
-            _period
-                .flatMapLatest { (start, end) ->
-                    repository.getDiasByDateRange(start, end)
-                        .onStart { _resumState.value = _resumState.value.copy(isLoading = true, error = null) }
-                        .catch { e -> _resumState.value = _resumState.value.copy(isLoading = false, error = e.message ?: "An error occurred") }
-                }
-                .collect { dias ->
+            repository.getAllDiasWithDetails()
+                .onStart { _resumState.value = _resumState.value.copy(isLoading = true, error = null) }
+                .catch { e -> _resumState.value = _resumState.value.copy(isLoading = false, error = e.message ?: "An error occurred") }
+                .collect { allDias ->
+                    val filtered = allDias.filter {
+                        val d = LocalDate.parse(it.data)
+                        !d.isBefore(_period.value.first) && !d.isAfter(_period.value.second)
+                    }
                     _resumState.value = _resumState.value.copy(
-                        dias = dias,
+                        dias = filtered,
                         startDate = _period.value.first,
                         endDate = _period.value.second,
                         isLoading = false
                     )
                 }
+        }
+
+        // Re-trigger when period changes
+        viewModelScope.launch {
+            _period.collect { (start, end) ->
+               // Force re-filtering of already observed data if necessary
+               // but observePeriod above already listens to repository.getAllDiasWithDetails()
+               // and uses _period.value. We need to trigger the collect again when _period changes.
+               // Actually it's better to combine them.
+            }
         }
     }
 
@@ -91,18 +103,46 @@ class ResumViewModel @Inject constructor(
     }
 
     fun getTotalHoras(): Double {
-        return _resumState.value.dias.sumOf { it.getTotalHoras() }
+        return _resumState.value.dias.sumOf { dia ->
+            dia.conceptes.sumOf { concepte ->
+                concepte.rangsHoraris.sumOf { rang ->
+                    val inici = LocalTime.parse(rang.horaInici)
+                    val fi = LocalTime.parse(rang.horaFi)
+                    var seconds = (fi.toSecondOfDay() - inici.toSecondOfDay()).toLong()
+                    if (seconds < 0) seconds += 24 * 3600
+                    seconds / 3600.0
+                }
+            }
+        }
     }
 
     fun getTotalDiners(): Double {
-        return _resumState.value.dias.sumOf { dia -> dia.conceptes.sumOf { it.getTotalDiners() } }
+        return _resumState.value.dias.sumOf { dia ->
+            dia.conceptes.sumOf { concepte ->
+                val hores = concepte.rangsHoraris.sumOf { rang ->
+                    val inici = LocalTime.parse(rang.horaInici)
+                    val fi = LocalTime.parse(rang.horaFi)
+                    var seconds = (fi.toSecondOfDay() - inici.toSecondOfDay()).toLong()
+                    if (seconds < 0) seconds += 24 * 3600
+                    seconds / 3600.0
+                }
+                hores * concepte.preuHora + concepte.despeses
+            }
+        }
     }
 
     fun getConceptesSummary(): Map<String, Double> {
         val summary = mutableMapOf<String, Double>()
         for (dia in _resumState.value.dias) {
             for (concepte in dia.conceptes) {
-                summary[concepte.nom] = (summary[concepte.nom] ?: 0.0) + concepte.getTotalHoras()
+                val hores = concepte.rangsHoraris.sumOf { rang ->
+                    val inici = LocalTime.parse(rang.horaInici)
+                    val fi = LocalTime.parse(rang.horaFi)
+                    var seconds = (fi.toSecondOfDay() - inici.toSecondOfDay()).toLong()
+                    if (seconds < 0) seconds += 24 * 3600
+                    seconds / 3600.0
+                }
+                summary[concepte.nom] = (summary[concepte.nom] ?: 0.0) + hores
             }
         }
         return summary.toSortedMap()

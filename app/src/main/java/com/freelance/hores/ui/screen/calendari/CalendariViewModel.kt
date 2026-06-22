@@ -10,14 +10,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CalendariViewModel @Inject constructor(
     private val repository: RegistreRepository
@@ -40,14 +39,9 @@ class CalendariViewModel @Inject constructor(
 
     private fun observeDias() {
         viewModelScope.launch {
-            _currentMonth
-                .flatMapLatest { month ->
-                    val startDate = month.atDay(1)
-                    val endDate = month.atEndOfMonth()
-                    repository.getDiasByDateRange(startDate, endDate)
-                        .onStart { _isLoading.value = true }
-                        .catch { e -> _error.value = e.message ?: "Error loading calendar" }
-                }
+            repository.getAllDiasWithDetails()
+                .onStart { _isLoading.value = true }
+                .catch { e -> _error.value = e.message ?: "Error loading calendar" }
                 .collect { dias ->
                     _dias.value = dias
                     _isLoading.value = false
@@ -64,8 +58,7 @@ class CalendariViewModel @Inject constructor(
     }
 
     fun loadDias() {
-        // Això forçarà el recarregat del corrent flatMapLatest sense obrir noves coroutines
-        _currentMonth.value = _currentMonth.value
+        // No need to do anything as it's observing everything
     }
 
     fun nextMonth() {
@@ -77,10 +70,6 @@ class CalendariViewModel @Inject constructor(
     }
 
     fun getDiasByDate(date: LocalDate): Dia? {
-        return _dias.value.find { it.data == date }
-    }
-
-    fun getDiasWithRecords(): List<LocalDate> {
-        return _dias.value.map { it.data }
+        return _dias.value.find { it.data == date.toString() }
     }
 }

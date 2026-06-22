@@ -9,15 +9,19 @@ import com.freelance.hores.data.db.dao.RangHorariDao
 import com.freelance.hores.data.db.entity.ClientEntity
 import com.freelance.hores.data.db.entity.ConcepteEntity
 import com.freelance.hores.data.db.entity.DiaEntity
+import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.db.entity.RangHorariEntity
 import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
 import com.freelance.hores.domain.model.RangHorari
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.UUID
 import javax.inject.Inject
 
 class RegistreRepository @Inject constructor(
@@ -27,6 +31,8 @@ class RegistreRepository @Inject constructor(
     private val rangHorariDao: RangHorariDao,
     private val clientDao: ClientDao
 ) {
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
     // --- Client operations ---
     fun getClients(): Flow<List<Client>> {
         return clientDao.getAllClients().map { entities ->
@@ -35,7 +41,8 @@ class RegistreRepository @Inject constructor(
     }
 
     suspend fun saveClient(client: Client) {
-        clientDao.insert(ClientEntity(id = client.id, nom = client.nom, preuHoraDefecte = client.preuHoraDefecte))
+        val id = client.id.ifEmpty { UUID.randomUUID().toString() }
+        clientDao.insert(ClientEntity(id = id, nom = client.nom, preuHoraDefecte = client.preuHoraDefecte))
     }
 
     suspend fun deleteClient(client: Client) {
@@ -43,160 +50,120 @@ class RegistreRepository @Inject constructor(
     }
 
     // --- Registre operations ---
-    // Get all dias with concepts and time ranges
+    // Get all dias with details
     fun getAllDiasWithDetails(): Flow<List<Dia>> {
         return diaDao.getAllDias().map { diasEntity ->
             diasEntity.map { entity ->
                 Dia(
                     id = entity.id,
-                    data = LocalDate.ofEpochDay(entity.data),
+                    data = LocalDate.ofEpochDay(entity.data).toString(),
                     notes = entity.notes,
-                    conceptes = getConceptesForDia(entity.id)
+                    conceptes = getConceptesForDia(entity.id).first()
                 )
             }
         }
     }
 
     // Get a specific dia with all its conceptes and rangs horaris
-    suspend fun getDiaWithDetails(diaId: Long): Dia {
-        val diaEntity = diaDao.getById(diaId) ?: return Dia(data = LocalDate.now())
-        val conceptes = getConceptesForDia(diaId)
+    suspend fun getDiaWithDetails(diaId: String): Dia {
+        val diaEntity = diaDao.getById(diaId) ?: return Dia(id = UUID.randomUUID().toString(), data = LocalDate.now().toString())
+        val conceptes = getConceptesForDia(diaId).first()
         return Dia(
             id = diaEntity.id,
-            data = LocalDate.ofEpochDay(diaEntity.data),
+            data = LocalDate.ofEpochDay(diaEntity.data).toString(),
             notes = diaEntity.notes,
             conceptes = conceptes
         )
     }
 
     // Get conceptes with their time ranges for a specific dia
-    private suspend fun getConceptesForDia(diaId: Long): List<Concepte> {
-        val concepteWithClient = concepteDao.getByDiaIdWithClientSync(diaId)
-        return concepteWithClient.map { data ->
-            val rangsHoraris = getRangsForConcepte(data.concepte.id)
-            Concepte(
-                id = data.concepte.id,
-                diaId = data.concepte.diaId,
-                nom = data.concepte.nom,
-                preuHora = data.concepte.preuHora,
-                clientId = data.concepte.clientId,
-                clientNom = data.client?.nom,
-                estat = data.concepte.estat,
-                despeses = data.concepte.despeses,
-                despesesNotes = data.concepte.despesesNotes,
-                rangsHoraris = rangsHoraris
-            )
+    private fun getConceptesForDia(diaId: String): Flow<List<Concepte>> {
+        return concepteDao.getByDiaId(diaId).map { entities ->
+            entities.map { entity ->
+                val rangsHoraris = getRangsForConcepte(entity.id).first()
+                Concepte(
+                    id = entity.id,
+                    diaId = entity.diaId,
+                    nom = entity.nom,
+                    preuHora = entity.preuHora,
+                    clientId = entity.clientId,
+                    estat = entity.estat.name,
+                    despeses = entity.despeses,
+                    despesesNotes = entity.despesesNotes,
+                    rangsHoraris = rangsHoraris,
+                    preuFix = entity.preuFix,
+                    importFix = entity.importFix
+                )
+            }
         }
     }
 
     // Get time ranges for a specific concepte
-    private suspend fun getRangsForConcepte(concepteId: Long): List<RangHorari> {
-        val rangEntities = rangHorariDao.getByConcepteIdSync(concepteId)
-        return rangEntities.map { rangEntity ->
-            RangHorari(
-                id = rangEntity.id,
-                concepteId = rangEntity.concepteId,
-                horaInici = LocalTime.ofSecondOfDay(rangEntity.horaInici),
-                horaFi = LocalTime.ofSecondOfDay(rangEntity.horaFi)
-            )
+    private fun getRangsForConcepte(concepteId: String): Flow<List<RangHorari>> {
+        return rangHorariDao.getByConcepteId(concepteId).map { entities ->
+            entities.map { entity ->
+                RangHorari(
+                    id = entity.id,
+                    concepteId = entity.concepteId,
+                    horaInici = LocalTime.ofSecondOfDay(entity.horaInici).format(timeFormatter),
+                    horaFi = LocalTime.ofSecondOfDay(entity.horaFi).format(timeFormatter)
+                )
+            }
         }
     }
 
-    // Get dias within a date range with full details
-    fun getDiasByDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<Dia>> {
-        return diaDao.getDiasByDateRange(startDate.toEpochDay(), endDate.toEpochDay())
-            .map { diasEntity ->
-                diasEntity.map { diaEntity ->
-                    Dia(
-                        id = diaEntity.id,
-                        data = LocalDate.ofEpochDay(diaEntity.data),
-                        notes = diaEntity.notes,
-                        conceptes = getConceptesForDia(diaEntity.id)
-                    )
-                }
-            }
-    }
-
     // Save or update a complete dia with conceptes and rangs horaris
-    suspend fun saveDia(dia: Dia): Long {
-        return database.withTransaction {
-            // 1. Insert or update the dia
+    suspend fun saveDia(dia: Dia) {
+        database.withTransaction {
+            val diaId = dia.id.ifEmpty { UUID.randomUUID().toString() }
             val diaEntity = DiaEntity(
-                id = dia.id,
-                data = dia.data.toEpochDay(),
+                id = diaId,
+                data = LocalDate.parse(dia.data).toEpochDay(),
                 notes = dia.notes
             )
-            val actualDiaId = if (dia.id > 0) {
-                diaDao.update(diaEntity)
-                dia.id
-            } else {
-                diaDao.insert(diaEntity)
-            }
+            diaDao.insert(diaEntity)
 
             // 2. Clear existing relations to avoid duplicates and handle deletions
-            val existingConceptes = concepteDao.getByDiaIdWithClientSync(actualDiaId)
-            for (concepteData in existingConceptes) {
-                concepteDao.delete(concepteData.concepte) // Cascade will delete rangs horaris
+            val existingConceptes = concepteDao.getByDiaIdSync(diaId)
+            for (concepte in existingConceptes) {
+                concepteDao.delete(concepte) // Cascade will delete rangs horaris
             }
 
             // 3. Save new conceptes and their time ranges
             for (concepte in dia.conceptes) {
+                val concepteId = concepte.id.ifEmpty { UUID.randomUUID().toString() }
                 val concepteEntity = ConcepteEntity(
-                    diaId = actualDiaId,
+                    id = concepteId,
+                    diaId = diaId,
                     clientId = concepte.clientId,
                     nom = concepte.nom,
                     preuHora = concepte.preuHora,
-                    estat = concepte.estat,
+                    estat = EstatFacturacio.valueOf(concepte.estat),
                     despeses = concepte.despeses,
-                    despesesNotes = concepte.despesesNotes
+                    despesesNotes = concepte.despesesNotes,
+                    preuFix = concepte.preuFix,
+                    importFix = concepte.importFix
                 )
-                val concepteId = concepteDao.insert(concepteEntity)
+                concepteDao.insert(concepteEntity)
 
                 // Save rangs horaris
                 for (rangHorari in concepte.rangsHoraris) {
+                    val rangId = rangHorari.id.ifEmpty { UUID.randomUUID().toString() }
                     val rangEntity = RangHorariEntity(
+                        id = rangId,
                         concepteId = concepteId,
-                        horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
-                        horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
+                        horaInici = LocalTime.parse(rangHorari.horaInici, timeFormatter).toSecondOfDay().toLong(),
+                        horaFi = LocalTime.parse(rangHorari.horaFi, timeFormatter).toSecondOfDay().toLong()
                     )
                     rangHorariDao.insert(rangEntity)
                 }
             }
-            actualDiaId
         }
     }
 
     // Delete a dia
     suspend fun deleteDia(dia: Dia) {
-        diaDao.delete(DiaEntity(id = dia.id, data = dia.data.toEpochDay(), notes = dia.notes))
-    }
-
-    // Delete a concepte
-    suspend fun deleteConcepte(concepte: Concepte) {
-        concepteDao.delete(
-            ConcepteEntity(
-                id = concepte.id,
-                diaId = concepte.diaId,
-                clientId = concepte.clientId,
-                nom = concepte.nom,
-                preuHora = concepte.preuHora,
-                estat = concepte.estat,
-                despeses = concepte.despeses,
-                despesesNotes = concepte.despesesNotes
-            )
-        )
-    }
-
-    // Delete a rang horari
-    suspend fun deleteRangHorari(rangHorari: RangHorari) {
-        rangHorariDao.delete(
-            RangHorariEntity(
-                id = rangHorari.id,
-                concepteId = rangHorari.concepteId,
-                horaInici = rangHorari.horaInici.toSecondOfDay().toLong(),
-                horaFi = rangHorari.horaFi.toSecondOfDay().toLong()
-            )
-        )
+        diaDao.delete(DiaEntity(id = dia.id, data = LocalDate.parse(dia.data).toEpochDay(), notes = dia.notes))
     }
 
     // Get dia by date
@@ -206,7 +173,7 @@ class RegistreRepository @Inject constructor(
     }
 
     // Update dia notes
-    suspend fun updateDiaNotes(diaId: Long, notes: String) {
+    suspend fun updateDiaNotes(diaId: String, notes: String) {
         val dia = diaDao.getById(diaId) ?: return
         diaDao.update(dia.copy(notes = notes))
     }

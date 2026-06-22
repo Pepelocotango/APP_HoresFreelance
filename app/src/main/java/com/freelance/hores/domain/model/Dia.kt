@@ -1,10 +1,11 @@
 package com.freelance.hores.domain.model
 
-import java.time.LocalDate
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Dia(
-    val id: Long = 0,
-    val data: LocalDate,
+    val id: String,
+    val data: String, // YYYY-MM-DD
     val notes: String = "",
     val conceptes: List<Concepte> = emptyList()
 ) {

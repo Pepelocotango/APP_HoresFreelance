@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
-import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.ConcepteCard
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -49,7 +49,7 @@ import java.util.Locale
 @Composable
 fun DiaDetallScreen(
     navController: NavHostController,
-    diaId: Long,
+    diaId: String,
     viewModel: DiaDetallViewModel = hiltViewModel()
 ) {
     val dia by viewModel.dia.collectAsState()
@@ -98,7 +98,7 @@ fun DiaDetallScreen(
                 item {
                     Column {
                         Text(
-                            text = localDia.data.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
+                            text = LocalDate.parse(localDia.data).format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.getDefault())),
                             style = MaterialTheme.typography.headlineSmall
                         )
                         if (localDia.notes.isNotEmpty()) {
@@ -135,12 +135,13 @@ fun DiaDetallScreen(
                         FilterChip(
                             selected = true,
                             onClick = {},
-                            label = { Text(concepte.estat.name) },
+                            label = { Text(concepte.estat) },
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = when (concepte.estat) {
-                                    EstatFacturacio.PENDENT -> MaterialTheme.colorScheme.surfaceVariant
-                                    EstatFacturacio.FACTURAT -> MaterialTheme.colorScheme.tertiaryContainer
-                                    EstatFacturacio.COBRAT -> MaterialTheme.colorScheme.primaryContainer
+                                    "PENDENT" -> MaterialTheme.colorScheme.surfaceVariant
+                                    "FACTURAT" -> MaterialTheme.colorScheme.tertiaryContainer
+                                    "COBRAT" -> MaterialTheme.colorScheme.primaryContainer
+                                    else -> MaterialTheme.colorScheme.surfaceVariant
                                 }
                             )
                         )

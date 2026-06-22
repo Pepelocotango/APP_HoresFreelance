@@ -38,7 +38,7 @@ export function timeToMinutes(time: string): number {
 /**
  * Duration in hours of a RangHorari
  */
-export function calculateRangHours(inici: string, fi: string | null): number {
+export function calculateRangHours(inici: string, fi: string): number {
   if (!fi) return 0;
   let startMin = timeToMinutes(inici);
   let endMin = timeToMinutes(fi);
@@ -52,15 +52,15 @@ export function calculateRangHours(inici: string, fi: string | null): number {
 /**
  * Check if two time ranges overlap
  */
-export function rangesOverlap(r1: {inici: string, fi: string}, r2: {inici: string, fi: string}): boolean {
-  if (!r1.inici || !r1.fi || !r2.inici || !r2.fi) return false;
+export function rangesOverlap(r1: {horaInici: string, horaFi: string}, r2: {horaInici: string, horaFi: string}): boolean {
+  if (!r1.horaInici || !r1.horaFi || !r2.horaInici || !r2.horaFi) return false;
   
-  const s1 = timeToMinutes(r1.inici);
-  let e1 = timeToMinutes(r1.fi);
+  const s1 = timeToMinutes(r1.horaInici);
+  let e1 = timeToMinutes(r1.horaFi);
   if(e1 <= s1) e1 += 24 * 60;
   
-  const s2 = timeToMinutes(r2.inici);
-  let e2 = timeToMinutes(r2.fi);
+  const s2 = timeToMinutes(r2.horaInici);
+  let e2 = timeToMinutes(r2.horaFi);
   if(e2 <= s2) e2 += 24 * 60;
 
   return s1 < e2 && s2 < e1;
@@ -71,9 +71,9 @@ export function rangesOverlap(r1: {inici: string, fi: string}, r2: {inici: strin
  */
 export function createEmptyDia(dateStr: string): import("../types").Dia {
   return {
-    id: dateStr,
+    id: generateId(),
     data: dateStr,
-    notesGlobals: "",
+    notes: "",
     conceptes: []
   };
 }

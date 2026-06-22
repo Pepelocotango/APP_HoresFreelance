@@ -19,8 +19,8 @@ import androidx.room.PrimaryKey
     indices = [Index("concepteId")]
 )
 data class RangHorariEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val concepteId: Long,
+    @PrimaryKey val id: String,
+    val concepteId: String,
     val horaInici: Long,  // Stored as seconds of day
     val horaFi: Long      // Stored as seconds of day
 )
