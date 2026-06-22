@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoresFreelance</string>
+
+    <string name="nav_calendari">Calendari</string>
+    <string name="nav_resum">Resum</string>
+    <string name="nav_new_record">Nou registre</string>
+
+    <string name="day_mon">L</string>
+    <string name="day_tue">M</string>
+    <string name="day_wed">X</string>
+    <string name="day_thu">J</string>
+    <string name="day_fri">V</string>
+    <string name="day_sat">S</string>
+    <string name="day_sun">D</string>
+
+    <string name="calendari_title">Calendari de treball</string>
+    <string name="calendari_empty">Encara no hi ha registres</string>
+
+    <string name="dia_detall_title">Detall del dia</string>
+    <string name="dia_detall_notes">Notes</string>
+    <string name="dia_detall_conceptes">Bolos</string>
+    <string name="dia_detall_total_hours">Total d\'hores: %1$s</string>
+    <string name="dia_detall_add_concepte">Afegir bolo</string>
+    <string name="dia_detall_edit">Editar</string>
+    <string name="dia_detall_delete">Esborrar</string>
+
+    <string name="registre_title">Registrar hores</string>
+    <string name="registre_date">Data</string>
+    <string name="registre_notes">Notes (opcional)</string>
+    <string name="registre_concepte_name">Nom del bolo</string>
+    <string name="registre_preu_hora">Preu / hora</string>
+    <string name="registre_hora_inici">Hora d\'inici</string>
+    <string name="registre_hora_fi">Hora de fi</string>
+    <string name="registre_duracio">Durada: %1$s</string>
+    <string name="registre_add_rang">Afegir rang horari</string>
+    <string name="registre_add_concepte">Afegir bolo</string>
+    <string name="registre_save">Desa</string>
+    <string name="registre_cancel">Cancel·la</string>
+    <string name="registre_error_concepte_empty">El nom del bolo no pot estar buit</string>
+    <string name="registre_error_no_rangs">Almenys un rang horari per bolo</string>
+    <string name="registre_error_hora_invalid">L\'hora de fi ha de ser posterior a l\'inici</string>
+    <string name="registre_error_overlapping_ranges">Els rangs horaris es solapen per al mateix bolo</string>
+
+    <string name="resum_title">Resum d\'hores</string>
+    <string name="resum_this_week">Aquesta setmana</string>
+    <string name="resum_this_month">Aquest mes</string>
+    <string name="resum_last_month">Mes anterior</string>
+    <string name="resum_custom">Rang personalitzat</string>
+    <string name="resum_total">Total: %1$s hores</string>
+    <string name="resum_total_diners">Total: %1$s hores | %2$s €</string>
+    <string name="resum_export_csv">Exportar CSV</string>
+    <string name="resum_export_pdf">Exportar PDF</string>
+    <string name="resum_empty">No hi ha registres per aquest període</string>
+    <string name="resum_from">Des de</string>
+    <string name="resum_to">Fins a</string>
+    <string name="resum_summary_by_concept">Resum per bolo</string>
+
+    <string name="common_save">Desa</string>
+    <string name="common_cancel">Cancel·la</string>
+    <string name="common_delete">Esborrar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_add">Afegir</string>
+    <string name="common_close">Tancar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="common_confirm_delete">Segur que vols esborrar?</string>
+    <string name="common_saved">Desat correctament</string>
+    <string name="common_deleted">Esborrat correctament</string>
+    <string name="common_error">S\'ha produït un error</string>
+    <string name="csv_header_date">Data</string>
+    <string name="csv_header_concept">Bolo</string>
+    <string name="csv_header_price">Preu/h</string>
+    <string name="csv_header_start">Hora inici</string>
+    <string name="csv_header_end">Hora fi</string>
+    <string name="csv_header_duration">Durada (h)</string>
+    <string name="csv_header_notes">Notes dia</string>
+    <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Estat</string>
+    <string name="csv_header_price_hour">Preu/h</string>
+    <string name="csv_header_expenses">Despeses</string>
+    <string name="csv_header_expenses_notes">Notes despeses</string>
+</resources>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HoresFreelance</string>
+
+    <string name="nav_calendari">Calendario</string>
+    <string name="nav_resum">Resumen</string>
+    <string name="nav_new_record">Nuevo registro</string>
+
+    <string name="day_mon">L</string>
+    <string name="day_tue">M</string>
+    <string name="day_wed">X</string>
+    <string name="day_thu">J</string>
+    <string name="day_fri">V</string>
+    <string name="day_sat">S</string>
+    <string name="day_sun">D</string>
+
+    <string name="calendari_title">Calendario de trabajo</string>
+    <string name="calendari_empty">Aún no hay registros</string>
+
+    <string name="dia_detall_title">Detalle del día</string>
+    <string name="dia_detall_notes">Notas</string>
+    <string name="dia_detall_conceptes">Bolos</string>
+    <string name="dia_detall_total_hours">Total de horas: %1$s</string>
+    <string name="dia_detall_add_concepte">Añadir bolo</string>
+    <string name="dia_detall_edit">Editar</string>
+    <string name="dia_detall_delete">Borrar</string>
+
+    <string name="registre_title">Registrar horas</string>
+    <string name="registre_date">Fecha</string>
+    <string name="registre_notes">Notas (opcional)</string>
+    <string name="registre_concepte_name">Nombre del bolo</string>
+    <string name="registre_preu_hora">Precio / hora</string>
+    <string name="registre_hora_inici">Hora de inicio</string>
+    <string name="registre_hora_fi">Hora de fin</string>
+    <string name="registre_duracio">Duración: %1$s</string>
+    <string name="registre_add_rang">Añadir rango horario</string>
+    <string name="registre_add_concepte">Añadir bolo</string>
+    <string name="registre_save">Guardar</string>
+    <string name="registre_cancel">Cancelar</string>
+    <string name="registre_error_concepte_empty">El nombre del bolo no puede estar vacío</string>
+    <string name="registre_error_no_rangs">Al menos un rango horario por bolo</string>
+    <string name="registre_error_hora_invalid">La hora de fin debe ser posterior a la de inicio</string>
+    <string name="registre_error_overlapping_ranges">Los rangos horarios se solapan para el mismo bolo</string>
+
+    <string name="resum_title">Resumen de horas</string>
+    <string name="resum_this_week">Esta semana</string>
+    <string name="resum_this_month">Este mes</string>
+    <string name="resum_last_month">Mes anterior</string>
+    <string name="resum_custom">Rango personalizado</string>
+    <string name="resum_total">Total: %1$s horas</string>
+    <string name="resum_total_diners">Total: %1$s horas | %2$s €</string>
+    <string name="resum_export_csv">Exportar CSV</string>
+    <string name="resum_export_pdf">Exportar PDF</string>
+    <string name="resum_empty">No hay registros para este periodo</string>
+    <string name="resum_from">Desde</string>
+    <string name="resum_to">Hasta</string>
+    <string name="resum_summary_by_concept">Resumen por bolo</string>
+
+    <string name="common_save">Guardar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_delete">Borrar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_add">Añadir</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="common_confirm_delete">¿Estás seguro de que quieres borrarlo?</string>
+    <string name="common_saved">Guardado correctamente</string>
+    <string name="common_deleted">Borrado correctamente</string>
+    <string name="common_error">Se ha producido un error</string>
+    <string name="csv_header_date">Fecha</string>
+    <string name="csv_header_concept">Bolo</string>
+    <string name="csv_header_price">Precio/h</string>
+    <string name="csv_header_start">Hora inicio</string>
+    <string name="csv_header_end">Hora fin</string>
+    <string name="csv_header_duration">Duración (h)</string>
+    <string name="csv_header_notes">Notas día</string>
+    <string name="csv_header_total">TOTAL</string>
+    <string name="csv_header_status">Estado</string>
+    <string name="csv_header_price_hour">Precio/h</string>
+    <string name="csv_header_expenses">Gastos</string>
+    <string name="csv_header_expenses_notes">Notas gastos</string>
+</resources>

@@ -1,0 +1,45 @@
+name: PWA CI/CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app_PWA/horesfreelance/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd app_PWA/horesfreelance
+          npm install
+
+      - name: Run lint
+        run: |
+          cd app_PWA/horesfreelance
+          npm run lint
+
+      - name: Build project
+        run: |
+          cd app_PWA/horesfreelance
+          npm run build
+
+      - name: Zip build artifact
+        run: |
+          cd app_PWA/horesfreelance/dist
+          zip -r ../../../app_PWA-C${{ github.run_number }}.zip .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app_PWA-C${{ github.run_number }}
+          path: app_PWA-C${{ github.run_number }}.zip
