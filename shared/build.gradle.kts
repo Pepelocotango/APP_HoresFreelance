@@ -12,6 +12,7 @@ kotlin {
                 implementation("androidx.room:room-runtime:$roomVersion"); implementation("androidx.sqlite:sqlite-bundled:2.5.0-alpha01"); implementation("androidx.sqlite:sqlite:2.5.0-alpha01")
                 implementation("io.insert-koin:koin-core:3.5.3")
                 implementation("io.insert-koin:koin-compose:1.1.2")
+                implementation("io.insert-koin:koin-compose-viewmodel:1.1.2")
                 implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
             }
         }

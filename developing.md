@@ -1,4 +1,4 @@
-# Guia de Desenvolupament: HoresFreelance
+# Guia de Desenvolupament: HoresFreelance PER ACTUALITZAR!
 
 ## Estat Actual (v4)
 L'aplicació ha evolucionat per incloure:
