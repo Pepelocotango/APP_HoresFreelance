@@ -1,4 +1,4 @@
-# Guia de Desenvolupament: HoresFreelance
+# Guia de Desenvolupament: HoresFreelance PER ACTUALITZAR!
 
 ## Estat Actual (v5)
 L'aplicació ha assolit la plena compatibilitat multiplataforma:

@@ -1,3 +1,5 @@
+PER ACTUALITZAR!
+
 # HoresFreelance
 
 A native Android app and PWA/Desktop app for freelancers to track their work hours, manage projects ("Bolos"), and generate invoices.
