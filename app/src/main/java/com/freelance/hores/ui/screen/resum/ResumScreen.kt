@@ -147,10 +147,10 @@ fun ResumScreen(
                         modifier = Modifier.fillMaxWidth().padding(8.dp)
                     ) {
                         OutlinedTextField(
-                            value = selectedClient?.nom ?: "Tots els clients",
+                            value = selectedClient?.nom ?: stringResource(R.string.all_clients),
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Filtrar per client") },
+                            label = { Text(stringResource(R.string.filter_by_client)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedClient) },
                             modifier = Modifier.fillMaxWidth().menuAnchor()
                         )
@@ -159,7 +159,7 @@ fun ResumScreen(
                             onDismissRequest = { expandedClient = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Tots els clients") },
+                                text = { Text(stringResource(R.string.all_clients)) },
                                 onClick = {
                                     selectedClient = null
                                     expandedClient = false
@@ -187,7 +187,7 @@ fun ResumScreen(
 
                 item {
                     val dadesGrafic = filteredDias.flatMap { it.conceptes }
-                        .groupBy { it.clientNom ?: "Sense Client" }
+                        .groupBy { it.clientNom ?: stringResource(R.string.no_client) }
                         .mapValues { entry -> entry.value.sumOf { it.getTotalDiners() } }
                     GraficGuanys(dades = dadesGrafic)
                 }

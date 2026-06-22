@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useStore } from "../store/useStore";
+import { useTranslation } from "react-i18next"; // <- Afegit
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { Dia, Concepte, Client, RangHorari } from "../types";
@@ -11,6 +12,7 @@ export default function RegistreScreen() {
   const { id } = useParams(); // Using date string "YYYY-MM-DD" as ID
   const navigate = useNavigate();
   const { dies, clients, saveDia, addClient } = useStore();
+  const { t } = useTranslation(); // <- Afegit
 
   const [diaState, setDiaState] = useState<Dia | null>(null);
 
@@ -25,7 +27,7 @@ export default function RegistreScreen() {
     }
   }, [id, dies]);
 
-  if (!diaState) return <div className="p-4">Carregant...</div>;
+  if (!diaState) return <div className="p-4">{t('carregant')}</div>;
 
   const handleUpdateNotes = (text: string) => {
     setDiaState({ ...diaState, notes: text });
@@ -62,15 +64,13 @@ export default function RegistreScreen() {
 
   const handleSave = () => {
     if (diaState.conceptes.some(c => c.nom.trim() === "")) {
-      return alert("Tots els bolos han de tenir un nom.");
+      return alert(t('error_nom_buit'));
     }
     if (diaState.conceptes.some(c => c.rangsHoraris.length === 0 && !c.preuFix)) {
-        if (diaState.conceptes.some(c => c.rangsHoraris.length === 0 && !c.preuFix)) {
-           return alert("Els bolos per hores requereixen com a mínim un rang horari.");
-        }
+      return alert(t('error_rang_buit'));
     }
     if (checkOverlaps()) {
-      return alert("Hi ha solapament en els rangs horaris d'avui! Si us plau, revisa les hores.");
+      return alert(t('solapament_error')); // <- Usa la traducció!
     }
     saveDia(diaState);
     navigate(-1);
@@ -115,7 +115,7 @@ export default function RegistreScreen() {
         <div className="flex justify-between items-start mb-4">
           <input 
             type="text" 
-            placeholder="Nom del bolo (ex: Rodatge Matí)" 
+            placeholder={t('placeholder_nom_bolo')} 
             className="text-lg font-semibold dark:text-slate-100 border-b border-transparent dark:hover:border-slate-500 hover:border-slate-300 focus:border-indigo-500 focus:outline-none w-full bg-transparent px-1 py-0.5 transition-colors"
             value={concepte.nom}
             onChange={e => updateConcepte({ nom: e.target.value })}
@@ -125,14 +125,14 @@ export default function RegistreScreen() {
 
         <div className="grid gap-4 sm:grid-cols-2 mb-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Client</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('client')}</label>
             <div className="flex gap-2">
               <select 
                 className="w-full bg-slate-50 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors"
                 value={concepte.clientId || ""}
                 onChange={e => {
                   if (e.target.value === "NEW") {
-                    const nom = prompt("Nom del nou client:");
+                    const nom = prompt(t('prompt_nou_client'));
                     if (nom) {
                       const newC: Client = { id: generateId(), nom, preuHoraDefecte: 20 };
                       addClient(newC);
@@ -144,23 +144,23 @@ export default function RegistreScreen() {
                   }
                 }}
               >
-                <option value="" disabled>Selecciona Client</option>
+                <option value="" disabled>{t('selecciona_client')}</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.nom} ({c.preuHoraDefecte}€/h)</option>)}
-                <option value="NEW" className="font-bold text-indigo-600 dark:text-indigo-400">+ Nou Client...</option>
+                <option value="NEW" className="font-bold text-indigo-600 dark:text-indigo-400">{t('nou_client')}</option>
               </select>
             </div>
           </div>
 
           <div>
-             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Estat de Facturació</label>
+             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('estat_facturacio')}</label>
              <select 
                className="w-full bg-slate-50 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors"
                value={concepte.estat}
                onChange={e => updateConcepte({ estat: e.target.value as any })}
              >
-               <option value="PENDENT">Pendent</option>
-               <option value="FACTURAT">Facturat</option>
-               <option value="COBRAT">Cobrat</option>
+               <option value="PENDENT">{t('pendent')}</option>
+               <option value="FACTURAT">{t('facturat')}</option>
+               <option value="COBRAT">{t('cobrat')}</option>
              </select>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function RegistreScreen() {
              onChange={e => updateConcepte({ preuFix: e.target.checked })}
              className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-white dark:bg-slate-700 dark:border-slate-500"
            />
-           <label htmlFor={`fix-${concepte.id}`} className="text-sm font-medium text-slate-700 dark:text-slate-300">Preu Fix (Tancat)</label>
+           <label htmlFor={`fix-${concepte.id}`} className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('preu_fix')}</label>
            
            {concepte.preuFix && (
              <div className="ml-auto flex items-center gap-1">
@@ -190,11 +190,11 @@ export default function RegistreScreen() {
 
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Rangs Horaris</label>
-            <button onClick={addRang} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium flex items-center bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-500/20"><Plus size={14} className="mr-1"/> Afegir</button>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">{t('rangs_horaris')}</label>
+            <button onClick={addRang} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium flex items-center bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-500/20"><Plus size={14} className="mr-1"/> {t('afegir')}</button>
           </div>
           {concepte.rangsHoraris.length === 0 ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500 italic">Cap rang associat.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t('cap_rang')}</p>
           ) : (
             <div className="space-y-2 text-sm">
               {concepte.rangsHoraris.map((rang, rIdx) => (
@@ -220,7 +220,7 @@ export default function RegistreScreen() {
         </div>
 
         <div className="pt-3 border-t border-slate-100 dark:border-slate-600/50">
-           <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Despeses (Ex: Taxis, Dinars)</label>
+           <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">{t('despeses')}</label>
            <div className="flex gap-2">
              <div className="relative w-24 shrink-0">
                <input 
@@ -234,7 +234,7 @@ export default function RegistreScreen() {
              </div>
              <input 
                type="text" 
-               placeholder="Notes despeses..."
+               placeholder={t('placeholder_notes_despeses')}
                value={concepte.despesesNotes}
                onChange={e => updateConcepte({ despesesNotes: e.target.value })}
                className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200"
@@ -252,38 +252,38 @@ export default function RegistreScreen() {
         <button onClick={() => navigate(-1)} className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
           <ArrowLeft />
         </button>
-        <h1 className="text-lg font-medium text-slate-800 dark:text-slate-100">Registre d'Hores</h1>
-        <button onClick={handleSave} className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full flex items-center font-medium pr-3" title="Desar">
-          <Save size={20} className="mr-1" /> <span className="hidden sm:inline">Desar</span>
+        <h1 className="text-lg font-medium text-slate-800 dark:text-slate-100">{t('registre_hores')}</h1>
+        <button onClick={handleSave} className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full flex items-center font-medium pr-3" title={t('guardar')}>
+          <Save size={20} className="mr-1" /> <span className="hidden sm:inline">{t('guardar')}</span>
         </button>
       </header>
 
       <div className="p-4 flex-1 overflow-y-auto">
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('data')}</label>
           <div className="text-xl font-bold text-slate-900 dark:text-slate-100 border-b-2 border-indigo-200 dark:border-indigo-500 inline-block pb-1 capitalize mt-1">
              {format(new Date(diaState.data), "EEEE, dd 'de' MMMM", { locale: ca })}
           </div>
         </div>
 
         <div className="mb-6">
-           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Notes Generals</label>
+           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{t('notes_generals')}</label>
            <textarea 
              className="w-full bg-transparent dark:text-slate-100 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none shadow-sm resize-none transition-colors"
              rows={2}
-             placeholder="Alguna nota sobre avui..."
+             placeholder={t('placeholder_notes')}
              value={diaState.notes}
              onChange={e => handleUpdateNotes(e.target.value)}
            ></textarea>
         </div>
 
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Bolos del Dia ({diaState.conceptes.length})</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('bolos_dia')} ({diaState.conceptes.length})</h2>
           <button 
             onClick={handleAddConcepte} 
             className="text-xs bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white flex items-center px-3 py-1.5 rounded-full transition shadow-sm font-medium"
           >
-            <Plus size={14} className="mr-1"/> Nou Bolo
+            <Plus size={14} className="mr-1"/> {t('nou_bolo')}
           </button>
         </div>
 
@@ -293,8 +293,8 @@ export default function RegistreScreen() {
         
         {diaState.conceptes.length === 0 && (
           <div className="text-center p-8 bg-white dark:bg-slate-700 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 transition-colors">
-             <p className="text-slate-500 dark:text-slate-400 text-sm">Cap bolo registrat encara.</p>
-             <button onClick={handleAddConcepte} className="mt-2 text-indigo-600 dark:text-indigo-400 font-medium hover:underline text-sm">+ Afegeix el primer bolo</button>
+             <p className="text-slate-500 dark:text-slate-400 text-sm">{t('cap_bolo')}</p>
+             <button onClick={handleAddConcepte} className="mt-2 text-indigo-600 dark:text-indigo-400 font-medium hover:underline text-sm">+ {t('afegeix_primer_bolo')}</button>
           </div>
         )}
 

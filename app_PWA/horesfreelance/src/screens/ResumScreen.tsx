@@ -1,18 +1,29 @@
 import { useState, useMemo } from "react";
 import { useStore } from "../store/useStore";
+import { useTranslation } from "react-i18next";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isWithinInterval, format } from "date-fns";
 import { ca } from "date-fns/locale";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { FileText, Filter } from "lucide-react";
+import { FileText, Filter, Download } from "lucide-react";
 import { calculateRangHours } from "../lib/utils";
 
-type DateRange = "setmana" | "mes" | "anterior" | "tots";
+type DateRange = "setmana" | "mes" | "anterior" | "tots" | "lliure";
 
 export default function ResumScreen() {
   const { dies, clients } = useStore();
+  const { t } = useTranslation();
+  
   const [range, setRange] = useState<DateRange>("mes");
   const [statusFilter, setStatusFilter] = useState("Tots");
   const [clientFilter, setClientFilter] = useState("Tots");
+  
+  // Estats per al DatePicker de rang lliure
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const filteredData = useMemo(() => {
     let start: Date | null = null;
@@ -29,12 +40,16 @@ export default function ResumScreen() {
       const lastMonth = subMonths(now, 1);
       start = startOfMonth(lastMonth);
       end = endOfMonth(lastMonth);
+    } else if (range === "lliure") {
+      start = startDate;
+      end = endDate;
     }
 
     let flatRecords: any[] = [];
     
     dies.forEach(dia => {
       const dDate = new Date(dia.data);
+      // Si hi ha rang de dates configurat, filtem. Si és "tots", no filtem per data.
       if (start && end && !isWithinInterval(dDate, { start, end })) return;
 
       dia.conceptes.forEach(concepte => {
@@ -49,7 +64,7 @@ export default function ResumScreen() {
           diaId: dia.id,
           data: dia.data,
           concepte,
-          clientNom: client?.nom || "Desconegut",
+          clientNom: client?.nom || t('desconegut'),
           hours,
           earnings,
           despeses: concepte.despeses
@@ -58,7 +73,7 @@ export default function ResumScreen() {
     });
 
     return flatRecords;
-  }, [dies, clients, range, statusFilter, clientFilter]);
+  }, [dies, clients, range, statusFilter, clientFilter, startDate, endDate, t]);
 
   const totals = useMemo(() => {
     return filteredData.reduce((acc, r) => {
@@ -78,9 +93,9 @@ export default function ResumScreen() {
   }, [filteredData]);
 
   const exportCSV = () => {
-    const header = "Data,Client,Bolo,Hores,Ingressos,Despeses,Estat\n";
+    const header = `${t('data')},${t('client')},${t('bolo')},${t('hores')},${t('ingressos')},${t('despeses')},${t('estat')}\n`;
     const body = filteredData.map(r => {
-      return `${r.data},"${r.clientNom}","${r.concepte.nom}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${r.concepte.estat}`;
+      return `${r.data},"${r.clientNom}","${r.concepte.nom}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${t(r.concepte.estat.toLowerCase())}`;
     }).join("\n");
     
     const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
@@ -93,25 +108,75 @@ export default function ResumScreen() {
     document.body.removeChild(link);
   };
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text(t('export_pdf_title'), 14, 22);
+    
+    doc.setFontSize(10);
+    const rangeLabel = t(`filtre_${range}`);
+    doc.text(`${t('filtres')}: ${rangeLabel} | ${t('estat')}: ${statusFilter === 'Tots' ? t('tots') : statusFilter} | ${t('client')}: ${clientFilter === 'Tots' ? t('tots') : clients.find(c=>c.id===clientFilter)?.nom}`, 14, 30);
+
+    const tableData = filteredData.map(r => [
+      format(new Date(r.data), "dd/MM/yyyy"),
+      r.clientNom,
+      r.concepte.nom,
+      r.hours.toFixed(2) + 'h',
+      r.earnings.toFixed(2) + '€',
+      r.despeses.toFixed(2) + '€',
+      t(r.concepte.estat.toLowerCase())
+    ]);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [[t('data'), t('client'), t('bolo'), t('hores'), t('ingressos'), t('despeses'), t('estat')]],
+      body: tableData,
+      headStyles: { fillColor: [79, 70, 229] }, // Indigo color
+      styles: { fontSize: 8 }
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.text(`${t('resum_hores')}: ${totals.hours.toFixed(1)}h`, 14, finalY);
+    doc.text(`${t('resum_ingressos')}: ${totals.earnings.toFixed(2)}€`, 14, finalY + 7);
+    if (totals.despeses > 0) {
+       doc.text(`${t('despeses')}: ${totals.despeses.toFixed(2)}€`, 14, finalY + 14);
+    }
+
+    doc.save(`hores_export_${format(new Date(), "yyyyMMdd")}.pdf`);
+  };
+
   const chartColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-800 transition-colors">
       <header className="p-4 bg-white dark:bg-slate-900 border-b dark:border-slate-700 shadow-sm sticky top-0 z-10 flex justify-between items-center transition-colors">
-        <h1 className="text-xl font-medium text-slate-800 dark:text-slate-100">Resum i Informes</h1>
-        <button onClick={exportCSV} className="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 p-2 text-sm font-medium rounded-lg flex items-center hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition">
-          <FileText size={18} className="mr-2" /> Exportar CSV
-        </button>
+        <h1 className="text-xl font-medium text-slate-800 dark:text-slate-100">{t('resum_informes')}</h1>
+        <div className="flex gap-2">
+          <button onClick={exportCSV} className="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 p-2 text-sm font-medium rounded-lg flex items-center hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition">
+            <FileText size={18} className="mr-2" /> CSV
+          </button>
+          <button onClick={exportPDF} className="text-white bg-indigo-600 dark:bg-indigo-500 p-2 text-sm font-medium rounded-lg flex items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition">
+            <Download size={18} className="mr-2" /> PDF
+          </button>
+        </div>
       </header>
 
       <div className="p-4 flex-1 overflow-y-auto">
         <div className="bg-white dark:bg-slate-700 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 mb-6 transition-colors">
           <div className="flex items-center gap-2 mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-            <Filter size={16} /> Filtres
+            <Filter size={16} /> {t('filtres')}
           </div>
           
           <div className="flex flex-wrap gap-2 mb-4">
-            {[{id: "setmana", label: "Aquesta Setmana"}, {id: "mes", label: "Aquest Mes"}, {id: "anterior", label: "Mes Anterior"}, {id: "tots", label: "Tots"}].map(r => (
+            {[
+              {id: "setmana", label: t('filtre_setmana')}, 
+              {id: "mes", label: t('filtre_mes')}, 
+              {id: "anterior", label: t('filtre_mes_anterior')}, 
+              {id: "lliure", label: t('filtre_lliure')},
+              {id: "tots", label: t('filtre_tots')}
+            ].map(r => (
               <button 
                 key={r.id} 
                 onClick={() => setRange(r.id as DateRange)}
@@ -122,28 +187,60 @@ export default function ResumScreen() {
             ))}
           </div>
 
+          {range === "lliure" && (
+            <div className="flex flex-wrap gap-4 mb-4 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-600/50">
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('inici')}</label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  selectsStart
+                  startDate={startDate}
+                  endDate={endDate}
+                  isClearable
+                  dateFormat="dd/MM/yyyy"
+                  className="border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200 w-full"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('fi')}</label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  selectsEnd
+                  startDate={startDate}
+                  endDate={endDate}
+                  minDate={startDate}
+                  isClearable
+                  dateFormat="dd/MM/yyyy"
+                  className="border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200 w-full"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Estat</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('estat')}</label>
               <select 
                 value={statusFilter} 
                 onChange={e => setStatusFilter(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
               >
-                <option value="Tots">Tots els estats</option>
-                <option value="PENDENT">Pendent</option>
-                <option value="FACTURAT">Facturat</option>
-                <option value="COBRAT">Cobrat</option>
+                <option value="Tots">{t('tots_estats')}</option>
+                <option value="PENDENT">{t('pendent')}</option>
+                <option value="FACTURAT">{t('facturat')}</option>
+                <option value="COBRAT">{t('cobrat')}</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Client</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('client')}</label>
               <select 
                 value={clientFilter} 
                 onChange={e => setClientFilter(e.target.value)}
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
               >
-                <option value="Tots">Tots els clients</option>
+                <option value="Tots">{t('tots_clients')}</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
               </select>
             </div>
@@ -153,31 +250,31 @@ export default function ResumScreen() {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-indigo-600 dark:bg-indigo-700 text-white rounded-xl p-4 shadow-md flex flex-col justify-center relative overflow-hidden transition-colors">
              <div className="absolute top-0 right-0 p-4 opacity-10"><FileText size={48}/></div>
-             <span className="text-indigo-100 text-sm font-medium uppercase tracking-wider">Ingressos</span>
+             <span className="text-indigo-100 text-sm font-medium uppercase tracking-wider">{t('ingressos')}</span>
              <span className="text-3xl font-bold mt-1">{totals.earnings.toFixed(2)} €</span>
           </div>
           <div className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-4 shadow-sm flex flex-col justify-center transition-colors">
-             <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Hores</span>
+             <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">{t('hores')}</span>
              <span className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">{totals.hours.toFixed(1)} <span className="text-lg">h</span></span>
           </div>
         </div>
         
         {totals.despeses > 0 && (
           <div className="mb-6 p-4 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 flex items-center justify-between transition-colors">
-            <span className="text-red-800 dark:text-red-300 font-medium text-sm">Totals Despeses Justificables</span>
+            <span className="text-red-800 dark:text-red-300 font-medium text-sm">{t('despeses_justificables')}</span>
             <span className="text-red-700 dark:text-red-200 font-bold">{totals.despeses.toFixed(2)} €</span>
           </div>
         )}
 
         <div className="bg-white dark:bg-slate-700 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 mb-6 transition-colors">
-          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Ingressos per Client</h3>
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">{t('ingressos_per_client')}</h3>
           {chartData.length > 0 ? (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" width={80} tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => [`${value.toFixed(2)} €`, 'Ingressos']} />
+                  <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => [`${value.toFixed(2)} €`, t('ingressos')]} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                     {chartData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
@@ -188,20 +285,20 @@ export default function ResumScreen() {
             </div>
           ) : (
             <div className="h-32 flex items-center justify-center text-slate-400 text-sm">
-              Sense dades per analitzar
+              {t('sense_dades')}
             </div>
           )}
         </div>
 
         <div className="bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 overflow-hidden transition-colors">
-           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider p-4 border-b border-slate-100 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">Desglossament</h3>
+           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider p-4 border-b border-slate-100 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">{t('desglossament')}</h3>
            <div className="divide-y divide-slate-100 dark:divide-slate-600/50">
-             {filteredData.length === 0 && <div className="p-6 text-center text-slate-400 text-sm">No s'han trobat esdeveniments.</div>}
+             {filteredData.length === 0 && <div className="p-6 text-center text-slate-400 text-sm">{t('no_esdeveniments')}</div>}
              {filteredData.map((item, i) => (
                <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-600 transition">
                  <div>
                    <div className="font-medium text-sm text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.concepte.nom}</div>
-                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {item.concepte.estat}</div>
+                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(item.concepte.estat.toLowerCase())}</div>
                  </div>
                  <div className="text-right">
                    <div className="font-bold text-sm text-indigo-600 dark:text-indigo-400">{item.earnings.toFixed(2)} €</div>

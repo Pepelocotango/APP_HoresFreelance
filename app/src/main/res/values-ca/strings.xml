@@ -67,6 +67,18 @@
     <string name="common_saved">Desat correctament</string>
     <string name="common_deleted">Esborrat correctament</string>
     <string name="common_error">S\'ha produït un error</string>
+
+    <!-- Clients -->
+    <string name="new_client">Nou Client</string>
+    <string name="edit_client">Editar Client</string>
+    <string name="client_name">Nom del Client</string>
+    <string name="default_price">Preu per defecte (€/h)</string>
+    <string name="clients_title">Clients</string>
+    <string name="add_client">Afegir client</string>
+    <string name="all_clients">Tots els clients</string>
+    <string name="filter_by_client">Filtrar per client</string>
+    <string name="no_client">Sense Client</string>
+
     <string name="csv_header_date">Data</string>
     <string name="csv_header_concept">Bolo</string>
     <string name="csv_header_price">Preu/h</string>

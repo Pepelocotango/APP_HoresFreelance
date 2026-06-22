@@ -67,6 +67,18 @@
     <string name="common_saved">Guardado correctamente</string>
     <string name="common_deleted">Borrado correctamente</string>
     <string name="common_error">Se ha producido un error</string>
+
+    <!-- Clients -->
+    <string name="new_client">Nuevo Cliente</string>
+    <string name="edit_client">Editar Cliente</string>
+    <string name="client_name">Nombre del Cliente</string>
+    <string name="default_price">Precio por defecto (€/h)</string>
+    <string name="clients_title">Clientes</string>
+    <string name="add_client">Añadir cliente</string>
+    <string name="all_clients">Todos los clientes</string>
+    <string name="filter_by_client">Filtrar por cliente</string>
+    <string name="no_client">Sin Cliente</string>
+
     <string name="csv_header_date">Fecha</string>
     <string name="csv_header_concept">Bolo</string>
     <string name="csv_header_price">Precio/h</string>

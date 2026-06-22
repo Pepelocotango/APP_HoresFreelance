@@ -22,8 +22,7 @@ DIRECTORIS_IGNORATS = {
     'build',
     'dist',
     'gradle',
-    '__pycache__',
-    '.github'
+    '__pycache__'
 }
 
 # Fitxers específics a ignorar
@@ -32,15 +31,14 @@ FITXERS_IGNORATS = {
     'gradlew',
     'gradlew.bat',
     'gradle-wrapper.jar',
-    'logo.svg',
-    FITXER_SORTIDA,
-    'concatenar_codi.py'  # S'ignora a si mateix
+    FITXER_SORTIDA
 }
 
 # Extensions permeses per a la concatenació
 EXTENSIONS_PERMESES = {
     '.kt', '.kts', '.tsx', '.ts', '.html', '.css', '.json',
-    '.xml', '.properties', '.md', '.py', '.txt', '.pro', '.yml', '.yaml'
+    '.xml', '.properties', '.md', '.py', '.txt', '.pro', '.yml', '.yaml',
+    '.svg'
 }
 
 def és_fitxer_text_codi(ruta_fitxer):

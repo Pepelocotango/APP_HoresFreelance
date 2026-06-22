@@ -17,8 +17,25 @@ interface AppState extends AppStorageData {
   stopClockIn: (defaultClientId?: string) => string | null; // Returns dayId if created
   cancelClockIn: () => void;
   loadBackup: (jsonString: string) => void;
-  syncClientRates: (clientId: string, newRate: number) => void;
 }
+
+// Helper function per generar el nom del bolo ràpid equivalent a Android
+const generateBoloRapidName = (dies: Dia[]): string => {
+  let maxN = 0;
+  const regex = /^Bolo sense títol (\d+)$/;
+  
+  dies.forEach(dia => {
+    dia.conceptes.forEach(concepte => {
+      const match = concepte.nom.match(regex);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxN) maxN = num;
+      }
+    });
+  });
+  
+  return `Bolo sense títol ${maxN + 1}`;
+};
 
 export const useStore = create<AppState>()(
   persist(
@@ -33,10 +50,10 @@ export const useStore = create<AppState>()(
         set((state) => ({ clients: [...state.clients, client] })),
 
       updateClient: (client) => {
+        // CORRECCIÓ: Només actualitzem el client. Ja NO es sincronitzen els preus dels bolos existents.
         set((state) => ({
           clients: state.clients.map((c) => (c.id === client.id ? client : c)),
         }));
-        get().syncClientRates(client.id, client.preuHoraDefecte);
       },
 
       deleteClient: (id) =>
@@ -104,10 +121,13 @@ export const useStore = create<AppState>()(
           horaFi: fiStr,
         };
 
+        // CORRECCIÓ: Canviat de "Bolo Ràpid" a "Bolo sense títol N" per coincidir amb Android
+        const nomBolo = generateBoloRapidName(dies);
+
         const newConcepte: Concepte = {
           id: concepteId,
           diaId: diaId,
-          nom: "Bolo Ràpid",
+          nom: nomBolo,
           clientId: defaultClientId || null,
           preuHora: 0,
           estat: "PENDENT",
@@ -156,29 +176,15 @@ export const useStore = create<AppState>()(
             set({
               clients: clients,
               dies: dies,
-              activeClockIn: parsed.activeClockIn || null,
+              // CORRECCIÓ: Sempre posem activeClockIn a null en importar.
+              // No volem que el Desktop intenti tancar una sessió que es va obrir a l'Android
+              activeClockIn: null,
             });
           }
         } catch (e) {
           console.error("Failed to restore backup", e);
           alert("El format del fitxer no és vàlid.");
         }
-      },
-
-      syncClientRates: (clientId, newRate) => {
-        set((state) => {
-          const updatedDies = state.dies.map((dia) => ({
-            ...dia,
-            conceptes: dia.conceptes.map((c) => {
-              // Only sync "PENDENT" and non-fixed price items for this client
-              if (c.clientId === clientId && c.estat === "PENDENT" && !c.preuFix) {
-                 return { ...c, preuHora: newRate };
-              }
-              return c;
-            })
-          }));
-          return { dies: updatedDies };
-        });
       }
     }),
     {

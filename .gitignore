@@ -1,3 +1,12 @@
+#PERSONALS
+BKP_BASE DADES/
+
+# Ignorar fitxers generats
+codi_complet.txt
+
+# DEPENDENCIES I LLIBRERIES
+node_modules/
+
 # Gradle files
 .gradle/
 build/
