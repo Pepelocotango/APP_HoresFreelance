@@ -1,8 +1,0 @@
-2026-06-17T20:50:34.4680000Z Requested labels: ubuntu-latest
-2026-06-17T20:50:34.4680000Z Job defined at: Pepelocotango/APP_HoresFreelance/.github/workflows/android.yml@refs/heads/main
-2026-06-17T20:50:34.4680000Z Waiting for a runner to pick up this job...
-2026-06-17T20:50:34.4630000Z Evaluating instrumented-tests.if
-2026-06-17T20:50:34.4630000Z Evaluating: success()
-2026-06-17T20:50:34.4630000Z Result: true
-2026-06-17T20:50:35.3640000Z Job is about to start running on the hosted runner: GitHub Actions 1000000313
-2026-06-17T20:50:35.3640000Z Job is waiting for a hosted runner to come online.
