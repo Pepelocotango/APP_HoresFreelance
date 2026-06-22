@@ -1,0 +1,6 @@
+{
+  "name": "HoresFreelance",
+  "description": "Aplicació per a autònoms per registrar hores de treball, gestionar clients i exportar informes financers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
