@@ -24,7 +24,7 @@ class DiaDetallViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    fun loadDia(diaId: Long) {
+    fun loadDia(diaId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
@@ -70,7 +70,10 @@ class DiaDetallViewModel @Inject constructor(
         viewModelScope.launch {
             _error.value = null
             try {
-                repository.deleteConcepte(concepte)
+                // We'll need a way to delete conceptes in RegistreRepository that handles String IDs
+                // For now, let's just use the saveDia with filtered conceptes if we don't want to add a new method
+                val updatedConceptes = currentDia.conceptes.filter { it.id != concepte.id }
+                repository.saveDia(currentDia.copy(conceptes = updatedConceptes))
                 loadDia(currentDia.id)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Error deleting bolo"

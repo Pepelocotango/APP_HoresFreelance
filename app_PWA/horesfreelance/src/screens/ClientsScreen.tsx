@@ -15,7 +15,7 @@ export default function ClientsScreen() {
   const startEdit = (c: Client) => {
     setEditingClient(c);
     setNom(c.nom);
-    setTarifa(c.tarifaHoraria.toString());
+    setTarifa(c.preuHoraDefecte.toString());
     setIsAdding(false);
   };
 
@@ -35,10 +35,10 @@ export default function ClientsScreen() {
     if (!nom.trim() || !tarifa) return alert("Posa un nom i una tarifa.");
     
     if (isAdding) {
-      addClient({ id: generateId(), nom, tarifaHoraria: parseFloat(tarifa) });
+      addClient({ id: generateId(), nom, preuHoraDefecte: parseFloat(tarifa) });
     } else if (editingClient) {
       if(window.confirm("Això actualitzarà la tarifa per a tots els bolos Tancats o Pendents d'aquest client. Estàs d'acord?")) {
-        updateClient({ ...editingClient, nom, tarifaHoraria: parseFloat(tarifa) });
+        updateClient({ ...editingClient, nom, preuHoraDefecte: parseFloat(tarifa) });
       }
     }
     cancelEdit();
@@ -106,7 +106,7 @@ export default function ClientsScreen() {
             <div key={c.id} className="bg-white dark:bg-slate-700 p-4 rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm flex items-center justify-between transition-colors">
               <div>
                 <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg">{c.nom}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm">{c.tarifaHoraria.toFixed(2)} €/h</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">{c.preuHoraDefecte.toFixed(2)} €/h</p>
               </div>
               <div className="flex gap-1">
                 <button onClick={() => startEdit(c)} className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-full transition" title="Editar">

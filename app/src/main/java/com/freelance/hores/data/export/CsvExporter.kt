@@ -4,7 +4,7 @@ import android.content.Context
 import com.freelance.hores.R
 import com.freelance.hores.domain.model.Dia
 import java.io.File
-import java.time.format.DateTimeFormatter
+import java.time.LocalTime
 import java.util.Locale
 
 class CsvExporter(private val context: Context) {
@@ -33,14 +33,24 @@ class CsvExporter(private val context: Context) {
             for (dia in dias) {
                 for (concepte in dia.conceptes) {
                     for ((index, rang) in concepte.rangsHoraris.withIndex()) {
-                        val duracio = rang.getDuracionaEnHoras()
+                        val hInici = LocalTime.parse(rang.horaInici)
+                        val hFi = LocalTime.parse(rang.horaFi)
+                        var seconds = (hFi.toSecondOfDay() - hInici.toSecondOfDay()).toLong()
+                        if (seconds < 0) seconds += 24 * 3600
+                        val duracio = seconds / 3600.0
+
                         totalHoras += duracio
-                        totalDiners += concepte.getTotalDiners()
-                        totalDespeses += concepte.despeses
+                        // Total diners of concepte is only added once? No, CSV usually expects line by line.
+                        // But for total at bottom it might be confusing if we add concepte.getTotalDiners() for every range.
+                        // Let's calculate the portion for this range.
+                        val dinersRang = duracio * concepte.preuHora + (if (index == 0) concepte.despeses else 0.0)
+                        totalDiners += dinersRang
+                        totalDespeses += (if (index == 0) concepte.despeses else 0.0)
+
                         writer.write(
                             "${dia.data}," +
                             "${concepte.nom.replace(",", " ")}," +
-                            "${concepte.estat.name}," +
+                            "${concepte.estat}," +
                             "${String.format(Locale.US, "%.2f", concepte.preuHora)}," +
                             "${String.format(Locale.US, "%.2f", concepte.despeses)}," +
                             "${concepte.despesesNotes.replace(",", " ")}," +

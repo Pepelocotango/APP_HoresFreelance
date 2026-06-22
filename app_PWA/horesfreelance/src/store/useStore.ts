@@ -36,7 +36,7 @@ export const useStore = create<AppState>()(
         set((state) => ({
           clients: state.clients.map((c) => (c.id === client.id ? client : c)),
         }));
-        get().syncClientRates(client.id, client.tarifaHoraria);
+        get().syncClientRates(client.id, client.preuHoraDefecte);
       },
 
       deleteClient: (id) =>
@@ -94,22 +94,28 @@ export const useStore = create<AppState>()(
         const iniciStr = formatTimeHHmm(startDate);
         const fiStr = formatTimeHHmm(endDate);
 
+        const diaId = generateId();
+        const concepteId = generateId();
+
         const newRang: RangHorari = {
           id: generateId(),
-          inici: iniciStr,
-          fi: fiStr,
+          concepteId: concepteId,
+          horaInici: iniciStr,
+          horaFi: fiStr,
         };
 
         const newConcepte: Concepte = {
-          id: generateId(),
+          id: concepteId,
+          diaId: diaId,
           nom: "Bolo Ràpid",
-          clientId: defaultClientId || "",
+          clientId: defaultClientId || null,
+          preuHora: 0,
+          estat: "PENDENT",
+          rangsHoraris: [newRang],
+          despeses: 0,
+          despesesNotes: "",
           preuFix: false,
           importFix: 0,
-          importDespeses: 0,
-          notesDespeses: "",
-          estatFacturacio: "Pendent",
-          rangs: [newRang],
         };
 
         const existingDia = dies.find((d) => d.data === dateStr);
@@ -117,10 +123,11 @@ export const useStore = create<AppState>()(
         if (existingDia) {
           updatedDia = {
             ...existingDia,
-            conceptes: [...existingDia.conceptes, newConcepte],
+            conceptes: [...existingDia.conceptes, { ...newConcepte, diaId: existingDia.id }],
           };
         } else {
           updatedDia = createEmptyDia(dateStr);
+          updatedDia.id = diaId;
           updatedDia.conceptes = [newConcepte];
         }
 
@@ -132,11 +139,23 @@ export const useStore = create<AppState>()(
 
       loadBackup: (jsonString) => {
         try {
-          const parsed = JSON.parse(jsonString) as Partial<AppStorageData>;
-          if (parsed.clients && parsed.dies) {
+          const parsed = JSON.parse(jsonString) as any;
+          // Support both formats: PWA native (wrapped in state) and Android export (direct AppData)
+          let clients: Client[] = [];
+          let dies: Dia[] = [];
+
+          if (parsed.state && parsed.state.clients && parsed.state.dies) {
+            clients = parsed.state.clients;
+            dies = parsed.state.dies;
+          } else if (parsed.clients && parsed.dies) {
+            clients = parsed.clients;
+            dies = parsed.dies;
+          }
+
+          if (clients && dies) {
             set({
-              clients: parsed.clients,
-              dies: parsed.dies,
+              clients: clients,
+              dies: dies,
               activeClockIn: parsed.activeClockIn || null,
             });
           }
@@ -151,13 +170,9 @@ export const useStore = create<AppState>()(
           const updatedDies = state.dies.map((dia) => ({
             ...dia,
             conceptes: dia.conceptes.map((c) => {
-              // Only sync "Pendent" and non-fixed price items for this client
-              if (c.clientId === clientId && c.estatFacturacio === "Pendent" && !c.preuFix) {
-                 // The view dynamically calculates based on current client list, 
-                 // but we'll structure this to fit if we ever decoupled.
-                 // Actually MVVM strictly says we just use the reference,
-                 // but doing the logic here is safe.
-                 return c;
+              // Only sync "PENDENT" and non-fixed price items for this client
+              if (c.clientId === clientId && c.estat === "PENDENT" && !c.preuFix) {
+                 return { ...c, preuHora: newRate };
               }
               return c;
             })

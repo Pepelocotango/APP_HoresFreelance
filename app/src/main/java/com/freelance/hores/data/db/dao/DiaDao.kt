@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface DiaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(dia: DiaEntity): Long
+    suspend fun insert(dia: DiaEntity)
 
     @Update
     suspend fun update(dia: DiaEntity)
@@ -21,7 +21,7 @@ interface DiaDao {
     suspend fun delete(dia: DiaEntity)
 
     @Query("SELECT * FROM dies WHERE id = :id")
-    suspend fun getById(id: Long): DiaEntity?
+    suspend fun getById(id: String): DiaEntity?
 
     @Query("SELECT * FROM dies ORDER BY data DESC")
     fun getAllDias(): Flow<List<DiaEntity>>

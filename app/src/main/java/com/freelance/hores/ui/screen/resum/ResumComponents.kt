@@ -8,13 +8,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.freelance.hores.data.db.entity.EstatFacturacio
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterFacturacio(
-    selectedEstat: EstatFacturacio?,
-    onEstatSelected: (EstatFacturacio?) -> Unit
+    selectedEstat: String?,
+    onEstatSelected: (String?) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -25,11 +24,11 @@ fun FilterFacturacio(
             onClick = { onEstatSelected(null) },
             label = { Text("Tots") }
         )
-        EstatFacturacio.entries.forEach { estat ->
+        listOf("PENDENT", "FACTURAT", "COBRAT").forEach { estat ->
             FilterChip(
                 selected = selectedEstat == estat,
                 onClick = { onEstatSelected(estat) },
-                label = { Text(estat.name) }
+                label = { Text(estat) }
             )
         }
     }

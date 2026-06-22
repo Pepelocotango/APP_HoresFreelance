@@ -15,10 +15,10 @@ interface ClientDao {
     fun getAllClients(): Flow<List<ClientEntity>>
 
     @Query("SELECT * FROM clients WHERE id = :id")
-    suspend fun getById(id: Long): ClientEntity?
+    suspend fun getById(id: String): ClientEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(client: ClientEntity): Long
+    suspend fun insert(client: ClientEntity)
 
     @Update
     suspend fun update(client: ClientEntity)

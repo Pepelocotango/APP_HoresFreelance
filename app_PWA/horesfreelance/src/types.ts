@@ -1,33 +1,37 @@
 export interface Client {
   id: string;
   nom: string;
-  tarifaHoraria: number;
+  preuHoraDefecte: number;
 }
 
 export interface RangHorari {
   id: string;
-  inici: string; // HH:mm
-  fi: string | null; // HH:mm
+  concepteId: string;
+  horaInici: string; // HH:mm
+  horaFi: string; // HH:mm
 }
 
-export type EstatFacturacio = 'Pendent' | 'Facturat' | 'Cobrat';
+export type EstatFacturacio = 'PENDENT' | 'FACTURAT' | 'COBRAT';
 
 export interface Concepte {
   id: string;
+  diaId: string;
   nom: string;
-  clientId: string;
+  preuHora: number;
+  clientId: string | null;
+  clientNom?: string | null;
+  rangsHoraris: RangHorari[];
+  estat: EstatFacturacio;
+  despeses: number;
+  despesesNotes: string;
   preuFix: boolean;
   importFix: number;
-  importDespeses: number;
-  notesDespeses: string;
-  estatFacturacio: EstatFacturacio;
-  rangs: RangHorari[];
 }
 
 export interface Dia {
-  id: string; // primary key (typically YYYY-MM-DD or UUID)
+  id: string;
   data: string; // YYYY-MM-DD
-  notesGlobals: string;
+  notes: string;
   conceptes: Concepte[];
 }
 

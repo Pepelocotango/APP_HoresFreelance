@@ -28,26 +28,28 @@ export default function RegistreScreen() {
   if (!diaState) return <div className="p-4">Carregant...</div>;
 
   const handleUpdateNotes = (text: string) => {
-    setDiaState({ ...diaState, notesGlobals: text });
+    setDiaState({ ...diaState, notes: text });
   };
 
   const handleAddConcepte = () => {
     const newConcepte: Concepte = {
       id: generateId(),
+      diaId: diaState.id,
       nom: "",
-      clientId: clients.length > 0 ? clients[0].id : "",
+      clientId: clients.length > 0 ? clients[0].id : null,
+      preuHora: clients.length > 0 ? clients[0].preuHoraDefecte : 0,
       preuFix: false,
       importFix: 0,
-      importDespeses: 0,
-      notesDespeses: "",
-      estatFacturacio: "Pendent",
-      rangs: []
+      despeses: 0,
+      despesesNotes: "",
+      estat: "PENDENT",
+      rangsHoraris: []
     };
     setDiaState({ ...diaState, conceptes: [newConcepte, ...diaState.conceptes] });
   };
 
   const checkOverlaps = () => {
-    const allRangs = diaState.conceptes.flatMap(c => c.rangs);
+    const allRangs = diaState.conceptes.flatMap(c => c.rangsHoraris);
     for (let i = 0; i < allRangs.length; i++) {
       for (let j = i + 1; j < allRangs.length; j++) {
         if (rangesOverlap(allRangs[i], allRangs[j])) {
@@ -62,9 +64,8 @@ export default function RegistreScreen() {
     if (diaState.conceptes.some(c => c.nom.trim() === "")) {
       return alert("Tots els bolos han de tenir un nom.");
     }
-    if (diaState.conceptes.some(c => c.rangs.length === 0 && !c.preuFix)) {
-        // Technically they might want 0 hours but fixed price
-        if (diaState.conceptes.some(c => c.rangs.length === 0 && !c.preuFix)) {
+    if (diaState.conceptes.some(c => c.rangsHoraris.length === 0 && !c.preuFix)) {
+        if (diaState.conceptes.some(c => c.rangsHoraris.length === 0 && !c.preuFix)) {
            return alert("Els bolos per hores requereixen com a mínim un rang horari.");
         }
     }
@@ -93,20 +94,20 @@ export default function RegistreScreen() {
 
     const addRang = () => {
       updateConcepte({ 
-        rangs: [...concepte.rangs, { id: generateId(), inici: "09:00", fi: "10:00" }] 
+        rangsHoraris: [...concepte.rangsHoraris, { id: generateId(), concepteId: concepte.id, horaInici: "09:00", horaFi: "10:00" }]
       });
     };
 
     const removeRang = (rIdx: number) => {
       updateConcepte({ 
-        rangs: concepte.rangs.filter((_, i) => i !== rIdx) 
+        rangsHoraris: concepte.rangsHoraris.filter((_, i) => i !== rIdx)
       });
     };
 
-    const updateRang = (rIdx: number, field: 'inici'|'fi', value: string) => {
-      const newRangs = [...concepte.rangs];
+    const updateRang = (rIdx: number, field: 'horaInici'|'horaFi', value: string) => {
+      const newRangs = [...concepte.rangsHoraris];
       newRangs[rIdx] = { ...newRangs[rIdx], [field]: value };
-      updateConcepte({ rangs: newRangs });
+      updateConcepte({ rangsHoraris: newRangs });
     };
 
     return (
@@ -128,22 +129,23 @@ export default function RegistreScreen() {
             <div className="flex gap-2">
               <select 
                 className="w-full bg-slate-50 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors"
-                value={concepte.clientId}
+                value={concepte.clientId || ""}
                 onChange={e => {
                   if (e.target.value === "NEW") {
                     const nom = prompt("Nom del nou client:");
                     if (nom) {
-                      const newC: Client = { id: generateId(), nom, tarifaHoraria: 20 };
+                      const newC: Client = { id: generateId(), nom, preuHoraDefecte: 20 };
                       addClient(newC);
-                      updateConcepte({ clientId: newC.id });
+                      updateConcepte({ clientId: newC.id, preuHora: 20 });
                     }
                   } else {
-                    updateConcepte({ clientId: e.target.value });
+                    const client = clients.find(c => c.id === e.target.value);
+                    updateConcepte({ clientId: e.target.value, preuHora: client?.preuHoraDefecte || 0 });
                   }
                 }}
               >
                 <option value="" disabled>Selecciona Client</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.nom} ({c.tarifaHoraria}€/h)</option>)}
+                {clients.map(c => <option key={c.id} value={c.id}>{c.nom} ({c.preuHoraDefecte}€/h)</option>)}
                 <option value="NEW" className="font-bold text-indigo-600 dark:text-indigo-400">+ Nou Client...</option>
               </select>
             </div>
@@ -153,12 +155,12 @@ export default function RegistreScreen() {
              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Estat de Facturació</label>
              <select 
                className="w-full bg-slate-50 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-colors"
-               value={concepte.estatFacturacio}
-               onChange={e => updateConcepte({ estatFacturacio: e.target.value as any })}
+               value={concepte.estat}
+               onChange={e => updateConcepte({ estat: e.target.value as any })}
              >
-               <option value="Pendent">Pendent</option>
-               <option value="Facturat">Facturat</option>
-               <option value="Cobrat">Cobrat</option>
+               <option value="PENDENT">Pendent</option>
+               <option value="FACTURAT">Facturat</option>
+               <option value="COBRAT">Cobrat</option>
              </select>
           </div>
         </div>
@@ -191,23 +193,23 @@ export default function RegistreScreen() {
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Rangs Horaris</label>
             <button onClick={addRang} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium flex items-center bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-500/20"><Plus size={14} className="mr-1"/> Afegir</button>
           </div>
-          {concepte.rangs.length === 0 ? (
+          {concepte.rangsHoraris.length === 0 ? (
             <p className="text-xs text-slate-400 dark:text-slate-500 italic">Cap rang associat.</p>
           ) : (
             <div className="space-y-2 text-sm">
-              {concepte.rangs.map((rang, rIdx) => (
+              {concepte.rangsHoraris.map((rang, rIdx) => (
                 <div key={rang.id} className="flex items-center gap-2">
                   <input 
                     type="time" 
-                    value={rang.inici} 
-                    onChange={e => updateRang(rIdx, 'inici', e.target.value)}
+                    value={rang.horaInici}
+                    onChange={e => updateRang(rIdx, 'horaInici', e.target.value)}
                     className="border border-slate-200 dark:border-slate-500 rounded px-2 py-1 flex-1 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200"
                   />
                   <span className="text-slate-400">-</span>
                   <input 
                     type="time" 
-                    value={rang.fi || ""} 
-                    onChange={e => updateRang(rIdx, 'fi', e.target.value)}
+                    value={rang.horaFi}
+                    onChange={e => updateRang(rIdx, 'horaFi', e.target.value)}
                     className="border border-slate-200 dark:border-slate-500 rounded px-2 py-1 flex-1 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200"
                   />
                   <button onClick={() => removeRang(rIdx)} className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1"><Trash2 size={16}/></button>
@@ -224,8 +226,8 @@ export default function RegistreScreen() {
                <input 
                  type="number" 
                  placeholder="0.00"
-                 value={concepte.importDespeses || ""}
-                 onChange={e => updateConcepte({ importDespeses: parseFloat(e.target.value) || 0 })}
+                 value={concepte.despeses || ""}
+                 onChange={e => updateConcepte({ despeses: parseFloat(e.target.value) || 0 })}
                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-2 pr-6 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200"
                />
                <span className="absolute right-2 top-1.5 text-slate-400 text-sm">€</span>
@@ -233,8 +235,8 @@ export default function RegistreScreen() {
              <input 
                type="text" 
                placeholder="Notes despeses..."
-               value={concepte.notesDespeses}
-               onChange={e => updateConcepte({ notesDespeses: e.target.value })}
+               value={concepte.despesesNotes}
+               onChange={e => updateConcepte({ despesesNotes: e.target.value })}
                className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-slate-50 dark:bg-slate-800 dark:text-slate-200"
              />
            </div>
@@ -270,7 +272,7 @@ export default function RegistreScreen() {
              className="w-full bg-transparent dark:text-slate-100 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none shadow-sm resize-none transition-colors"
              rows={2}
              placeholder="Alguna nota sobre avui..."
-             value={diaState.notesGlobals}
+             value={diaState.notes}
              onChange={e => handleUpdateNotes(e.target.value)}
            ></textarea>
         </div>

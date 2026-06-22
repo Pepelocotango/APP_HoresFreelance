@@ -3,7 +3,6 @@ package com.freelance.hores.ui.screen.fitxar
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Concepte
 import com.freelance.hores.domain.model.Dia
@@ -17,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,7 +54,7 @@ class FitxarViewModel @Inject constructor(
         _dataFitxatge.value = todayStr
     }
 
-    fun stopFitxar(onSuccess: (Long) -> Unit) {
+    fun stopFitxar(onSuccess: (String) -> Unit) {
         val startStr = _horaIniciArrodonida.value
         val dateStr = _dataFitxatge.value
 
@@ -67,22 +67,24 @@ class FitxarViewModel @Inject constructor(
 
             // Recupera o crea el Dia per a la data desada
             val existentDia = repository.getDiaByDate(today)
-            val diaId = existentDia?.id ?: 0L
+            val diaId = existentDia?.id ?: UUID.randomUUID().toString()
 
             // Comptem quants bolos "Bolo sense títol" ja té aquest dia per posar l'índex correcte
             val count = existentDia?.conceptes?.count { it.nom.startsWith("Bolo sense títol") } ?: 0
             val nouNom = "Bolo sense títol ${count + 1}"
 
             val nouConcepte = Concepte(
+                id = UUID.randomUUID().toString(),
                 diaId = diaId,
                 nom = nouNom,
                 preuHora = 0.0,
-                estat = EstatFacturacio.PENDENT,
+                estat = "PENDENT",
                 rangsHoraris = listOf(
                     RangHorari(
-                        concepteId = 0L,
-                        horaInici = startLocalTime,
-                        horaFi = endLocalTime
+                        id = UUID.randomUUID().toString(),
+                        concepteId = "",
+                        horaInici = startLocalTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        horaFi = endLocalTime.format(DateTimeFormatter.ofPattern("HH:mm"))
                     )
                 )
             )
@@ -91,7 +93,8 @@ class FitxarViewModel @Inject constructor(
                 existentDia.copy(conceptes = existentDia.conceptes + nouConcepte)
             } else {
                 Dia(
-                    data = today,
+                    id = diaId,
+                    data = today.toString(),
                     conceptes = listOf(nouConcepte)
                 )
             }
@@ -100,7 +103,7 @@ class FitxarViewModel @Inject constructor(
 
             // Obtenim l'ID definitiu de la DB
             val diaGuardat = repository.getDiaByDate(today)
-            val finalDiaId = diaGuardat?.id ?: 0L
+            val finalDiaId = diaGuardat?.id ?: diaId
 
             // Esborrem dades temporals
             prefs.edit().apply {

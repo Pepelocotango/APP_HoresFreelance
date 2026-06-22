@@ -58,9 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
-import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.domain.model.Client
-import com.freelance.hores.domain.model.RangHorari
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -71,7 +69,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun RegistreScreen(
     navController: NavHostController,
-    diaId: Long = 0,
+    diaId: String = "",
     initialDate: LocalDate? = null,
     viewModel: RegistreViewModel = hiltViewModel()
 ) {
@@ -90,7 +88,7 @@ fun RegistreScreen(
     }
 
     LaunchedEffect(diaId, initialDate) {
-        if (diaId > 0) {
+        if (diaId.isNotEmpty()) {
             viewModel.loadDiaForEditing(diaId)
         } else {
             if (initialDate != null) {
@@ -317,14 +315,14 @@ fun ConcepteFormItem(
     clients: List<Client>,
     onNameChange: (String) -> Unit,
     onPreuChange: (Double) -> Unit,
-    onClientChange: (Long?) -> Unit,
+    onClientChange: (String?) -> Unit,
     onCreateClient: () -> Unit,
     onAddRang: () -> Unit,
     onRemoveRang: (Int) -> Unit,
     onUpdateHoraInici: (Int, LocalTime) -> Unit,
     onUpdateHoraFi: (Int, LocalTime) -> Unit,
     onDelete: () -> Unit,
-    onEstatChange: (EstatFacturacio) -> Unit,
+    onEstatChange: (String) -> Unit,
     onDespesesChange: (Double) -> Unit,
     onDespesesNotesChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -419,7 +417,7 @@ fun ConcepteFormItem(
             onExpandedChange = { expandedEstat = !expandedEstat }
         ) {
             OutlinedTextField(
-                value = concepte.estat.name,
+                value = concepte.estat,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Estat de facturació") },
@@ -432,9 +430,9 @@ fun ConcepteFormItem(
                 expanded = expandedEstat,
                 onDismissRequest = { expandedEstat = false }
             ) {
-                EstatFacturacio.entries.forEach { estat ->
+                listOf("PENDENT", "FACTURAT", "COBRAT").forEach { estat ->
                     DropdownMenuItem(
-                        text = { Text(estat.name) },
+                        text = { Text(estat) },
                         onClick = {
                             onEstatChange(estat)
                             expandedEstat = false
@@ -601,11 +599,13 @@ fun RangHorariFormItem(
             }
         }
 
-        val duration = RangHorari(
-            concepteId = 0,
-            horaInici = rang.horaInici,
-            horaFi = rang.horaFi
-        ).getDuracionaFormatada()
+        val durationSecs = (rang.horaFi.toSecondOfDay() - rang.horaInici.toSecondOfDay()).let {
+            if (it < 0) it + 24 * 3600 else it
+        }
+        val minutes = durationSecs / 60
+        val hores = minutes / 60
+        val minuts = minutes % 60
+        val duration = if (hores > 0) "${hores}h ${minuts}m" else "${minuts}m"
 
         Text(
             text = stringResource(R.string.registre_duracio, duration),

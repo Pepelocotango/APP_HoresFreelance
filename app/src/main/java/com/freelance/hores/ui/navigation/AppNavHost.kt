@@ -30,9 +30,9 @@ fun AppNavHost(navController: NavHostController) {
 
         composable(
             "dia/{diaId}",
-            arguments = listOf(navArgument("diaId") { type = NavType.LongType })
+            arguments = listOf(navArgument("diaId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val diaId = backStackEntry.arguments?.getLong("diaId") ?: 0L
+            val diaId = backStackEntry.arguments?.getString("diaId") ?: ""
             DiaDetallScreen(navController = navController, diaId = diaId)
         }
 
@@ -40,8 +40,8 @@ fun AppNavHost(navController: NavHostController) {
             "registre?diaId={diaId}&data={data}",
             arguments = listOf(
                 navArgument("diaId") {
-                    type = NavType.LongType
-                    defaultValue = 0L
+                    type = NavType.StringType
+                    defaultValue = ""
                 },
                 navArgument("data") {
                     type = NavType.StringType
@@ -49,7 +49,7 @@ fun AppNavHost(navController: NavHostController) {
                 }
             )
         ) { backStackEntry ->
-            val diaId = backStackEntry.arguments?.getLong("diaId") ?: 0L
+            val diaId = backStackEntry.arguments?.getString("diaId") ?: ""
             val dataArg = backStackEntry.arguments?.getString("data") ?: ""
             val initialDate = if (dataArg.isNotEmpty()) {
                 LocalDate.parse(dataArg)

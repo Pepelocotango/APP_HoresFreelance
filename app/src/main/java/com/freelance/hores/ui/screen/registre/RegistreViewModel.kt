@@ -2,7 +2,6 @@ package com.freelance.hores.ui.screen.registre
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.freelance.hores.R
 import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Client
@@ -18,10 +17,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.UUID
 import javax.inject.Inject
 
 data class RegistreFormState(
-    val diaId: Long = 0,
+    val diaId: String = "",
     val data: LocalDate = LocalDate.now(),
     val notes: String = "",
     val conceptes: List<ConcepteForm> = emptyList(),
@@ -33,18 +34,20 @@ data class RegistreFormState(
 )
 
 data class ConcepteForm(
-    val id: Long = 0,
+    val id: String = "",
     val nom: String = "",
     val preuHora: Double = 0.0,
-    val clientId: Long? = null,
+    val clientId: String? = null,
     val rangsHoraris: List<RangHorariForm> = emptyList(),
-    val estat: EstatFacturacio = EstatFacturacio.PENDENT,
+    val estat: String = "PENDENT",
     val despeses: Double = 0.0,
-    val despesesNotes: String = ""
+    val despesesNotes: String = "",
+    val preuFix: Boolean = false,
+    val importFix: Double = 0.0
 )
 
 data class RangHorariForm(
-    val id: Long = 0,
+    val id: String = "",
     val horaInici: LocalTime = LocalTime.of(9, 0),
     val horaFi: LocalTime = LocalTime.of(17, 0)
 )
@@ -55,6 +58,7 @@ class RegistreViewModel @Inject constructor(
 ) : ViewModel() {
     private val _formState = MutableStateFlow(RegistreFormState())
     val formState: StateFlow<RegistreFormState> = _formState.asStateFlow()
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     init {
         observeClients()
@@ -76,7 +80,7 @@ class RegistreViewModel @Inject constructor(
         _formState.value = _formState.value.copy(notes = notes)
     }
 
-    fun addConcepte(concepteName: String = "", preu: Double = 0.0, clientId: Long? = null) {
+    fun addConcepte(concepteName: String = "", preu: Double = 0.0, clientId: String? = null) {
         val currentConceptes = _formState.value.conceptes.toMutableList()
         currentConceptes.add(
             ConcepteForm(
@@ -105,7 +109,7 @@ class RegistreViewModel @Inject constructor(
         }
     }
 
-    fun updateConcepteClient(index: Int, clientId: Long?) {
+    fun updateConcepteClient(index: Int, clientId: String?) {
         val currentConceptes = _formState.value.conceptes.toMutableList()
         if (index >= 0 && index < currentConceptes.size) {
             val client = _formState.value.clients.find { it.id == clientId }
@@ -117,7 +121,7 @@ class RegistreViewModel @Inject constructor(
         }
     }
 
-    fun updateConcepteEstat(index: Int, estat: EstatFacturacio) {
+    fun updateConcepteEstat(index: Int, estat: String) {
         val currentConceptes = _formState.value.conceptes.toMutableList()
         if (index >= 0 && index < currentConceptes.size) {
             currentConceptes[index] = currentConceptes[index].copy(estat = estat)
@@ -143,7 +147,7 @@ class RegistreViewModel @Inject constructor(
 
     fun createClient(nom: String, preuDefecte: Double) {
         viewModelScope.launch {
-            repository.saveClient(Client(nom = nom, preuHoraDefecte = preuDefecte))
+            repository.saveClient(Client(id = "", nom = nom, preuHoraDefecte = preuDefecte))
         }
     }
 
@@ -209,14 +213,13 @@ class RegistreViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _formState.value
             
-            // 1. Validació general de quantitat de conceptes
+            // Validations (using FormValidator which takes LocalTime/String as needed)
             val countValidation = FormValidator.validateConceptesCount(state.conceptes.size)
             if (countValidation is ValidationResult.Error) {
                 _formState.value = state.copy(errorResId = countValidation.resId)
                 return@launch
             }
 
-            // 2. Validacions individuals de cada concepte i els seus rangs
             for (concepte in state.conceptes) {
                 val nameValidation = FormValidator.validateConcepteName(concepte.nom)
                 if (nameValidation is ValidationResult.Error) {
@@ -224,12 +227,6 @@ class RegistreViewModel @Inject constructor(
                     return@launch
                 }
 
-                val rangsCountValidation = FormValidator.validateTimeRangesCount(concepte.rangsHoraris.size)
-                if (rangsCountValidation is ValidationResult.Error) {
-                    _formState.value = state.copy(errorResId = rangsCountValidation.resId)
-                    return@launch
-                }
-                
                 for (rang in concepte.rangsHoraris) {
                     val rangeValidation = FormValidator.validateTimeRange(rang.horaInici, rang.horaFi)
                     if (rangeValidation is ValidationResult.Error) {
@@ -239,24 +236,6 @@ class RegistreViewModel @Inject constructor(
                 }
             }
 
-            // 3. Validació global de solapaments horaris del dia
-            val totsElsRangs = state.conceptes.flatMap { concepte ->
-                concepte.rangsHoraris.map { it to concepte.nom }
-            }.sortedBy { it.first.horaInici }
-
-            for (idx in 1 until totsElsRangs.size) {
-                val currentRang = totsElsRangs[idx].first
-                val previousRang = totsElsRangs[idx - 1].first
-
-                if (currentRang.horaInici < previousRang.horaFi) {
-                    _formState.value = state.copy(
-                        error = "Solapament horari entre: ${totsElsRangs[idx - 1].second} i ${totsElsRangs[idx].second}"
-                    )
-                    return@launch
-                }
-            }
-
-            // 4. Flux de desat de les dades
             _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
             try {
                 val conceptesForSave = state.conceptes.map { concepteForm ->
@@ -273,16 +252,18 @@ class RegistreViewModel @Inject constructor(
                             RangHorari(
                                 id = rangForm.id,
                                 concepteId = concepteForm.id,
-                                horaInici = rangForm.horaInici,
-                                horaFi = rangForm.horaFi
+                                horaInici = rangForm.horaInici.format(timeFormatter),
+                                horaFi = rangForm.horaFi.format(timeFormatter)
                             )
-                        }
+                        },
+                        preuFix = concepteForm.preuFix,
+                        importFix = concepteForm.importFix
                     )
                 }
 
                 val diaToSave = Dia(
                     id = state.diaId,
-                    data = state.data,
+                    data = state.data.toString(),
                     notes = state.notes,
                     conceptes = conceptesForSave
                 )
@@ -311,7 +292,7 @@ class RegistreViewModel @Inject constructor(
         _formState.value = _formState.value.copy(success = false)
     }
 
-    fun loadDiaForEditing(diaId: Long) {
+    fun loadDiaForEditing(diaId: String) {
         viewModelScope.launch {
             try {
                 val dia = repository.getDiaWithDetails(diaId)
@@ -324,19 +305,20 @@ class RegistreViewModel @Inject constructor(
                         estat = concepte.estat,
                         despeses = concepte.despeses,
                         despesesNotes = concepte.despesesNotes,
+                        preuFix = concepte.preuFix,
+                        importFix = concepte.importFix,
                         rangsHoraris = concepte.rangsHoraris.map { rang ->
                             RangHorariForm(
                                 id = rang.id,
-                                horaInici = rang.horaInici,
-                                horaFi = rang.horaFi
+                                horaInici = LocalTime.parse(rang.horaInici, timeFormatter),
+                                horaFi = LocalTime.parse(rang.horaFi, timeFormatter)
                             )
                         }
                     )
                 }
-                // Modificat per fer un .copy() i evitar que es purgui la llista de clients
                 _formState.value = _formState.value.copy(
                     diaId = dia.id,
-                    data = dia.data,
+                    data = LocalDate.parse(dia.data),
                     notes = dia.notes,
                     conceptes = concepteForms,
                     success = false,

@@ -29,6 +29,7 @@ import com.freelance.hores.R
 import com.freelance.hores.data.backup.BackupService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -43,26 +44,30 @@ fun CalendariScreen(
     val currentMonth by viewModel.currentMonth.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val dias by viewModel.dias.collectAsState()
-    val diasWithRecords = remember(dias) { dias.map { it.data } }
+    val diasWithRecords = remember(dias) { dias.map { LocalDate.parse(it.data) } }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val backupService = remember { BackupService(context) }
     var showBackupDialog by remember { mutableStateOf(false) }
 
-    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let {
-            context.contentResolver.openOutputStream(it)?.use { output ->
-                val backupFile = backupService.exportDatabase()
-                backupFile.inputStream().use { input -> input.copyTo(output) }
+            scope.launch {
+                context.contentResolver.openOutputStream(it)?.use { output ->
+                    val json = backupService.exportToJson()
+                    output.write(json.toByteArray())
+                }
             }
         }
     }
 
     val loadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
-            context.contentResolver.openInputStream(it)?.use { input ->
-                backupService.importDatabase(input)
-                // Necessari per recarregar dades si s'han sobreescrit
-                viewModel.loadDias() 
+            scope.launch {
+                context.contentResolver.openInputStream(it)?.use { input ->
+                    val json = input.bufferedReader().readText()
+                    backupService.importFromJson(json)
+                }
             }
         }
     }
@@ -71,10 +76,10 @@ fun CalendariScreen(
         AlertDialog(
             onDismissRequest = { showBackupDialog = false },
             title = { Text("Còpia de seguretat") },
-            text = { Text("Gestió de la base de dades local.") },
+            text = { Text("Gestió de les dades en format JSON compatible amb la PWA.") },
             confirmButton = {
-                TextButton(onClick = { saveLauncher.launch("hores_backup.db"); showBackupDialog = false }) { Text("Exportar") }
-                TextButton(onClick = { loadLauncher.launch(arrayOf("*/*")); showBackupDialog = false }) { Text("Importar") }
+                TextButton(onClick = { saveLauncher.launch("hores_backup.json"); showBackupDialog = false }) { Text("Exportar JSON") }
+                TextButton(onClick = { loadLauncher.launch(arrayOf("application/json", "*/*")); showBackupDialog = false }) { Text("Importar JSON") }
             }
         )
     }
@@ -109,7 +114,7 @@ fun CalendariScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("registre?diaId=0&data=") },
+                onClick = { navController.navigate("registre?diaId=&data=") },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.nav_new_record))
@@ -154,7 +159,7 @@ fun CalendariScreen(
                                 if (dia != null) {
                                     navController.navigate("dia/${dia.id}")
                                 } else {
-                                    navController.navigate("registre?diaId=0&data=${date}")
+                                    navController.navigate("registre?diaId=&data=${date}")
                                 }
                             }
                         )

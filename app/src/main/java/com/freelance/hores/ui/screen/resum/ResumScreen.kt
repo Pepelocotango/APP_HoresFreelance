@@ -18,11 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
-import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.ui.component.DiaCard
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +32,7 @@ fun ResumScreen(
     val resumState by viewModel.resumState.collectAsState()
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
-    var selectedEstat by remember { mutableStateOf<EstatFacturacio?>(null) }
+    var selectedEstat by remember { mutableStateOf<String?>(null) }
     var selectedClient by remember { mutableStateOf<com.freelance.hores.domain.model.Client?>(null) }
     var expandedClient by remember { mutableStateOf(false) }
 
@@ -113,7 +112,8 @@ fun ResumScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -250,8 +250,10 @@ fun ResumScreen(
                 }
 
                 item {
+                    val totalHores = filteredDias.sumOf { it.getTotalHoras() }
+                    val totalDiners = filteredDias.sumOf { it.getTotalDiners() }
                     Text(
-                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalHoras() }), String.format("%.2f", filteredDias.flatMap { it.conceptes }.sumOf { it.getTotalDiners() })),
+                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", totalHores), String.format("%.2f", totalDiners)),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -260,10 +262,8 @@ fun ResumScreen(
                 if (filteredDias.isNotEmpty()) {
                     items(filteredDias) { dia ->
                         DiaCard(
-                            data = dia.data,
+                            data = LocalDate.parse(dia.data),
                             conceptes = dia.conceptes,
-                            totalHoras = dia.getTotalHoras(),
-                            totalDiners = dia.getTotalDiners(),
                             onClick = { navController.navigate("dia/${dia.id}") }
                         )
                     }
@@ -282,8 +282,11 @@ fun ResumScreen(
 
                 item {
                     if (filteredDias.isNotEmpty()) {
+                        val summary = filteredDias.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry ->
+                            entry.value.sumOf { it.getTotalHoras() }
+                        }
                         ConceptesSummary(
-                            conceptesSummary = filteredDias.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry -> entry.value.sumOf { it.getTotalHoras() } }
+                            conceptesSummary = summary
                         )
                     }
                 }
@@ -313,14 +316,6 @@ fun ResumScreen(
                         ) {
                             Text(stringResource(R.string.resum_export_pdf))
                         }
-                    }
-                }
-
-                item {
-                    if (filteredDias.isNotEmpty()) {
-                        ConceptesSummary(
-                            conceptesSummary = filteredDias.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry -> entry.value.sumOf { it.getTotalHoras() } }
-                        )
                     }
                 }
             }

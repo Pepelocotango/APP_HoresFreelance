@@ -53,7 +53,7 @@ fun ClientsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.saveClient(com.freelance.hores.domain.model.Client(nom = nom, preuHoraDefecte = preu))
+                    viewModel.saveClient(com.freelance.hores.domain.model.Client(id = "", nom = nom, preuHoraDefecte = preu))
                     showNewClientDialog = false
                 }) { Text("Desa") }
             }
