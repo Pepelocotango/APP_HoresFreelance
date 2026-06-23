@@ -191,7 +191,6 @@ export default function ResumScreen() {
             <div className="flex flex-wrap gap-4 mb-4 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-600/50">
               <div className="flex flex-col">
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('inici')}</label>
-              {/* @ts-expect-error - DatePicker types compatibility with React 19 */}
                 <DatePicker
                   selected={startDate}
                   onChange={(date: Date | null) => setStartDate(date)}
@@ -205,7 +204,6 @@ export default function ResumScreen() {
               </div>
               <div className="flex flex-col">
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('fi')}</label>
-              {/* @ts-expect-error - DatePicker types compatibility with React 19 */}
                 <DatePicker
                   selected={endDate}
                   onChange={(date: Date | null) => setEndDate(date)}
