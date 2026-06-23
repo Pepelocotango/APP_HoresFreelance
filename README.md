@@ -29,7 +29,8 @@ HoresFreelance és una aplicació multiplataforma (Android Nativa + PWA React/El
 - 👥 **Gestió de Clients**: Defineix clients amb tarifes personalitzades.
 - 🔄 **Compatibilitat Nativa**: Les dades s'emmagatzemen directament en format JSON, garantint una compatibilitat del 100% entre Android i PWA/Electron sense conversions.
 - 🌍 **Internacionalització**: L'aplicació suporta Català (CA), Castellà (ES) i Anglès (EN).
-- 💾 **Emmagatzematge Local**: Les dades es guarden localment en un únic fitxer `hores_data.json` per a total privadesa i fàcil portabilitat.
+- 💾 **Emmagatzematge Local**: Les dades es guarden en fitxers JSON que l'usuari carrega manualment en iniciar l'aplicació per a total privadesa i portabilitat (inici mitjançant selector de fitxers).
+- 🧭 **Navegació**: Barra superior (Header) per navegar fàcilment entre seccions (Calendari, Resum, Clients).
 
 ---
 

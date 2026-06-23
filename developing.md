@@ -3,8 +3,8 @@
 ## Estat Actual
 L'aplicació ha assolit la plena compatibilitat multiplataforma:
 - **Estructura de Dades Unificada**: Totes les plataformes utilitzen identificadors tipus `String` (UUID) per garantir la compatibilitat del JSON.
-- **Android (JSON Natu)**: L'app Android ha estat migrada de Room/SQLite a un sistema de persistència basat en fitxer JSON (`hores_data.json`). Això elimina la necessitat de conversions durant la sincronització.
-- **Compatibilitat JSON**: El fitxer de dades és directament intercanviable entre la versió Android i la PWA/Desktop.
+- **Persistència de Dades**: L'app Android utilitza persistència en fitxer JSON i l'app PWA/Desktop utilitza un sistema de càrrega manual de fitxer JSON via selector a l'inici.
+- **Navegació**: Estructura basada en Header per a PWA/Desktop per millorar l'accessibilitat i el scroll.
 - **Internacionalització (i18n)**: Suport per a `ca`, `es` i `en`.
 
 ## Arquitectura de Dades
@@ -24,25 +24,14 @@ Tots els textos de la interfície PWA es gestionen a `app_PWA/horesfreelance/src
 - Per afegir un nou idioma: crear un nou fitxer JSON a la carpeta `locales/` i registrar-lo a `i18n.ts`.
 - Mantenir les claus de traducció sincronitzades en tots els fitxers JSON.
 
-## Gestor de Paquets
-El projecte utilitza **pnpm** com a gestor de paquets en lloc de npm per a:
-- Millor eficiència en l'emmagatzematge de dependències
-- Instal·lació més ràpida
-- Major consistència entre entorns
-
-### Comandes bàsiques
+## Comandes bàsiques
 ```bash
-# Instal·lar dependències (projecte arrel)
-pnpm install
-
-# Instal·lar dependències (PWA)
-cd app_PWA/horesfreelance
-pnpm install
-
 # Executar servidor de desenvolupament (PWA)
+cd app_PWA/horesfreelance
 pnpm dev
 
-# Build de producció (PWA)
+# Build de producció (PWA/Desktop)
+cd app_PWA/horesfreelance
 pnpm run build
 ```
 

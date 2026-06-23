@@ -150,7 +150,7 @@ export default function ResumScreen() {
   const chartColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-800 transition-colors">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-800 transition-colors overflow-hidden">
       <header className="p-4 bg-white dark:bg-slate-900 border-b dark:border-slate-700 shadow-sm sticky top-0 z-10 flex justify-between items-center transition-colors">
         <h1 className="text-xl font-medium text-slate-800 dark:text-slate-100">{t('resum_informes')}</h1>
         <div className="flex gap-2">
@@ -163,7 +163,7 @@ export default function ResumScreen() {
         </div>
       </header>
 
-      <div className="p-4 flex-1 overflow-y-auto">
+      <div className="p-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
         <div className="bg-white dark:bg-slate-700 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 mb-6 transition-colors">
           <div className="flex items-center gap-2 mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
             <Filter size={16} /> {t('filtres')}

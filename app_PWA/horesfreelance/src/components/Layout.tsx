@@ -39,85 +39,68 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-[#1e293b] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-      <main className="flex-1 overflow-y-auto pb-20 safe-area-bottom">
-        <Outlet />
-      </main>
-
-      <nav className="fixed bottom-0 w-full bg-white dark:bg-[#0f172a] border-t border-slate-200 dark:border-slate-800 safe-area-padding flex justify-around items-center p-2 z-50 transition-colors">
+      <header className="bg-white dark:bg-[#0f172a] border-b border-slate-200 dark:border-slate-800 p-2 z-50 flex items-center justify-between sticky top-0 transition-colors">
+        <h2 className="font-bold text-lg text-indigo-600 dark:text-indigo-400 px-2">HoresFreelance</h2>
 
         {/* Navegació principal */}
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            location.pathname === item.to ||
-            (item.to !== "/" && location.pathname.startsWith(item.to));
+        <div className="flex items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              location.pathname === item.to ||
+              (item.to !== "/" && location.pathname.startsWith(item.to));
 
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                "flex flex-col items-center justify-center p-2 rounded-xl min-w-[64px] transition-colors",
-                isActive
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-              )}
-            >
-              <div
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
                 className={cn(
-                  "p-1 rounded-full",
-                  isActive && "bg-indigo-100 dark:bg-indigo-500/20"
+                  "flex items-center gap-2 p-2 rounded-lg transition-colors text-sm font-medium",
+                  isActive
+                    ? "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              <span className="text-xs mt-1 font-medium">{t(item.labelKey)}</span>
-            </Link>
-          );
-        })}
-
-        {/* Separador visual */}
-        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-1" />
-
-        {/* Selector d'idioma */}
-        <div className="flex flex-col items-center gap-0.5">
-          <div className="flex gap-0.5">
-            {LANGS.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => handleLangChange(lang.code)}
-                className={cn(
-                  "text-[10px] font-semibold px-1.5 py-0.5 rounded transition-colors",
-                  currentLang === lang.code
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                )}
-                aria-label={`Canviar idioma a ${lang.label}`}
-              >
-                {lang.label}
-              </button>
-            ))}
-          </div>
-          <span className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">Idioma</span>
+                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                {t(item.labelKey)}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Separador visual */}
-        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 mx-1" />
+        <div className="flex items-center gap-2 px-2">
+            {/* Selector d'idioma */}
+            <div className="flex gap-1">
+                {LANGS.map((lang) => (
+                <button
+                    key={lang.code}
+                    onClick={() => handleLangChange(lang.code)}
+                    className={cn(
+                    "text-xs font-semibold px-2 py-1 rounded transition-colors",
+                    currentLang === lang.code
+                        ? "bg-indigo-600 text-white"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    )}
+                >
+                    {lang.label}
+                </button>
+                ))}
+            </div>
 
-        {/* Botó tema clar/fosc */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="flex flex-col items-center justify-center p-2 rounded-xl min-w-[48px] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          aria-label="Canviar tema"
-        >
-          <div className="p-1 rounded-full">
-            {theme === "dark" ? <Sun size={22} strokeWidth={2} /> : <Moon size={22} strokeWidth={2} />}
-          </div>
-          <span className="text-xs mt-1 font-medium">
-            {theme === "dark" ? t("tema_clar") : t("tema_fosc")}
-          </span>
-        </button>
-      </nav>
+            {/* Botó tema clar/fosc */}
+            <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Canviar tema"
+            >
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
     </div>
   );
 }

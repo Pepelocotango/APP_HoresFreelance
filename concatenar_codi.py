@@ -21,13 +21,16 @@ DIRECTORIS_IGNORATS = {
     'node_modules',
     'build',
     'dist',
+    'temporals',
     'gradle',
+    'dist-electron',
     '__pycache__'
 }
 
 # Fitxers específics a ignorar
 FITXERS_IGNORATS = {
     'package-lock.json',
+    'pnpm-lock.yaml',
     'gradlew',
     'gradlew.bat',
     'gradle-wrapper.jar',

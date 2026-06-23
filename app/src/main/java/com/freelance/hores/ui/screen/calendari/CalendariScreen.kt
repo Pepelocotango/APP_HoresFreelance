@@ -45,7 +45,15 @@ fun CalendariScreen(
     val currentMonth by viewModel.currentMonth.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val dias by viewModel.dias.collectAsState()
-    val diasWithRecords = remember(dias) { dias.map { LocalDate.parse(it.data) } }
+    val diasWithRecords = remember(dias) { 
+        dias.mapNotNull { 
+            try {
+                LocalDate.parse(it.data)
+            } catch (e: Exception) {
+                null 
+            }
+        } 
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val gestioDadesViewModel: GestioDadesViewModel = hiltViewModel()
