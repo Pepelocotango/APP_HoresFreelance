@@ -19,10 +19,10 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "electron:dev": "concurrently \"vite --port=3000\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build:linux": "ELECTRON=true npm run build && electron-builder --linux AppImage",
-    "electron:build:win": "set ELECTRON=true && npm run build && electron-builder --win nsis",
-    "electron:build:mac": "ELECTRON=true npm run build && electron-builder --mac dmg",
-    "electron:build:all": "ELECTRON=true npm run build && electron-builder --linux AppImage --win nsis --mac dmg"
+    "electron:build:linux": "ELECTRON=true pnpm run build && electron-builder --linux AppImage",
+    "electron:build:win": "set ELECTRON=true && pnpm run build && electron-builder --win nsis",
+    "electron:build:mac": "ELECTRON=true pnpm run build && electron-builder --mac dmg",
+    "electron:build:all": "ELECTRON=true pnpm run build && electron-builder --linux AppImage --win nsis --mac dmg"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
