@@ -12,11 +12,13 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Calendari : Screen("calendari", "Calendari", Icons.Default.DateRange)
     object Resum : Screen("resum", "Resum", Icons.Default.List)
     object Clients : Screen("clients", "Clients", Icons.Default.Person)
+    object GestioDades : Screen("gestio_dades", "Dades", Icons.Default.Settings)
 }
 
 val bottomNavScreens = listOf(
     Screen.Fitxar,
     Screen.Calendari,
     Screen.Resum,
-    Screen.Clients
+    Screen.Clients,
+    Screen.GestioDades
 )

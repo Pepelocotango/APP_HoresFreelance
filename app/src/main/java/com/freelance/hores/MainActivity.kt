@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
-                val showBottomBar = currentDestination?.route in listOf("fitxar", "calendari", "resum", "clients")
+                val showBottomBar = currentDestination?.route in listOf("fitxar", "calendari", "resum", "clients", "gestio_dades")
 
                 Scaffold(
                     bottomBar = {

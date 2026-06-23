@@ -10,6 +10,7 @@ import com.freelance.hores.ui.screen.calendari.CalendariScreen
 import com.freelance.hores.ui.screen.clients.ClientsScreen
 import com.freelance.hores.ui.screen.dia.DiaDetallScreen
 import com.freelance.hores.ui.screen.fitxar.FitxarScreen
+import com.freelance.hores.ui.screen.gestio_dades.GestioDadesScreen
 import com.freelance.hores.ui.screen.registre.RegistreScreen
 import com.freelance.hores.ui.screen.resum.ResumScreen
 import java.time.LocalDate
@@ -69,6 +70,10 @@ fun AppNavHost(navController: NavHostController) {
 
         composable("clients") {
             ClientsScreen(navController = navController)
+        }
+
+        composable("gestio_dades") {
+            GestioDadesScreen(navController = navController)
         }
     }
 }
