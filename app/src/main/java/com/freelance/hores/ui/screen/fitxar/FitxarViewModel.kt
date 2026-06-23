@@ -73,8 +73,9 @@ class FitxarViewModel @Inject constructor(
             val count = existentDia?.conceptes?.count { it.nom.startsWith("Bolo sense títol") } ?: 0
             val nouNom = "Bolo sense títol ${count + 1}"
 
+            val nouConcepteId = UUID.randomUUID().toString()
             val nouConcepte = Concepte(
-                id = UUID.randomUUID().toString(),
+                id = nouConcepteId,
                 diaId = diaId,
                 nom = nouNom,
                 preuHora = 0.0,
@@ -82,7 +83,7 @@ class FitxarViewModel @Inject constructor(
                 rangsHoraris = listOf(
                     RangHorari(
                         id = UUID.randomUUID().toString(),
-                        concepteId = "",
+                        concepteId = nouConcepteId,
                         horaInici = startLocalTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                         horaFi = endLocalTime.format(DateTimeFormatter.ofPattern("HH:mm"))
                     )

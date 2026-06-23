@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
 import com.freelance.hores.data.backup.BackupService
+import com.freelance.hores.ui.screen.gestio_dades.GestioDadesViewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.launch
@@ -47,14 +48,14 @@ fun CalendariScreen(
     val diasWithRecords = remember(dias) { dias.map { LocalDate.parse(it.data) } }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val backupService: BackupService = hiltViewModel()
+    val gestioDadesViewModel: GestioDadesViewModel = hiltViewModel()
     var showBackupDialog by remember { mutableStateOf(false) }
 
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let {
             scope.launch {
                 context.contentResolver.openOutputStream(it)?.use { output ->
-                    val json = backupService.exportToJson()
+                    val json = gestioDadesViewModel.exportarBaseDeDades()
                     output.write(json.toByteArray())
                 }
             }
@@ -67,7 +68,7 @@ fun CalendariScreen(
                 try {
                     context.contentResolver.openInputStream(it)?.use { input ->
                         val json = input.bufferedReader().readText()
-                        val success = backupService.importFromJson(json)
+                        val success = gestioDadesViewModel.importarBaseDeDades(json)
                         if (success) {
                             android.widget.Toast.makeText(
                                 context,

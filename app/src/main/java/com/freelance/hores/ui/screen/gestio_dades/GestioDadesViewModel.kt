@@ -12,10 +12,8 @@ class GestioDadesViewModel @Inject constructor(
     private val backupService: BackupService
 ) : ViewModel() {
 
-    fun importarBaseDeDades(jsonString: String) {
-        viewModelScope.launch {
-            backupService.importFromJson(jsonString)
-        }
+    suspend fun importarBaseDeDades(jsonString: String): Boolean {
+        return backupService.importFromJson(jsonString)
     }
 
     suspend fun exportarBaseDeDades(): String {
