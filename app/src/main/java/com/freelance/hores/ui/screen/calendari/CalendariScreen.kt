@@ -47,7 +47,7 @@ fun CalendariScreen(
     val diasWithRecords = remember(dias) { dias.map { LocalDate.parse(it.data) } }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val backupService = remember { BackupService(context) }
+    val backupService: BackupService = hiltViewModel()
     var showBackupDialog by remember { mutableStateOf(false) }
 
     val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->

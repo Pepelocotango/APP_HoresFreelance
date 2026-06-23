@@ -1,6 +1,5 @@
 package com.freelance.hores.ui.screen.gestio_dades
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,13 +9,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,22 +29,64 @@ fun GestioDadesScreen(
     viewModel: GestioDadesViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isExporting by remember { mutableStateOf(false) }
+    var isImporting by remember { mutableStateOf(false) }
     
-    val launcher = rememberLauncherForActivityResult(
+    val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val inputStream = context.contentResolver.openInputStream(it)
-            inputStream?.let { stream ->
-                viewModel.importarBaseDeDades(stream)
-                
-                // Reiniciar l'aplicació per carregar la nova base de dades
-                val packageManager = context.packageManager
-                val intent = packageManager.getLaunchIntentForPackage(context.packageName)
-                val componentName = intent?.component
-                val mainIntent = Intent.makeRestartActivityTask(componentName)
-                context.startActivity(mainIntent)
-                (context as? Activity)?.finish()
+            isImporting = true
+            scope.launch {
+                try {
+                    val jsonString = context.contentResolver.openInputStream(it)?.bufferedReader()?.readText()
+                    jsonString?.let { json ->
+                        viewModel.importarBaseDeDades(json)
+                        android.widget.Toast.makeText(
+                            context,
+                            "Dades importades correctament!",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Error en importar: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                } finally {
+                    isImporting = false
+                }
+            }
+        }
+    }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let {
+            isExporting = true
+            scope.launch {
+                try {
+                    val jsonString = viewModel.exportarBaseDeDades()
+                    context.contentResolver.openOutputStream(it)?.use { output ->
+                        output.write(jsonString.toByteArray())
+                    }
+                    android.widget.Toast.makeText(
+                        context,
+                        "Dades exportades correctament!",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Error en exportar: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                } finally {
+                    isExporting = false
+                }
             }
         }
     }
@@ -66,28 +112,29 @@ fun GestioDadesScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
-                onClick = { launcher.launch("*/*") },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { importLauncher.launch("application/json") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isImporting
             ) {
-                Text("Importar Base de Dades (.db)")
+                if (isImporting) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
+                    Text("Importar JSON")
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { 
-                    val file = viewModel.exportarBaseDeDades()
-                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "application/x-sqlite3"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    context.startActivity(Intent.createChooser(intent, "Exportar Base de Dades"))
-                },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { exportLauncher.launch("hores_backup.json") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isExporting
             ) {
-                Text("Exportar Base de Dades (.db)")
+                if (isExporting) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
+                    Text("Exportar JSON")
+                }
             }
         }
     }

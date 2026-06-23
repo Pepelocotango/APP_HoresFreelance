@@ -1,11 +1,7 @@
 package com.freelance.hores.di
 
 import android.content.Context
-import com.freelance.hores.data.db.AppDatabase
-import com.freelance.hores.data.db.dao.ClientDao
-import com.freelance.hores.data.db.dao.ConcepteDao
-import com.freelance.hores.data.db.dao.DiaDao
-import com.freelance.hores.data.db.dao.RangHorariDao
+import com.freelance.hores.data.json.JsonDataSource
 import com.freelance.hores.data.repository.RegistreRepository
 import dagger.Module
 import dagger.Provides
@@ -16,37 +12,21 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DatabaseModule {
+object DataModule {
     @Singleton
     @Provides
-    fun provideAppDatabase(
+    fun provideJsonDataSource(
         @ApplicationContext context: Context
-    ): AppDatabase {
-        return AppDatabase.getDatabase(context)
+    ): JsonDataSource {
+        return JsonDataSource(context)
     }
 
     @Singleton
     @Provides
-    fun provideDiaDao(database: AppDatabase): DiaDao {
-        return database.diaDao()
-    }
-
-    @Singleton
-    @Provides
-    fun provideConcepteDao(database: AppDatabase): ConcepteDao {
-        return database.concepteDao()
-    }
-
-    @Singleton
-    @Provides
-    fun provideRangHorariDao(database: AppDatabase): RangHorariDao {
-        return database.rangHorariDao()
-    }
-
-    @Singleton
-    @Provides
-    fun provideClientDao(database: AppDatabase): ClientDao {
-        return database.clientDao()
+    fun provideRegistreRepository(
+        jsonDataSource: JsonDataSource
+    ): RegistreRepository {
+        return RegistreRepository(jsonDataSource)
     }
 
     @Singleton

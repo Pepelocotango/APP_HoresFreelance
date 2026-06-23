@@ -2,7 +2,6 @@ package com.freelance.hores.ui.screen.registre
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.freelance.hores.data.db.entity.EstatFacturacio
 import com.freelance.hores.data.repository.RegistreRepository
 import com.freelance.hores.domain.model.Client
 import com.freelance.hores.domain.model.Concepte

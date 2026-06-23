@@ -1,24 +1,24 @@
 package com.freelance.hores.ui.screen.gestio_dades
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.freelance.hores.data.backup.BackupService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.InputStream
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class GestioDadesViewModel @Inject constructor(
-    private val backupService: BackupService,
-    @ApplicationContext private val context: Context
+    private val backupService: BackupService
 ) : ViewModel() {
 
-    fun importarBaseDeDades(inputStream: InputStream) {
-        backupService.importDatabase(inputStream)
+    fun importarBaseDeDades(jsonString: String) {
+        viewModelScope.launch {
+            backupService.importFromJson(jsonString)
+        }
     }
 
-    fun exportarBaseDeDades(): java.io.File {
-        return backupService.exportDatabase()
+    suspend fun exportarBaseDeDades(): String {
+        return backupService.exportToJson()
     }
 }
