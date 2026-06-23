@@ -16,6 +16,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.parseToJsonElement
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
@@ -76,44 +78,89 @@ class BackupService @Inject constructor(
         return json.encodeToString(appData)
     }
 
-    suspend fun importFromJson(jsonString: String) {
-        val appData = json.decodeFromString<AppData>(jsonString)
+    suspend fun importFromJson(jsonString: String): Boolean {
+        return try {
+            // Permet llegir tant el format pla d'Android com el format de la PWA (embolcallat en "state")
+            val jsonElement = json.parseToJsonElement(jsonString)
+            val appData = if (jsonElement is kotlinx.serialization.json.JsonObject && jsonElement.containsKey("state")) {
+                json.decodeFromJsonElement<AppData>(jsonElement["state"]!!)
+            } else {
+                json.decodeFromJsonElement<AppData>(jsonElement)
+            }
 
-        db.runInTransaction {
-            // Direct SQL for fast clear
-            db.compileStatement("DELETE FROM clients").execute()
-            db.compileStatement("DELETE FROM dies").execute()
-            // conceptes and rangs_horaris are deleted by CASCADE
-        }
+            db.runInTransaction {
+                // SQL directe per buidar de manera ràpida i neta
+                db.compileStatement("DELETE FROM clients").execute()
+                db.compileStatement("DELETE FROM dies").execute()
+                // Els conceptes i rangs horaris s'esborren automàticament per CASCADE
+            }
 
-        appData.clients.forEach { client ->
-            db.clientDao().insert(ClientEntity(client.id, client.nom, client.preuHoraDefecte))
-        }
+            // 1. Insertar clients
+            appData.clients.forEach { client ->
+                db.clientDao().insert(ClientEntity(client.id, client.nom, client.preuHoraDefecte))
+            }
 
-        appData.dies.forEach { dia ->
-            db.diaDao().insert(DiaEntity(dia.id, LocalDate.parse(dia.data).toEpochDay(), dia.notes))
-            dia.conceptes.forEach { concepte ->
-                db.concepteDao().insert(ConcepteEntity(
-                    id = concepte.id,
-                    diaId = concepte.diaId,
-                    clientId = concepte.clientId,
-                    nom = concepte.nom,
-                    preuHora = concepte.preuHora,
-                    estat = EstatFacturacio.valueOf(concepte.estat),
-                    despeses = concepte.despeses,
-                    despesesNotes = concepte.despesesNotes,
-                    preuFix = concepte.preuFix,
-                    importFix = concepte.importFix
-                ))
-                concepte.rangsHoraris.forEach { rang ->
-                    db.rangHorariDao().insert(RangHorariEntity(
-                        id = rang.id,
-                        concepteId = rang.concepteId,
-                        horaInici = parseTime(rang.horaInici).toSecondOfDay().toLong(),
-                        horaFi = parseTime(rang.horaFi).toSecondOfDay().toLong()
+            // 2. Insertar dies i els seus detalls
+            appData.dies.forEach { dia ->
+                val safeDate = try {
+                    LocalDate.parse(dia.data).toEpochDay()
+                } catch (e: Exception) {
+                    LocalDate.now().toEpochDay()
+                }
+
+                db.diaDao().insert(DiaEntity(dia.id, safeDate, dia.notes))
+
+                dia.conceptes.forEach { concepte ->
+                    // Seguretat: Evitar fallades si l'estat té problemes de majúscules/espais
+                    val safeEstat = try {
+                        EstatFacturacio.valueOf(concepte.estat.uppercase().trim())
+                    } catch (e: Exception) {
+                        EstatFacturacio.PENDENT
+                    }
+
+                    // Seguretat: Comprovar si el client existeix per evitar violacions de clau aliena (claus orfes)
+                    val clientExists = appData.clients.any { it.id == concepte.clientId }
+                    val safeClientId = if (clientExists) concepte.clientId else null
+
+                    db.concepteDao().insert(ConcepteEntity(
+                        id = concepte.id,
+                        diaId = concepte.diaId,
+                        clientId = safeClientId,
+                        nom = concepte.nom.ifBlank { "Bolo sense títol" },
+                        preuHora = concepte.preuHora,
+                        estat = safeEstat,
+                        despeses = concepte.despeses,
+                        despesesNotes = concepte.despesesNotes,
+                        preuFix = concepte.preuFix,
+                        importFix = concepte.importFix
                     ))
+
+                    concepte.rangsHoraris.forEach { rang ->
+                        val safeHoraInici = try {
+                            parseTime(rang.horaInici).toSecondOfDay().toLong()
+                        } catch (e: Exception) {
+                            0L // Fallback a les 00:00
+                        }
+
+                        val safeHoraFi = try {
+                            parseTime(rang.horaFi).toSecondOfDay().toLong()
+                        } catch (e: Exception) {
+                            3600L // Fallback a les 01:00
+                        }
+
+                        db.rangHorariDao().insert(RangHorariEntity(
+                            id = rang.id,
+                            concepteId = rang.concepteId,
+                            horaInici = safeHoraInici,
+                            horaFi = safeHoraFi
+                        ))
+                    }
                 }
             }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 
@@ -121,8 +168,18 @@ class BackupService @Inject constructor(
         return LocalTime.ofSecondOfDay(seconds).format(DateTimeFormatter.ofPattern("HH:mm"))
     }
 
+    // Mètode de lectura robust per a diferents formats d'hores
     private fun parseTime(time: String): LocalTime {
-        return LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"))
+        return try {
+            LocalTime.parse(time.trim(), DateTimeFormatter.ofPattern("HH:mm"))
+        } catch (e: Exception) {
+            try {
+                // Intenta parsejar formats tipus H:m (p. ex: 9:00 en lloc de 09:00)
+                LocalTime.parse(time.trim(), DateTimeFormatter.ofPattern("H:m"))
+            } catch (e2: Exception) {
+                LocalTime.of(0, 0)
+            }
+        }
     }
 
     // Legacy backup methods (sqlite .db)

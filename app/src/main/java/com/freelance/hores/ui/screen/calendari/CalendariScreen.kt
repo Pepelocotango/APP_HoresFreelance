@@ -64,9 +64,32 @@ fun CalendariScreen(
     val loadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             scope.launch {
-                context.contentResolver.openInputStream(it)?.use { input ->
-                    val json = input.bufferedReader().readText()
-                    backupService.importFromJson(json)
+                try {
+                    context.contentResolver.openInputStream(it)?.use { input ->
+                        val json = input.bufferedReader().readText()
+                        val success = backupService.importFromJson(json)
+                        if (success) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Dades importades correctament!",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                            // Forcem la recàrrega del calendari observant les noves dades
+                            viewModel.loadDias()
+                        } else {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Error: El format o les dades del JSON no són correctes.",
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Error en obrir el fitxer: ${e.message}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
