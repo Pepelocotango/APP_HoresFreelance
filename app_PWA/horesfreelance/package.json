@@ -4,7 +4,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "Aplicació per a autònoms per registrar hores de treball i generar informes.",
-  "author": "Pepelocotango",
+  "homepage": "https://github.com/Pepelocotango/APP_HoresFreelance",
+  "author": {
+    "name": "Pepelocotango",
+    "email": "pepelocotango@example.com"
+  },
   "license": "MIT",
   "type": "module",
   "main": "electron/main.js",
@@ -15,10 +19,10 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "electron:dev": "concurrently \"vite --port=3000\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build:linux": "ELECTRON=true npm run build && electron-builder --linux AppImage deb",
+    "electron:build:linux": "ELECTRON=true npm run build && electron-builder --linux AppImage",
     "electron:build:win": "set ELECTRON=true && npm run build && electron-builder --win nsis",
     "electron:build:mac": "ELECTRON=true npm run build && electron-builder --mac dmg",
-    "electron:build:all": "ELECTRON=true npm run build && electron-builder --linux AppImage deb --win nsis --mac dmg"
+    "electron:build:all": "ELECTRON=true npm run build && electron-builder --linux AppImage --win nsis --mac dmg"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
@@ -67,8 +71,7 @@
     ],
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] },
-        { "target": "deb",      "arch": ["x64"] }
+        { "target": "AppImage", "arch": ["x64"] }
       ],
       "category": "Office",
       "icon": "public/icon.png"

@@ -50,7 +50,7 @@ jobs:
           retention-days: 30
 
   # ─────────────────────────────────────────────
-  # 2. Electron Linux → AppImage + .deb
+  # 2. Electron Linux → AppImage
   # ─────────────────────────────────────────────
   build-linux:
     name: Build Electron Linux
@@ -79,7 +79,7 @@ jobs:
       - name: Instal·lar dependències del sistema (per a AppImage)
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y libarchive-tools rpm
+          sudo apt-get install -y libarchive-tools
 
       - name: Instal·lar dependències
         run: pnpm install
@@ -95,13 +95,6 @@ jobs:
         with:
           name: HoresFreelance-Linux-AppImage-C${{ github.run_number }}
           path: app_PWA/horesfreelance/dist-electron/*.AppImage
-          retention-days: 30
-
-      - name: Pujar .deb
-        uses: actions/upload-artifact@v4
-        with:
-          name: HoresFreelance-Linux-deb-C${{ github.run_number }}
-          path: app_PWA/horesfreelance/dist-electron/*.deb
           retention-days: 30
 
   # ─────────────────────────────────────────────
