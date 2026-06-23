@@ -1,13 +1,6 @@
 name: PWA + Electron Desktop Build
 
 on:
-  push:
-    paths:
-      - 'app_PWA/**'
-      - '.github/workflows/pwa.yml'
-  pull_request:
-    paths:
-      - 'app_PWA/**'
   workflow_dispatch:
 
 jobs:
