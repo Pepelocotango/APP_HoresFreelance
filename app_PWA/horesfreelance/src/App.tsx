@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import FitxarScreen from "./screens/FitxarScreen";
 import CalendarScreen from "./screens/CalendarScreen";
@@ -9,7 +9,7 @@ import ClientsScreen from "./screens/ClientsScreen";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<FitxarScreen />} />
@@ -20,6 +20,6 @@ export default function App() {
           <Route path="clients" element={<ClientsScreen />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

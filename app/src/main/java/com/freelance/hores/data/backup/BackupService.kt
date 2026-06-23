@@ -83,8 +83,15 @@ class BackupService @Inject constructor(
             // Permet llegir tant el format pla d'Android com el format de la PWA (embolcallat en "state")
             val jsonElement = Json.parseToJsonElement(jsonString)
             val appData = if (jsonElement is kotlinx.serialization.json.JsonObject && jsonElement.containsKey("state")) {
-                json.decodeFromJsonElement<AppData>(jsonElement.jsonObject["state"]!!)
+                // El format PWA/Desktop té les dades dins d'un objecte "state"
+                val state = jsonElement.jsonObject["state"]?.jsonObject
+                if (state != null) {
+                     json.decodeFromJsonElement<AppData>(state)
+                } else {
+                    throw Exception("No s'ha trobat 'state' en el JSON")
+                }
             } else {
+                // Format Android directe
                 json.decodeFromJsonElement<AppData>(jsonElement)
             }
 
