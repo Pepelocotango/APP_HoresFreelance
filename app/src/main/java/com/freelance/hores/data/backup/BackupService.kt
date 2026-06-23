@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.parseToJsonElement
+import kotlinx.serialization.json.jsonObject
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
@@ -81,9 +81,9 @@ class BackupService @Inject constructor(
     suspend fun importFromJson(jsonString: String): Boolean {
         return try {
             // Permet llegir tant el format pla d'Android com el format de la PWA (embolcallat en "state")
-            val jsonElement = json.parseToJsonElement(jsonString)
+            val jsonElement = Json.parseToJsonElement(jsonString)
             val appData = if (jsonElement is kotlinx.serialization.json.JsonObject && jsonElement.containsKey("state")) {
-                json.decodeFromJsonElement<AppData>(jsonElement["state"]!!)
+                json.decodeFromJsonElement<AppData>(jsonElement.jsonObject["state"]!!)
             } else {
                 json.decodeFromJsonElement<AppData>(jsonElement)
             }
