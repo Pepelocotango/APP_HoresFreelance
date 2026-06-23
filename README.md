@@ -11,9 +11,9 @@ HoresFreelance is a dual-platform application (Native Android + React PWA/Electr
 - ⏱️ **Time Tracking**: Record work hours by "Bolo", individual rates, billing status (Pending/Invoiced/Collected), and expenses.
 - 📊 **Summary & Reports**: View earnings, hours, and expenses with visual charts.
 - 👥 **Client Management**: Define clients with custom settings.
-- 🔄 **Cross-Platform Compatibility**: Data is compatible between Android and PWA/Electron via a unified JSON format.
+- 🔄 **Cross-Platform Compatibility**: Data is natively stored in JSON format, ensuring 100% compatibility between Android and PWA/Electron without conversion.
 - 🌍 **Internationalization (i18n)**: Available in Catalan (CA), Spanish (ES), and English (EN).
-- 💾 **Local Storage**: Data stored offline for total privacy.
+- 💾 **Local Storage**: Data stored locally in a single `hores_data.json` file for total privacy and easy backup.
 - 📥 **Export**: Export reports as CSV and PDF.
 
 ---
@@ -27,9 +27,9 @@ HoresFreelance és una aplicació multiplataforma (Android Nativa + PWA React/El
 - ⏱️ **Registre d'Hores**: Registra hores per "Bolo" amb preu hora, estat de facturació i despeses.
 - 📊 **Resum i Gràfics**: Consulta guanys i hores per períodes amb desglossament detallat.
 - 👥 **Gestió de Clients**: Defineix clients amb tarifes personalitzades.
-- 🔄 **Compatibilitat Total**: Les dades són compatibles entre Android i PWA/Electron mitjançant un format JSON unificat.
+- 🔄 **Compatibilitat Nativa**: Les dades s'emmagatzemen directament en format JSON, garantint una compatibilitat del 100% entre Android i PWA/Electron sense conversions.
 - 🌍 **Internacionalització**: L'aplicació suporta Català (CA), Castellà (ES) i Anglès (EN).
-- 💾 **Emmagatzematge Local**: Les dades es guarden al dispositiu per a total privadesa.
+- 💾 **Emmagatzematge Local**: Les dades es guarden localment en un únic fitxer `hores_data.json` per a total privadesa i fàcil portabilitat.
 
 ---
 
