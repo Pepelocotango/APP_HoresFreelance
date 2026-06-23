@@ -2,6 +2,8 @@ pluginManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
         gradlePluginPortal()
     }
 }
@@ -11,6 +13,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
     }
 }
 

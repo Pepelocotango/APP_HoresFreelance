@@ -238,8 +238,9 @@ class RegistreViewModel @Inject constructor(
             _formState.value = state.copy(isSaving = true, errorResId = null, error = null)
             try {
                 val conceptesForSave = state.conceptes.map { concepteForm ->
+                    val concepteId = concepteForm.id.ifEmpty { UUID.randomUUID().toString() }
                     Concepte(
-                        id = concepteForm.id,
+                        id = concepteId,
                         diaId = state.diaId,
                         nom = concepteForm.nom,
                         preuHora = concepteForm.preuHora,
@@ -249,8 +250,8 @@ class RegistreViewModel @Inject constructor(
                         despesesNotes = concepteForm.despesesNotes,
                         rangsHoraris = concepteForm.rangsHoraris.map { rangForm ->
                             RangHorari(
-                                id = rangForm.id,
-                                concepteId = concepteForm.id,
+                                id = rangForm.id.ifEmpty { UUID.randomUUID().toString() },
+                                concepteId = concepteId,
                                 horaInici = rangForm.horaInici.format(timeFormatter),
                                 horaFi = rangForm.horaFi.format(timeFormatter)
                             )

@@ -3,8 +3,8 @@
 ## Estat Actual
 L'aplicació ha assolit la plena compatibilitat multiplataforma:
 - **Estructura de Dades Unificada**: Totes les plataformes utilitzen identificadors tipus `String` (UUID) per garantir la compatibilitat del JSON.
-- **Android (Room)**: Utilitza Room per a l'emmagatzematge local.
-- **Compatibilitat JSON**: Servei d'exportació/importació JSON per sincronitzar dades entre dispositius.
+- **Android (JSON Natu)**: L'app Android ha estat migrada de Room/SQLite a un sistema de persistència basat en fitxer JSON (`hores_data.json`). Això elimina la necessitat de conversions durant la sincronització.
+- **Compatibilitat JSON**: El fitxer de dades és directament intercanviable entre la versió Android i la PWA/Desktop.
 - **Internacionalització (i18n)**: Suport per a `ca`, `es` i `en`.
 
 ## Arquitectura de Dades
