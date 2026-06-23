@@ -31,7 +31,8 @@ FITXERS_IGNORATS = {
     'gradlew',
     'gradlew.bat',
     'gradle-wrapper.jar',
-    FITXER_SORTIDA
+    FITXER_SORTIDA,
+    '.gitignore'
 }
 
 # Extensions permeses per a la concatenació

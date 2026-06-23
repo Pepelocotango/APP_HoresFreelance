@@ -193,7 +193,7 @@ export default function ResumScreen() {
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('inici')}</label>
                 <DatePicker
                   selected={startDate}
-                  onChange={(date) => setStartDate(date)}
+                  onChange={(date: Date | null) => setStartDate(date)}
                   selectsStart
                   startDate={startDate}
                   endDate={endDate}
@@ -206,7 +206,7 @@ export default function ResumScreen() {
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('fi')}</label>
                 <DatePicker
                   selected={endDate}
-                  onChange={(date) => setEndDate(date)}
+                  onChange={(date: Date | null) => setEndDate(date)}
                   selectsEnd
                   startDate={startDate}
                   endDate={endDate}
