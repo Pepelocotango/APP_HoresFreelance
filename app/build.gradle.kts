@@ -99,7 +99,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     // Testing - Unit
     testImplementation("junit:junit:4.13.2")
