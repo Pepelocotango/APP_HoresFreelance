@@ -24,6 +24,28 @@ Tots els textos de la interfície PWA es gestionen a `app_PWA/horesfreelance/src
 - Per afegir un nou idioma: crear un nou fitxer JSON a la carpeta `locales/` i registrar-lo a `i18n.ts`.
 - Mantenir les claus de traducció sincronitzades en tots els fitxers JSON.
 
+## Gestor de Paquets
+El projecte utilitza **pnpm** com a gestor de paquets en lloc de npm per a:
+- Millor eficiència en l'emmagatzematge de dependències
+- Instal·lació més ràpida
+- Major consistència entre entorns
+
+### Comandes bàsiques
+```bash
+# Instal·lar dependències (projecte arrel)
+pnpm install
+
+# Instal·lar dependències (PWA)
+cd app_PWA/horesfreelance
+pnpm install
+
+# Executar servidor de desenvolupament (PWA)
+pnpm dev
+
+# Build de producció (PWA)
+pnpm run build
+```
+
 ## Normes de codi
 - **Idioma**: Tota la interfície, comentaris i documentació interna han d'estar en **català** (excepte les traduccions als fitxers JSON de `locales/` que suporten altres idiomes).
 - **Tests**: Cada vegada que es modifica la lògica de càlcul als models de domini, cal actualitzar `ModelTests.kt`.

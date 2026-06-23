@@ -48,8 +48,8 @@ El projecte inclou pipelines automatitzades:
 ### PWA/Electron
 ```bash
 cd app_PWA/horesfreelance
-npm install
-npm run build
+pnpm install
+pnpm run build
 ```
 
 ## Llicència
