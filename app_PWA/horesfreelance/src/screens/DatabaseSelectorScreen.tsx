@@ -16,7 +16,7 @@ export default function DatabaseSelectorScreen() {
       const file = await handle.getFile();
       const content = await file.text();
       loadBackup(content);
-      navigate("/calendar");
+      navigate("/resum");
     } catch (err) {
       console.error("Error selecting file:", err);
     }

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useStore } from "../store/useStore";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isWithinInterval, format } from "date-fns";
 import { ca } from "date-fns/locale";
 import DatePicker from "react-datepicker";
@@ -16,6 +17,7 @@ type DateRange = "setmana" | "mes" | "anterior" | "tots" | "lliure";
 export default function ResumScreen() {
   const { dies, clients } = useStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   
   const [range, setRange] = useState<DateRange>("mes");
   const [statusFilter, setStatusFilter] = useState("Tots");
@@ -163,13 +165,15 @@ export default function ResumScreen() {
         </div>
       </header>
 
-      <div className="p-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
-        <div className="bg-white dark:bg-slate-700 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 mb-6 transition-colors">
-          <div className="flex items-center gap-2 mb-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-            <Filter size={16} /> {t('filtres')}
+      <div className="p-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 space-y-4">
+        
+        {/* 1. FILTRES (Molt més compacte) */}
+        <div className="bg-white dark:bg-slate-700 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 transition-colors">
+          <div className="flex items-center gap-1.5 mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <Filter size={14} /> {t('filtres')}
           </div>
           
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {[
               {id: "setmana", label: t('filtre_setmana')}, 
               {id: "mes", label: t('filtre_mes')}, 
@@ -180,7 +184,7 @@ export default function ResumScreen() {
               <button 
                 key={r.id} 
                 onClick={() => setRange(r.id as DateRange)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${range === r.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition ${range === r.id ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
               >
                 {r.label}
               </button>
@@ -188,9 +192,9 @@ export default function ResumScreen() {
           </div>
 
           {range === "lliure" && (
-            <div className="flex flex-wrap gap-4 mb-4 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-600/50">
+            <div className="flex flex-wrap gap-3 mb-3 items-center bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-slate-600/50">
               <div className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('inici')}</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">{t('inici')}</label>
                 <DatePicker
                   selected={startDate}
                   onChange={(date: Date | null) => setStartDate(date)}
@@ -199,11 +203,11 @@ export default function ResumScreen() {
                   endDate={endDate}
                   isClearable
                   dateFormat="dd/MM/yyyy"
-                  className="border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200 w-full"
+                  className="border border-slate-200 dark:border-slate-600 rounded p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200 w-full"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('fi')}</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">{t('fi')}</label>
                 <DatePicker
                   selected={endDate}
                   onChange={(date: Date | null) => setEndDate(date)}
@@ -213,19 +217,19 @@ export default function ResumScreen() {
                   minDate={startDate}
                   isClearable
                   dateFormat="dd/MM/yyyy"
-                  className="border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200 w-full"
+                  className="border border-slate-200 dark:border-slate-600 rounded p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200 w-full"
                 />
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('estat')}</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">{t('estat')}</label>
               <select 
                 value={statusFilter} 
                 onChange={e => setStatusFilter(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
               >
                 <option value="Tots">{t('tots_estats')}</option>
                 <option value="PENDENT">{t('pendent')}</option>
@@ -234,11 +238,11 @@ export default function ResumScreen() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('client')}</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">{t('client')}</label>
               <select 
                 value={clientFilter} 
                 onChange={e => setClientFilter(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded p-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-slate-200"
               >
                 <option value="Tots">{t('tots_clients')}</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
@@ -247,66 +251,84 @@ export default function ResumScreen() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-indigo-600 dark:bg-indigo-700 text-white rounded-xl p-4 shadow-md flex flex-col justify-center relative overflow-hidden transition-colors">
-             <div className="absolute top-0 right-0 p-4 opacity-10"><FileText size={48}/></div>
-             <span className="text-indigo-100 text-sm font-medium uppercase tracking-wider">{t('ingressos')}</span>
-             <span className="text-3xl font-bold mt-1">{totals.earnings.toFixed(2)} €</span>
-          </div>
-          <div className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-4 shadow-sm flex flex-col justify-center transition-colors">
-             <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">{t('hores')}</span>
-             <span className="text-3xl font-bold text-slate-800 dark:text-slate-100 mt-1">{totals.hours.toFixed(1)} <span className="text-lg">h</span></span>
-          </div>
-        </div>
-        
-        {totals.despeses > 0 && (
-          <div className="mb-6 p-4 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 flex items-center justify-between transition-colors">
-            <span className="text-red-800 dark:text-red-300 font-medium text-sm">{t('despeses_justificables')}</span>
-            <span className="text-red-700 dark:text-red-200 font-bold">{totals.despeses.toFixed(2)} €</span>
-          </div>
-        )}
-
-        <div className="bg-white dark:bg-slate-700 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 mb-6 transition-colors">
-          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">{t('ingressos_per_client')}</h3>
-          {chartData.length > 0 ? (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" width={80} tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{fill: '#f1f5f9'}} formatter={(value: number) => [`${value.toFixed(2)} €`, t('ingressos')]} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-                    {chartData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-32 flex items-center justify-center text-slate-400 text-sm">
-              {t('sense_dades')}
-            </div>
-          )}
-        </div>
-
+        {/* 2. DESGLOSSAMENT (Ara a dalt) */}
         <div className="bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 overflow-hidden transition-colors">
-           <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider p-4 border-b border-slate-100 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">{t('desglossament')}</h3>
-           <div className="divide-y divide-slate-100 dark:divide-slate-600/50">
-             {filteredData.length === 0 && <div className="p-6 text-center text-slate-400 text-sm">{t('no_esdeveniments')}</div>}
+           <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider p-3 border-b border-slate-100 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">{t('desglossament')}</h3>
+           <div className="divide-y divide-slate-100 dark:divide-slate-600/50 max-h-60 overflow-y-auto scrollbar-thin">
+             {filteredData.length === 0 && <div className="p-4 text-center text-slate-400 text-sm">{t('no_esdeveniments')}</div>}
              {filteredData.map((item, i) => (
-               <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-600 transition">
+               <div 
+                 key={i} 
+                 className="p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-600 transition cursor-pointer"
+                 onClick={() => navigate(`/registre/${item.diaId}`)}
+               >
                  <div>
-                   <div className="font-medium text-sm text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.concepte.nom}</div>
-                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(item.concepte.estat.toLowerCase())}</div>
+                   <div className="font-medium text-xs text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.concepte.nom}</div>
+                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(item.concepte.estat.toLowerCase())}</div>
                  </div>
                  <div className="text-right">
-                   <div className="font-bold text-sm text-indigo-600 dark:text-indigo-400">{item.earnings.toFixed(2)} €</div>
-                   <div className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{item.hours.toFixed(1)} h</div>
+                   <div className="font-bold text-xs text-indigo-600 dark:text-indigo-400">{item.earnings.toFixed(2)} €</div>
+                   <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{item.hours.toFixed(1)} h</div>
                  </div>
                </div>
              ))}
            </div>
+        </div>
+
+        {/* 3. INGRESSOS I HORES (Molt més compactes) */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-indigo-600 dark:bg-indigo-700 text-white rounded-xl p-3 shadow-sm flex flex-col justify-center relative overflow-hidden transition-colors">
+             <div className="absolute top-0 right-0 p-3 opacity-10"><FileText size={32}/></div>
+             <span className="text-indigo-100 text-[10px] font-bold uppercase tracking-wider">{t('ingressos')}</span>
+             <span className="text-xl font-bold mt-0.5">{totals.earnings.toFixed(2)} €</span>
+          </div>
+          <div className="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-3 shadow-sm flex flex-col justify-center transition-colors">
+             <span className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">{t('hores')}</span>
+             <span className="text-xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">{totals.hours.toFixed(1)} <span className="text-xs">h</span></span>
+          </div>
+        </div>
+        
+        {totals.despeses > 0 && (
+          <div className="p-2.5 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 flex items-center justify-between transition-colors text-xs">
+            <span className="text-red-800 dark:text-red-300 font-medium">{t('despeses_justificables')}</span>
+            <span className="text-red-700 dark:text-red-200 font-bold">{totals.despeses.toFixed(2)} €</span>
+          </div>
+        )}
+
+        {/* 4. INGRESSOS PER CLIENT (Llista de barres de progrés nativa, molt professional i informativa) */}
+        <div className="bg-white dark:bg-slate-700 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 transition-colors">
+          <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">{t('ingressos_per_client')}</h3>
+          {chartData.length > 0 ? (
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+              {chartData.map((client, idx) => {
+                const percentage = totals.earnings > 0 ? (client.value / totals.earnings) * 100 : 0;
+                return (
+                  <div key={client.name} className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-medium text-slate-600 dark:text-slate-300 truncate max-w-[60%]" title={client.name}>{client.name}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-bold text-slate-800 dark:text-slate-100">{client.value.toFixed(2)} €</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({percentage.toFixed(0)}%)</span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden transition-colors">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500" 
+                        style={{ 
+                          width: `${percentage}%`,
+                          backgroundColor: chartColors[idx % chartColors.length]
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-16 flex items-center justify-center text-slate-400 text-xs">
+              {t('sense_dades')}
+            </div>
+          )}
         </div>
 
       </div>

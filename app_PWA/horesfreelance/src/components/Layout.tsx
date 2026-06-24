@@ -26,8 +26,8 @@ export default function Layout() {
   }, [theme]);
 
   const navItems = [
-    { to: "/calendar", icon: Calendar, labelKey: "nav_calendari" },
     { to: "/resum",    icon: PieChart,  labelKey: "nav_resum" },
+    { to: "/calendar", icon: Calendar, labelKey: "nav_calendari" },
     { to: "/clients",  icon: Users,     labelKey: "nav_clients" },
   ];
 
