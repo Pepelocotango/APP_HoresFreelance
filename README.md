@@ -1,3 +1,7 @@
+# Autor
+
+Pëp pepelocotango@gmail.com
+
 # HoresFreelance
 
 Aplicació multiplataforma (Android Nativa + PWA/Electron) dissenyada per ajudar els treballadors autònoms a registrar les seves hores de treball, organitzar-les per "Bolos" (projectes/clients) i gestionar la facturació.
@@ -55,3 +59,7 @@ pnpm run build
 
 ## Llicència
 MIT License
+
+## Llicència
+
+Aquest projecte està llicenciat sota la llicència **GNU General Public License v3.0**. Consulta el fitxer [LICENSE](LICENSE) per obtenir més detalls.
