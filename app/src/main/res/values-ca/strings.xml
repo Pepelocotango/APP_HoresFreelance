@@ -55,6 +55,9 @@
     <string name="resum_from">Des de</string>
     <string name="resum_to">Fins a</string>
     <string name="resum_summary_by_concept">Resum per bolo</string>
+    <string name="resum_total_diners_label">Ingressos</string>
+    <string name="resum_total_hours_label">Hores</string>
+    <string name="resum_per_client">Ingressos i hores per client</string>
 
     <string name="common_save">Desa</string>
     <string name="common_cancel">Cancel·la</string>
@@ -92,6 +95,7 @@
     <string name="csv_header_expenses">Despeses</string>
     <string name="csv_header_expenses_notes">Notes despeses</string>
     <string name="filter_all">Tots</string>
+    <string name="status_title">Estat</string>
     <string name="status_pending">Pendent</string>
     <string name="status_invoiced">Facturat</string>
     <string name="status_paid">Cobrat</string>
@@ -99,4 +103,5 @@
     <string name="pendent">Pendent</string>
     <string name="facturat">Facturat</string>
     <string name="cobrat">Cobrat</string>
+    <string name="expenses_title">Despeses justificables</string>
 </resources>
