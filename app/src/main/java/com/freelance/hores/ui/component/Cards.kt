@@ -64,11 +64,20 @@ fun DiaCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     conceptes.forEach { concepte ->
-                        Text(
-                            text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h | ${String.format("%.2f", concepte.getTotalDiners())}€",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(modifier = Modifier.padding(bottom = 4.dp)) {
+                            Text(
+                                text = "${concepte.nom}: ${String.format("%.2f", concepte.getTotalHoras())}h | ${String.format("%.2f", concepte.getTotalDiners())}€",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (concepte.rangsHoraris.isNotEmpty()) {
+                                Text(
+                                    text = concepte.rangsHoraris.joinToString(" | ") { "${it.horaInici}-${it.horaFi}" },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
                 }
             }

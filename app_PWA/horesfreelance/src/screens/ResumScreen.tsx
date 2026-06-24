@@ -47,7 +47,7 @@ export default function ResumScreen() {
       end = endDate;
     }
 
-    let flatRecords: any[] = [];
+    let groupedRecords: Record<string, any> = {};
     
     dies.forEach(dia => {
       const dDate = new Date(dia.data);
@@ -62,19 +62,31 @@ export default function ResumScreen() {
         const hours = concepte.rangsHoraris.reduce((acc, r) => acc + calculateRangHours(r.horaInici, r.horaFi), 0);
         const earnings = concepte.preuFix ? concepte.importFix : hours * (concepte.preuHora || client?.preuHoraDefecte || 0);
 
-        flatRecords.push({
-          diaId: dia.id,
-          data: dia.data,
-          concepte,
-          clientNom: client?.nom || t('desconegut'),
-          hours,
-          earnings,
-          despeses: concepte.despeses
-        });
+        const groupKey = `${dia.id}_${concepte.clientId || 'no-client'}`;
+        
+        if (!groupedRecords[groupKey]) {
+          groupedRecords[groupKey] = {
+            diaId: dia.id,
+            data: dia.data,
+            clientNom: client?.nom || t('desconegut'),
+            rangsHoraris: [],
+            hours: 0,
+            earnings: 0,
+            despeses: 0,
+            estat: concepte.estat,
+            conceptesNoms: []
+          };
+        }
+
+        groupedRecords[groupKey].rangsHoraris.push(...concepte.rangsHoraris);
+        groupedRecords[groupKey].hours += hours;
+        groupedRecords[groupKey].earnings += earnings;
+        groupedRecords[groupKey].despeses += concepte.despeses;
+        groupedRecords[groupKey].conceptesNoms.push(concepte.nom);
       });
     });
 
-    return flatRecords;
+    return Object.values(groupedRecords);
   }, [dies, clients, range, statusFilter, clientFilter, startDate, endDate, t]);
 
   const totals = useMemo(() => {
@@ -101,9 +113,10 @@ export default function ResumScreen() {
   }, [filteredData]);
 
   const exportCSV = () => {
-    const header = `${t('data')},${t('client')},${t('bolo')},${t('hores')},${t('ingressos')},${t('despeses')},${t('estat')}\n`;
+    const header = `${t('data')},${t('client')},${t('bolo')},${t('rangs_horaris')},${t('hores')},${t('ingressos')},${t('despeses')},${t('estat')}\n`;
     const body = filteredData.map(r => {
-      return `${r.data},"${r.clientNom}","${r.concepte.nom}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${t(r.concepte.estat.toLowerCase())}`;
+      const rangs = r.concepte.rangsHoraris.map((rh: any) => `${rh.horaInici}-${rh.horaFi}`).join(" | ");
+      return `${r.data},"${r.clientNom}","${r.concepte.nom}","${rangs}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${t(r.concepte.estat.toLowerCase())}`;
     }).join("\n");
     
     const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
@@ -124,21 +137,23 @@ export default function ResumScreen() {
     
     doc.setFontSize(10);
     const rangeLabel = t(`filtre_${range}`);
-    doc.text(`${t('filtres')}: ${rangeLabel} | ${t('estat')}: ${statusFilter === 'Tots' ? t('tots') : statusFilter} | ${t('client')}: ${clientFilter === 'Tots' ? t('tots') : clients.find(c=>c.id===clientFilter)?.nom}`, 14, 30);
+    const clientName = clientFilter === 'Tots' ? t('tots') : (clients.find(c=>c.id===clientFilter)?.nom || t('desconegut'));
+    doc.text(`${t('filtres')}: ${rangeLabel} | ${t('estat')}: ${statusFilter === 'Tots' ? t('tots') : statusFilter} | ${t('client')}: ${clientName}`, 14, 30);
 
     const tableData = filteredData.map(r => [
       format(new Date(r.data), "dd/MM/yyyy"),
       r.clientNom,
-      r.concepte.nom,
+      r.conceptesNoms.join(" & "),
+      r.rangsHoraris.map((rh: any) => `${rh.horaInici}-${rh.horaFi}`).join("\n"),
       r.hours.toFixed(2) + 'h',
       r.earnings.toFixed(2) + '€',
       r.despeses.toFixed(2) + '€',
-      t(r.concepte.estat.toLowerCase())
+      t(r.estat.toLowerCase())
     ]);
 
     autoTable(doc, {
       startY: 35,
-      head: [[t('data'), t('client'), t('bolo'), t('hores'), t('ingressos'), t('despeses'), t('estat')]],
+      head: [[t('data'), t('client'), t('bolo'), t('rangs_horaris'), t('hores'), t('ingressos'), t('despeses'), t('estat')]],
       body: tableData,
       headStyles: { fillColor: [79, 70, 229] }, // Indigo color
       styles: { fontSize: 8 }
@@ -269,8 +284,11 @@ export default function ResumScreen() {
                  onClick={() => navigate(`/registre/${item.diaId}`)}
                >
                  <div>
-                   <div className="font-medium text-xs text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.concepte.nom}</div>
-                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(item.concepte.estat.toLowerCase())}</div>
+                   <div className="font-medium text-xs text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.conceptesNoms.join(" & ")}</div>
+                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(item.estat.toLowerCase())}</div>
+                   <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-mono mt-0.5">
+                     {item.rangsHoraris.map((rh: any) => `${rh.horaInici}-${rh.horaFi}`).join(" | ")}
+                   </div>
                  </div>
                  <div className="text-right">
                    <div className="font-bold text-xs text-indigo-600 dark:text-indigo-400">{item.earnings.toFixed(2)} €</div>

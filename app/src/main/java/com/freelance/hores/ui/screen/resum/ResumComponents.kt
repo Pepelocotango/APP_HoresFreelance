@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.ui.res.stringResource
+import com.freelance.hores.R
+// ...
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterFacturacio(
@@ -22,13 +25,20 @@ fun FilterFacturacio(
         FilterChip(
             selected = selectedEstat == null,
             onClick = { onEstatSelected(null) },
-            label = { Text("Tots") }
+            label = { Text(stringResource(R.string.tots)) }
         )
         listOf("PENDENT", "FACTURAT", "COBRAT").forEach { estat ->
             FilterChip(
                 selected = selectedEstat == estat,
                 onClick = { onEstatSelected(estat) },
-                label = { Text(estat) }
+                label = { 
+                    Text(text = when(estat) {
+                        "PENDENT" -> stringResource(R.string.pendent)
+                        "FACTURAT" -> stringResource(R.string.facturat)
+                        "COBRAT" -> stringResource(R.string.cobrat)
+                        else -> estat
+                    }) 
+                }
             )
         }
     }

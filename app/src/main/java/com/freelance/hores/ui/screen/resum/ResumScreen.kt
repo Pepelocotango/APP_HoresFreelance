@@ -178,89 +178,83 @@ fun ResumScreen(
                     }
                 }
                 
-                val filteredDias = resumState.dias.map { dia ->
-                    dia.copy(conceptes = dia.conceptes.filter { concepte ->
-                        (selectedEstat == null || concepte.estat == selectedEstat) &&
-                        (selectedClient == null || concepte.clientId == selectedClient?.id)
-                    })
-                }.filter { it.conceptes.isNotEmpty() }
+                // --- DISPOSICIÓ: Filtres -> Desglossament -> Totals -> Gràfic ---
 
+                // 1. Filtres (mantenim la lògica actual, només reordenem)
                 item {
-                    val dadesGrafic = filteredDias.flatMap { it.conceptes }
-                        .groupBy { it.clientNom ?: stringResource(R.string.no_client) }
-                        .mapValues { entry -> entry.value.sumOf { it.getTotalDiners() } }
-                    GraficGuanys(dades = dadesGrafic)
+                    FilterFacturacio(selectedEstat = selectedEstat, onEstatSelected = { selectedEstat = it })
                 }
 
+                // Selector Client
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedClient,
+                        onExpandedChange = { expandedClient = !expandedClient },
+                        modifier = Modifier.fillMaxWidth().padding(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = selectedClient?.nom ?: stringResource(R.string.all_clients),
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.filter_by_client)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedClient) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedClient,
+                            onDismissRequest = { expandedClient = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.all_clients)) },
+                                onClick = {
+                                    selectedClient = null
+                                    expandedClient = false
+                                }
+                            )
+                            resumState.clients.forEach { client ->
+                                DropdownMenuItem(
+                                    text = { Text(client.nom) },
+                                    onClick = {
+                                        selectedClient = client
+                                        expandedClient = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // Selector Rang de Dates (Nou per completar la funcionalitat)
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            OutlinedButton(
-                                onClick = { viewModel.loadThisWeek() },
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            OutlinedButton(onClick = { viewModel.loadThisWeek() }, modifier = Modifier.weight(1f)) {
                                 Text(stringResource(R.string.resum_this_week), style = MaterialTheme.typography.labelSmall)
                             }
-                            OutlinedButton(
-                                onClick = { viewModel.loadThisMonth() },
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            OutlinedButton(onClick = { viewModel.loadThisMonth() }, modifier = Modifier.weight(1f)) {
                                 Text(stringResource(R.string.resum_this_month), style = MaterialTheme.typography.labelSmall)
                             }
-                            OutlinedButton(
-                                onClick = { viewModel.loadLastMonth() },
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            OutlinedButton(onClick = { viewModel.loadLastMonth() }, modifier = Modifier.weight(1f)) {
                                 Text(stringResource(R.string.resum_last_month), style = MaterialTheme.typography.labelSmall)
                             }
                         }
-                        OutlinedButton(
-                            onClick = { showStartDatePicker = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        OutlinedButton(onClick = { showStartDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                             Text(stringResource(R.string.resum_custom), style = MaterialTheme.typography.labelSmall)
                         }
-                    }
-                }
-
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                        // Visualització del rang seleccionat
                         Text(
-                            text = "${resumState.startDate}",
-                            modifier = Modifier.clickable { showStartDatePicker = true },
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = " ${stringResource(R.string.resum_to)} ",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "${resumState.endDate}",
-                            modifier = Modifier.clickable { showEndDatePicker = true },
-                            style = MaterialTheme.typography.bodySmall
+                            text = "${resumState.startDate} ${stringResource(R.string.resum_to)} ${resumState.endDate}",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth().padding(top=4.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
-
-                item {
-                    val totalHores = filteredDias.sumOf { it.getTotalHoras() }
-                    val totalDiners = filteredDias.sumOf { it.getTotalDiners() }
-                    Text(
-                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", totalHores), String.format("%.2f", totalDiners)),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                if (filteredDias.isNotEmpty()) {
-                    items(filteredDias) { dia ->
+                if (diasAgrupats.isNotEmpty()) {
+                    items(diasAgrupats) { dia ->
                         DiaCard(
                             data = LocalDate.parse(dia.data),
                             conceptes = dia.conceptes,
@@ -280,9 +274,27 @@ fun ResumScreen(
                     }
                 }
 
+                // 3. Ingressos i Hores (Totals)
                 item {
-                    if (filteredDias.isNotEmpty()) {
-                        val summary = filteredDias.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry ->
+                    val totalHores = diasAgrupats.sumOf { it.getTotalHoras() }
+                    val totalDiners = diasAgrupats.sumOf { it.getTotalDiners() }
+                    Text(
+                        text = stringResource(R.string.resum_total_diners, String.format("%.2f", totalHores), String.format("%.2f", totalDiners)),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
+                // 4. Gràfic/Resum per client (ara al final)
+                item {
+                    if (diasAgrupats.isNotEmpty()) {
+                        val dadesGrafic = diasAgrupats.flatMap { it.conceptes }
+                            .groupBy { it.clientNom ?: stringResource(R.string.no_client) }
+                            .mapValues { entry -> entry.value.sumOf { it.getTotalDiners() } }
+                        GraficGuanys(dades = dadesGrafic)
+
+                        val summary = diasAgrupats.flatMap { it.conceptes }.groupBy { it.nom }.mapValues { entry ->
                             entry.value.sumOf { it.getTotalHoras() }
                         }
                         ConceptesSummary(
@@ -300,7 +312,7 @@ fun ResumScreen(
                     ) {
                         Button(
                             onClick = { 
-                                val intent = viewModel.exportCsv(filteredDias)
+                                val intent = viewModel.exportCsv(diasAgrupats)
                                 context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f)
@@ -309,7 +321,7 @@ fun ResumScreen(
                         }
                         Button(
                             onClick = { 
-                                val intent = viewModel.exportPdf(filteredDias)
+                                val intent = viewModel.exportPdf(diasAgrupats)
                                 context.startActivity(intent)
                             },
                             modifier = Modifier.weight(1f)
