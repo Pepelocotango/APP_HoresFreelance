@@ -25,7 +25,7 @@ fun FilterFacturacio(
         FilterChip(
             selected = selectedEstat == null,
             onClick = { onEstatSelected(null) },
-            label = { Text(stringResource(R.string.tots)) }
+            label = { Text(stringResource(R.string.filter_all)) }
         )
         listOf("PENDENT", "FACTURAT", "COBRAT").forEach { estat ->
             FilterChip(
@@ -33,9 +33,9 @@ fun FilterFacturacio(
                 onClick = { onEstatSelected(estat) },
                 label = { 
                     Text(text = when(estat) {
-                        "PENDENT" -> stringResource(R.string.pendent)
-                        "FACTURAT" -> stringResource(R.string.facturat)
-                        "COBRAT" -> stringResource(R.string.cobrat)
+                        "PENDENT" -> stringResource(R.string.status_pending)
+                        "FACTURAT" -> stringResource(R.string.status_invoiced)
+                        "COBRAT" -> stringResource(R.string.status_paid)
                         else -> estat
                     }) 
                 }

@@ -91,4 +91,12 @@
     <string name="csv_header_price_hour">Precio/h</string>
     <string name="csv_header_expenses">Gastos</string>
     <string name="csv_header_expenses_notes">Notas gastos</string>
+    <string name="filter_all">Todos</string>
+    <string name="status_pending">Pendiente</string>
+    <string name="status_invoiced">Facturado</string>
+    <string name="status_paid">Cobrado</string>
+    <string name="tots">Todos</string>
+    <string name="pendent">Pendiente</string>
+    <string name="facturat">Facturado</string>
+    <string name="cobrat">Cobrado</string>
 </resources>

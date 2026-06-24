@@ -38,6 +38,46 @@ fun ResumScreen(
 
     val context = LocalContext.current
 
+    // ✅ AFEGIR AQUEST CODI:
+    // Calcula diasAgrupats basant-se en els filtres
+    val diasAgrupats = remember(resumState.dias, selectedEstat, selectedClient) {
+        var filtered = resumState.dias
+        
+        // Filtra per estat si està seleccionat
+        if (selectedEstat != null) {
+            filtered = filtered.map { dia ->
+                dia.copy(conceptes = dia.conceptes.filter { concepte ->
+                    concepte.estat == selectedEstat
+                })
+            }.filter { it.conceptes.isNotEmpty() }
+        }
+        
+        // Filtra per client si està seleccionat
+        if (selectedClient != null) {
+            filtered = filtered.map { dia ->
+                dia.copy(conceptes = dia.conceptes.filter { concepte ->
+                    concepte.clientId == selectedClient?.id
+                })
+            }.filter { it.conceptes.isNotEmpty() }
+        }
+        
+        // Agrupa conceptes
+        filtered.map { dia ->
+            val conceptesAgrupats = dia.conceptes
+                .groupBy { it.clientId ?: "no-client" }
+                .map { (clientId, conceptes) ->
+                    val noms = conceptes.map { it.nom }.joinToString(" & ")
+                    val rangsAgrupats = conceptes.flatMap { it.rangsHoraris }
+                    
+                    conceptes.first().copy(
+                        nom = noms,
+                        rangsHoraris = rangsAgrupats
+                    )
+                }
+            dia.copy(conceptes = conceptesAgrupats)
+        }
+    }
+
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = resumState.startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()

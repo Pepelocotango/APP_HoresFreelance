@@ -48,43 +48,52 @@
     <string name="registre_error_overlapping_ranges">Time ranges overlap for the same bolo</string>
 
     <!-- Resum Screen -->
-    <string name="resum_title">Hours Summary</string>
-    <string name="resum_this_week">This Week</string>
-    <string name="resum_this_month">This Month</string>
-    <string name="resum_last_month">Last Month</string>
-    <string name="resum_custom">Custom Range</string>
-    <string name="resum_total">Total: %1$s hours</string>
-    <string name="resum_total_diners">Total: %1$s hours | %2$s €</string>
-    <string name="resum_export_csv">Export CSV</string>
-    <string name="resum_export_pdf">Export PDF</string>
-    <string name="resum_empty">No records for this period</string>
-    <string name="resum_from">From</string>
-    <string name="resum_to">To</string>
-    <string name="resum_summary_by_concept">Summary by Bolo</string>
+    <string name="resum_title">Resum</string>
+    <string name="resum_this_week">Aquesta setmana</string>
+    <string name="resum_this_month">Aquest mes</string>
+    <string name="resum_last_month">Mes passat</string>
+    <string name="resum_custom">Personalitzat</string>
+    <string name="resum_total">Total: %1$s hores</string>
+    <string name="resum_total_diners">Total: %1$s hores | %2$s € totals</string>
+    <string name="resum_export_csv">Exportar CSV</string>
+    <string name="resum_export_pdf">Exportar PDF</string>
+    <string name="resum_empty">No hi ha dades per mostrar</string>
+    <string name="resum_from">Des de</string>
+    <string name="resum_to">fins</string>
+    <string name="resum_summary_by_concept">Resum per concepte</string>
+
+    <string name="filter_all">Tots</string>
+    <string name="status_pending">Pendent</string>
+    <string name="status_invoiced">Facturat</string>
+    <string name="status_paid">Cobrat</string>
+    <string name="tots">Tots</string>
+    <string name="pendent">Pendent</string>
+    <string name="facturat">Facturat</string>
+    <string name="cobrat">Cobrat</string>
 
     <!-- Common -->
-    <string name="common_save">Save</string>
-    <string name="common_cancel">Cancel</string>
-    <string name="common_delete">Delete</string>
-    <string name="common_edit">Edit</string>
-    <string name="common_add">Add</string>
-    <string name="common_close">Close</string>
-    <string name="common_confirm">Confirm</string>
-    <string name="common_confirm_delete">Are you sure you want to delete?</string>
-    <string name="common_saved">Saved successfully</string>
-    <string name="common_deleted">Deleted successfully</string>
-    <string name="common_error">An error occurred</string>
+    <string name="common_save">Desar</string>
+    <string name="common_cancel">Cancel·lar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_edit">Editar</string>
+    <string name="common_add">Afegir</string>
+    <string name="common_close">Tancar</string>
+    <string name="common_confirm">Confirmar</string>
+    <string name="common_confirm_delete">Estàs segur que vols eliminar?</string>
+    <string name="common_saved">Desat correctament</string>
+    <string name="common_deleted">Eliminat correctament</string>
+    <string name="common_error">Ha ocorregut un error</string>
 
     <!-- Clients -->
-    <string name="new_client">New Client</string>
-    <string name="edit_client">Edit Client</string>
-    <string name="client_name">Client Name</string>
-    <string name="default_price">Default rate (€/h)</string>
+    <string name="new_client">Nou Client</string>
+    <string name="edit_client">Editar Client</string>
+    <string name="client_name">Nom del Client</string>
+    <string name="default_price">Tarifa defecte (€/h)</string>
     <string name="clients_title">Clients</string>
-    <string name="add_client">Add client</string>
-    <string name="all_clients">All clients</string>
-    <string name="filter_by_client">Filter by client</string>
-    <string name="no_client">No Client</string>
+    <string name="add_client">Afegir client</string>
+    <string name="all_clients">Tots els clients</string>
+    <string name="filter_by_client">Filtra per client</string>
+    <string name="no_client">Sense client</string>
 
     <string name="csv_header_date">Date</string>
     <string name="csv_header_concept">Bolo</string>
