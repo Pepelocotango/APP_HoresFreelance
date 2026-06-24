@@ -55,7 +55,7 @@
   "ingressos": "Income",
   "hores": "Hours",
   "despeses_justificables": "Total Justifiable Expenses",
-  "ingressos_per_client": "Income by Client",
+  "ingressos_i_hores_per_client": "Income and Hours by Client",
   "sense_dades": "No data to analyze",
   "desglossament": "Breakdown",
   "no_esdeveniments": "No events found.",

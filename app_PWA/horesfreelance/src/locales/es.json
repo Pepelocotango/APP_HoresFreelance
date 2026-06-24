@@ -55,7 +55,7 @@
   "ingressos": "Ingresos",
   "hores": "Horas",
   "despeses_justificables": "Totales Gastos Justificables",
-  "ingressos_per_client": "Ingresos por Cliente",
+  "ingressos_i_hores_per_client": "Ingresos y Horas por Cliente",
   "sense_dades": "Sin datos para analizar",
   "desglossament": "Desglose",
   "no_esdeveniments": "No se han encontrado eventos.",

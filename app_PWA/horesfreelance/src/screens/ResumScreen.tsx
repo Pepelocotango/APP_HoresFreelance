@@ -87,11 +87,17 @@ export default function ResumScreen() {
   }, [filteredData]);
 
   const chartData = useMemo(() => {
-    const acc: Record<string, number> = {};
+    const acc: Record<string, { earnings: number, hours: number }> = {};
     filteredData.forEach(r => {
-      acc[r.clientNom] = (acc[r.clientNom] || 0) + r.earnings;
+      if (!acc[r.clientNom]) {
+        acc[r.clientNom] = { earnings: 0, hours: 0 };
+      }
+      acc[r.clientNom].earnings += r.earnings;
+      acc[r.clientNom].hours += r.hours;
     });
-    return Object.entries(acc).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+    return Object.entries(acc)
+      .map(([name, data]) => ({ name, value: data.earnings, hours: data.hours }))
+      .sort((a, b) => b.value - a.value);
   }, [filteredData]);
 
   const exportCSV = () => {
@@ -295,18 +301,20 @@ export default function ResumScreen() {
           </div>
         )}
 
-        {/* 4. INGRESSOS PER CLIENT (Llista de barres de progrés nativa, molt professional i informativa) */}
+        {/* 4. INGRESSOS I HORES PER CLIENT (Llista de barres de progrés nativa, molt professional i informativa) */}
         <div className="bg-white dark:bg-slate-700 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600 transition-colors">
-          <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">{t('ingressos_per_client')}</h3>
+          <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">{t('ingressos_i_hores_per_client')}</h3>
           {chartData.length > 0 ? (
             <div className="space-y-3 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
-              {chartData.map((client, idx) => {
+              {chartData.map((client: any, idx) => {
                 const percentage = totals.earnings > 0 ? (client.value / totals.earnings) * 100 : 0;
                 return (
                   <div key={client.name} className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-medium text-slate-600 dark:text-slate-300 truncate max-w-[60%]" title={client.name}>{client.name}</span>
+                      <span className="font-medium text-slate-600 dark:text-slate-300 truncate max-w-[45%]" title={client.name}>{client.name}</span>
                       <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{client.hours.toFixed(1)}h</span>
+                        <span className="text-slate-300 dark:text-slate-600">|</span>
                         <span className="font-bold text-slate-800 dark:text-slate-100">{client.value.toFixed(2)} €</span>
                         <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({percentage.toFixed(0)}%)</span>
                       </div>
