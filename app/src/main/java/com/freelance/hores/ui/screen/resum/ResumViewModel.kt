@@ -75,6 +75,7 @@ class ResumViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getClients().collect { clients ->
                 _resumState.update { it.copy(clients = clients) }
+                updateFilteredData()
             }
         }
     }
@@ -138,7 +139,7 @@ class ResumViewModel @Inject constructor(
         val groupedRecords = mutableMapOf<String, GroupedResumItem>()
 
         allDias.forEach { dia ->
-            val dDate = LocalDate.parse(dia.data)
+            val dDate = try { LocalDate.parse(dia.data) } catch (e: Exception) { return@forEach }
 
             // Date filtering
             if (start != null && dDate.isBefore(start)) return@forEach
@@ -153,8 +154,20 @@ class ResumViewModel @Inject constructor(
 
                 val client = state.clients.find { it.id == concepte.clientId }
                 val hours = concepte.getTotalHoras()
-                val earnings = concepte.getDinersHores()
-                val despeses = concepte.getDinersDespeses()
+
+                val effectivePreuHora = if (concepte.preuHora > 0) {
+                    concepte.preuHora
+                } else {
+                    client?.preuHoraDefecte ?: 0.0
+                }
+
+                val earnings = if (concepte.preuFix) {
+                    concepte.importFix
+                } else {
+                    hours * effectivePreuHora
+                }
+
+                val despeses = concepte.despeses
 
                 val groupKey = "${dia.id}_${concepte.clientId ?: "no-client"}"
 
@@ -189,40 +202,13 @@ class ResumViewModel @Inject constructor(
         ) }
     }
 
-    // Adapt for export (might need to map GroupedResumItem back to Dia/Concepte if service expects it)
     fun exportCsv(): android.content.Intent {
         val state = _resumState.value
-        // The export service might need a list of Dia. We can reconstruct them or modify the service.
-        // For now let's try to pass what it expects.
-        // If it expects List<Dia>, we might need to be careful with the grouping.
-        return exportService.exportCsv(reconstructDias(state.filteredItems), state.startDate ?: LocalDate.MIN, state.endDate ?: LocalDate.MAX)
+        return exportService.exportCsv(state.filteredItems, state.startDate ?: LocalDate.MIN, state.endDate ?: LocalDate.MAX)
     }
 
     fun exportPdf(): android.content.Intent {
         val state = _resumState.value
-        return exportService.exportPdf(reconstructDias(state.filteredItems), state.startDate ?: LocalDate.MIN, state.endDate ?: LocalDate.MAX)
-    }
-
-    private fun reconstructDias(items: List<GroupedResumItem>): List<Dia> {
-        return items.groupBy { it.diaId }.map { (diaId, itemsInDia) ->
-            Dia(
-                id = diaId,
-                data = itemsInDia.first().data,
-                conceptes = itemsInDia.map { item ->
-                    Concepte(
-                        id = UUID.randomUUID().toString(),
-                        diaId = diaId,
-                        nom = item.conceptesNoms.joinToString(" & "),
-                        clientId = null, // Not strictly needed for export if clientNom is there
-                        clientNom = item.clientNom,
-                        rangsHoraris = item.rangsHoraris,
-                        estat = item.estat,
-                        despeses = item.despeses,
-                        importFix = item.earnings,
-                        preuFix = true // simplify for export
-                    )
-                }
-            )
-        }
+        return exportService.exportPdf(state.filteredItems, state.startDate ?: LocalDate.MIN, state.endDate ?: LocalDate.MAX)
     }
 }

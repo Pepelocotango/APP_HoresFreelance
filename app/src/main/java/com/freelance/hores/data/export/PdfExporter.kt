@@ -1,42 +1,40 @@
 package com.freelance.hores.data.export
 
 import android.content.Context
-import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfDocument.PageInfo
 import com.freelance.hores.R
-import com.freelance.hores.domain.model.Dia
+import com.freelance.hores.ui.screen.resum.GroupedResumItem
 import java.io.File
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 class PdfExporter(private val context: Context) {
     fun exportToPdf(
-        dias: List<Dia>,
-        filename: String = "hores_freelance.pdf",
+        items: List<GroupedResumItem>,
+        filename: String = "hores_export.pdf",
         startDate: LocalDate? = null,
         endDate: LocalDate? = null
     ): File {
         val file = File(context.cacheDir, filename)
 
         val pdfDocument = PdfDocument()
-        val pageWidth = 595
-        val pageHeight = 842
+        val pageWidth = 842 // Landscape A4
+        val pageHeight = 595
         
         val titlePaint = Paint().apply {
-            textSize = 20f
+            textSize = 18f
             isFakeBoldText = true
         }
 
         val headerPaint = Paint().apply {
-            textSize = 10f // Reduced
+            textSize = 10f
             isFakeBoldText = true
         }
 
         val textPaint = Paint().apply {
-            textSize = 9f // Reduced
+            textSize = 9f
         }
 
         val footerPaint = Paint().apply {
@@ -50,91 +48,87 @@ class PdfExporter(private val context: Context) {
         var canvas = page.canvas
 
         var y = 50f
-        val margin = 40f
-        val lineHeight = 18f // Slightly tighter
+        val margin = 30f
+        val lineHeight = 20f
 
-        // Title
-        val periodTitle = if (startDate != null && endDate != null) {
-            "${context.getString(R.string.resum_title)} — ${startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)} ${context.getString(R.string.resum_to)} ${endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
-        } else {
-            context.getString(R.string.resum_title)
-        }
+        // Title and filters (matching PWA)
+        val periodTitle = context.getString(R.string.resum_title)
         canvas.drawText(periodTitle, margin, y, titlePaint)
-        y += lineHeight * 2
+        y += lineHeight
+
+        val rangeLabel = if (startDate != null && endDate != null) {
+            "${startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)} - ${endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
+        } else {
+            context.getString(R.string.filter_all)
+        }
+        canvas.drawText("Rang: $rangeLabel", margin, y, textPaint)
+        y += lineHeight * 1.5f
+
+        // Column widths for landscape
+        val colDate = margin
+        val colClient = margin + 70
+        val colBolo = margin + 180
+        val colRangs = margin + 350
+        val colHours = margin + 500
+        val colEarn = margin + 570
+        val colDesp = margin + 650
+        val colEstat = margin + 730
 
         // Headers
-        canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
-        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
-        canvas.drawText("Total €", margin + 480, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_date), colDate, y, headerPaint)
+        canvas.drawText(context.getString(R.string.client_name), colClient, y, headerPaint)
+        canvas.drawText(context.getString(R.string.csv_header_concept), colBolo, y, headerPaint)
+        canvas.drawText("Rangs", colRangs, y, headerPaint)
+        canvas.drawText("Hores", colHours, y, headerPaint)
+        canvas.drawText("Ingressos", colEarn, y, headerPaint)
+        canvas.drawText("Despeses", colDesp, y, headerPaint)
+        canvas.drawText("Estat", colEstat, y, headerPaint)
 
-        y += lineHeight
-        canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
-        y += 10f
+        y += 5f
+        canvas.drawLine(margin, y, pageWidth - margin, y, textPaint)
+        y += 15f
 
-        var totalHoras = 0.0
-        var totalDiners = 0.0
-        for (dia in dias) {
-            for (concepte in dia.conceptes) {
-                for (rang in concepte.rangsHoraris) {
-                    if (y > pageHeight - 100) {
-                        pdfDocument.finishPage(page)
-                        pageNumber++
-                        pageInfo = PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
-                        page = pdfDocument.startPage(pageInfo)
-                        canvas = page.canvas
-                        y = 50f
-                        
-                        // Redraw headers on new page
-                        canvas.drawText(context.getString(R.string.csv_header_date), margin, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_concept), margin + 80, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_price), margin + 220, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_start), margin + 290, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_end), margin + 350, y, headerPaint)
-                        canvas.drawText(context.getString(R.string.csv_header_duration), margin + 410, y, headerPaint)
-                        canvas.drawText("Total €", margin + 480, y, headerPaint)
-                        y += lineHeight
-                        canvas.drawLine(margin, y - 5, pageWidth - margin.toFloat(), y - 5, textPaint)
-                        y += 10f
-                    }
-
-                    val hInici = LocalTime.parse(rang.horaInici)
-                    val hFi = LocalTime.parse(rang.horaFi)
-                    var seconds = (hFi.toSecondOfDay() - hInici.toSecondOfDay()).toLong()
-                    if (seconds < 0) seconds += 24 * 3600
-                    val duracion = seconds / 3600.0
-
-                    val costHores = duracion * concepte.preuHora
-                    
-                    // Afegim la despesa només al primer rang horari d'aquest bolo per evitar duplicats
-                    val despesesAplicar = if (rang == concepte.rangsHoraris.firstOrNull()) concepte.despeses else 0.0
-                    val costTotalBolo = costHores + despesesAplicar
-                    
-                    totalHoras += duracion
-                    totalDiners += costTotalBolo
-
-                    canvas.drawText(dia.data, margin, y, textPaint)
-                    
-                    val conceptName = if (concepte.nom.length > 20) concepte.nom.substring(0, 17) + "..." else concepte.nom
-                    canvas.drawText(conceptName, margin + 80, y, textPaint)
-                    canvas.drawText("%.2f".format(concepte.preuHora), margin + 220, y, textPaint)
-                    canvas.drawText(rang.horaInici, margin + 290, y, textPaint)
-                    canvas.drawText(rang.horaFi, margin + 350, y, textPaint)
-                    canvas.drawText("%.2f".format(duracion), margin + 410, y, textPaint)
-                    canvas.drawText("%.2f".format(costTotalBolo), margin + 480, y, textPaint)
-
-                    y += lineHeight
-                }
+        items.forEach { item ->
+            if (y > pageHeight - 60) {
+                pdfDocument.finishPage(page)
+                pageNumber++
+                pageInfo = PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+                page = pdfDocument.startPage(pageInfo)
+                canvas = page.canvas
+                y = 50f
+                // Redraw headers...
             }
+
+            canvas.drawText(item.data, colDate, y, textPaint)
+
+            val clientName = if (item.clientNom.length > 20) item.clientNom.substring(0, 18) + ".." else item.clientNom
+            canvas.drawText(clientName, colClient, y, textPaint)
+
+            val boloName = item.conceptesNoms.joinToString(" & ")
+            val boloShort = if (boloName.length > 30) boloName.substring(0, 28) + ".." else boloName
+            canvas.drawText(boloShort, colBolo, y, textPaint)
+
+            val ranges = item.rangsHoraris.joinToString(", ") { "${it.horaInici}-${it.horaFi}" }
+            val rangesShort = if (ranges.length > 25) ranges.substring(0, 23) + ".." else ranges
+            canvas.drawText(rangesShort, colRangs, y, textPaint)
+
+            canvas.drawText("%.1fh".format(item.hours), colHours, y, textPaint)
+            canvas.drawText("%.2f€".format(item.earnings), colEarn, y, textPaint)
+            canvas.drawText("%.2f€".format(item.despeses), colDesp, y, textPaint)
+            canvas.drawText(item.estat, colEstat, y, textPaint)
+
+            y += lineHeight
         }
 
-        // Total
-        y += lineHeight
-        canvas.drawLine(margin, y - 15, pageWidth - margin.toFloat(), y - 15, textPaint)
-        canvas.drawText("Total Hores: %.2f | Total Factura: %.2f €".format(totalHoras, totalDiners), margin, y, footerPaint)
+        // Totals summary at the end
+        val totalHours = items.sumOf { it.hours }
+        val totalEarnings = items.sumOf { it.earnings }
+        val totalExpenses = items.sumOf { it.despeses }
+
+        y += 10f
+        canvas.drawLine(margin, y, pageWidth - margin, y, textPaint)
+        y += 20f
+        canvas.drawText("Resum: %.1fh totals | Ingressos: %.2f€ | Despeses: %.2f€".format(totalHours, totalEarnings, totalExpenses), margin, y, footerPaint)
 
         pdfDocument.finishPage(page)
         pdfDocument.writeTo(file.outputStream())

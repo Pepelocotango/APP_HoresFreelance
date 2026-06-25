@@ -26,7 +26,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ResumScreen(
     navController: NavHostController,
@@ -140,19 +140,19 @@ fun ResumScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
-                                Text(
-                                    text = stringResource(R.string.filter_all).uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.outline,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                            Text(
+                                text = stringResource(R.string.filter_all).uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outline,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
 
-                            // Range Buttons
-                            Row(
+                            // Range Buttons - FlowRow for better mobile wrapping
+                            FlowRow(
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 listOf(
                                     DateRangeType.SETMANA to R.string.resum_this_week,
@@ -168,17 +168,18 @@ fun ResumScreen(
                                         colors = SuggestionChipDefaults.suggestionChipColors(
                                             containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                                             labelColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                        ),
+                                        modifier = Modifier.height(32.dp)
                                     )
                                 }
                             }
 
                             if (resumState.rangeType == DateRangeType.LLIURE) {
                                 Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedButton(onClick = { showStartDatePicker = true }, modifier = Modifier.weight(1f)) {
+                                    OutlinedButton(onClick = { showStartDatePicker = true }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 4.dp)) {
                                         Text(resumState.startDate?.toString() ?: stringResource(R.string.resum_from), style = MaterialTheme.typography.labelSmall)
                                     }
-                                    OutlinedButton(onClick = { showEndDatePicker = true }, modifier = Modifier.weight(1f)) {
+                                    OutlinedButton(onClick = { showEndDatePicker = true }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 4.dp)) {
                                         Text(resumState.endDate?.toString() ?: stringResource(R.string.resum_to), style = MaterialTheme.typography.labelSmall)
                                     }
                                 }
