@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import com.freelance.hores.domain.model.Dia
+import com.freelance.hores.ui.screen.resum.GroupedResumItem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.time.LocalDate
@@ -18,15 +19,15 @@ class ExportService @Inject constructor(
     private val csvExporter = CsvExporter(context)
     private val pdfExporter = PdfExporter(context)
 
-    fun exportCsv(dias: List<Dia>, startDate: LocalDate, endDate: LocalDate): Intent {
-        val filename = buildFilename("hores_freelance", "csv", startDate, endDate)
-        val file = csvExporter.exportToCsv(dias, filename)
+    fun exportCsv(items: List<GroupedResumItem>, startDate: LocalDate, endDate: LocalDate): Intent {
+        val filename = buildFilename("hores_export", "csv", startDate, endDate)
+        val file = csvExporter.exportToCsv(items, filename)
         return buildShareIntent(file, "text/csv")
     }
 
-    fun exportPdf(dias: List<Dia>, startDate: LocalDate, endDate: LocalDate): Intent {
-        val filename = buildFilename("hores_freelance", "pdf", startDate, endDate)
-        val file = pdfExporter.exportToPdf(dias, filename, startDate, endDate)
+    fun exportPdf(items: List<GroupedResumItem>, startDate: LocalDate, endDate: LocalDate): Intent {
+        val filename = buildFilename("hores_export", "pdf", startDate, endDate)
+        val file = pdfExporter.exportToPdf(items, filename, startDate, endDate)
         return buildShareIntent(file, "application/pdf")
     }
 
@@ -36,8 +37,8 @@ class ExportService @Inject constructor(
         startDate: LocalDate,
         endDate: LocalDate
     ): String {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        return "${prefix}_${startDate.format(formatter)}_${endDate.format(formatter)}.$extension"
+        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+        return "${prefix}_${startDate.format(formatter)}_to_${endDate.format(formatter)}.$extension"
     }
 
     private fun buildShareIntent(file: File, mimeType: String): Intent {

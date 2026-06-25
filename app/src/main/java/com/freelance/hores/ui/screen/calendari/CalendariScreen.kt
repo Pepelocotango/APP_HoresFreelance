@@ -13,12 +13,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,11 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.freelance.hores.R
-import com.freelance.hores.data.backup.BackupService
-import com.freelance.hores.ui.screen.gestio_dades.GestioDadesViewModel
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -54,67 +47,6 @@ fun CalendariScreen(
             }
         } 
     }
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val gestioDadesViewModel: GestioDadesViewModel = hiltViewModel()
-    var showBackupDialog by remember { mutableStateOf(false) }
-
-    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        uri?.let {
-            scope.launch {
-                context.contentResolver.openOutputStream(it)?.use { output ->
-                    val json = gestioDadesViewModel.exportarBaseDeDades()
-                    output.write(json.toByteArray())
-                }
-            }
-        }
-    }
-
-    val loadLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let {
-            scope.launch {
-                try {
-                    context.contentResolver.openInputStream(it)?.use { input ->
-                        val json = input.bufferedReader().readText()
-                        val success = gestioDadesViewModel.importarBaseDeDades(json)
-                        if (success) {
-                            android.widget.Toast.makeText(
-                                context,
-                                "Dades importades correctament!",
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
-                            // Forcem la recàrrega del calendari observant les noves dades
-                            viewModel.loadDias()
-                        } else {
-                            android.widget.Toast.makeText(
-                                context,
-                                "Error: El format o les dades del JSON no són correctes.",
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    android.widget.Toast.makeText(
-                        context,
-                        "Error en obrir el fitxer: ${e.message}",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-    }
-
-    if (showBackupDialog) {
-        AlertDialog(
-            onDismissRequest = { showBackupDialog = false },
-            title = { Text("Còpia de seguretat") },
-            text = { Text("Gestió de les dades en format JSON compatible amb la PWA.") },
-            confirmButton = {
-                TextButton(onClick = { saveLauncher.launch("hores_backup.json"); showBackupDialog = false }) { Text("Exportar JSON") }
-                TextButton(onClick = { loadLauncher.launch(arrayOf("application/json", "*/*")); showBackupDialog = false }) { Text("Importar JSON") }
-            }
-        )
-    }
 
     Scaffold(
         topBar = {
@@ -126,9 +58,6 @@ fun CalendariScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showBackupDialog = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Configuració")
-                    }
                     IconButton(onClick = { viewModel.nextMonth() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                     }
@@ -243,8 +172,6 @@ fun CalendarGrid(
         val firstDayOfWeek = firstDay.dayOfWeek.value // 1 (Mon) to 7 (Sun)
         val daysInMonth = lastDay.dayOfMonth
         
-        // Adjust index to start Monday at 0
-        // If Monday is 1, then firstDayOfWeek - 1 is the number of empty cells
         val emptyCellsBefore = firstDayOfWeek - 1
         val totalCells = ((daysInMonth + emptyCellsBefore + 6) / 7) * 7
 
