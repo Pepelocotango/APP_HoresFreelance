@@ -173,9 +173,20 @@ export const useStore = create<AppState>()(
           }
 
           if (clients && dies) {
+            // Sanitització de dades importades d'Android o versions antigues
+            const sanitizedDies = dies.map((dia: any) => ({
+              ...dia,
+              conceptes: (dia.conceptes || []).map((concepte: any) => ({
+                ...concepte,
+                estat: concepte.estat || "PENDENT",
+                despeses: concepte.despeses || 0,
+                rangsHoraris: concepte.rangsHoraris || []
+              }))
+            }));
+
             set({
               clients: clients,
-              dies: dies,
+              dies: sanitizedDies,
               // CORRECCIÓ: Sempre posem activeClockIn a null en importar.
               // No volem que el Desktop intenti tancar una sessió que es va obrir a l'Android
               activeClockIn: null,

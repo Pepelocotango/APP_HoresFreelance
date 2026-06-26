@@ -115,8 +115,9 @@ export default function ResumScreen() {
   const exportCSV = () => {
     const header = `${t('data')},${t('client')},${t('bolo')},${t('rangs_horaris')},${t('hores')},${t('ingressos')},${t('despeses')},${t('estat')}\n`;
     const body = filteredData.map(r => {
-      const rangs = r.concepte.rangsHoraris.map((rh: any) => `${rh.horaInici}-${rh.horaFi}`).join(" | ");
-      return `${r.data},"${r.clientNom}","${r.concepte.nom}","${rangs}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${t(r.concepte.estat.toLowerCase())}`;
+      const rangs = r.rangsHoraris.map((rh: any) => `${rh.horaInici}-${rh.horaFi}`).join(" | ");
+      const estat = (r.estat && typeof r.estat === 'string') ? r.estat.toLowerCase() : 'pendent';
+      return `${r.data},"${r.clientNom}","${r.conceptesNoms.join(" & ")}","${rangs}",${r.hours.toFixed(2)},${r.earnings.toFixed(2)},${r.despeses.toFixed(2)},${t(estat)}`;
     }).join("\n");
     
     const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
@@ -148,7 +149,7 @@ export default function ResumScreen() {
       r.hours.toFixed(2) + 'h',
       r.earnings.toFixed(2) + '€',
       r.despeses.toFixed(2) + '€',
-      t(r.estat.toLowerCase())
+      t(((r.estat && typeof r.estat === 'string') ? r.estat : 'pendent').toLowerCase())
     ]);
 
     autoTable(doc, {
@@ -285,7 +286,7 @@ export default function ResumScreen() {
                >
                  <div>
                    <div className="font-medium text-xs text-slate-800 dark:text-slate-100">{format(new Date(item.data), "dd/MM/yyyy")} - {item.conceptesNoms.join(" & ")}</div>
-                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(item.estat.toLowerCase())}</div>
+                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{item.clientNom} · {t(((item.estat && typeof item.estat === 'string') ? item.estat : 'pendent').toLowerCase())}</div>
                    <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-mono mt-0.5">
                      {item.rangsHoraris.map((rh: any) => `${rh.horaInici}-${rh.horaFi}`).join(" | ")}
                    </div>
