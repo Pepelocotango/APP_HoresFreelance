@@ -102,14 +102,6 @@
     <string name="resum_total_diners_label">Ingresos</string>
     <string name="resum_total_hours_label">Horas</string>
     <string name="resum_per_client">Ingresos y horas por cliente</string>
-    <string name="filter_all">Todos</string>
     <string name="status_title">Estado</string>
-    <string name="status_pending">Pendiente</string>
-    <string name="status_invoiced">Facturado</string>
-    <string name="status_paid">Cobrado</string>
-    <string name="tots">Todos</string>
-    <string name="pendent">Pendiente</string>
-    <string name="facturat">Facturado</string>
-    <string name="cobrat">Cobrado</string>
     <string name="expenses_title">Gastos justificables</string>
 </resources>
