@@ -158,45 +158,123 @@ export const useStore = create<AppState>()(
       },
 
       loadBackup: (jsonString) => {
-        try {
-          const parsed = JSON.parse(jsonString) as any;
-          // Support both formats: PWA native (wrapped in state) and Android export (direct AppData)
-          let clients: Client[] = [];
-          let dies: Dia[] = [];
+    try {
+        const parsed = JSON.parse(jsonString) as any;
+        let clients: Client[] = [];
+        let dies: Dia[] = [];
 
-          if (parsed.state && parsed.state.clients && parsed.state.dies) {
+        // Detectar format (PWA amb "state" o Android pla)
+        if (parsed.state && parsed.state.clients && parsed.state.dies) {
             clients = parsed.state.clients;
             dies = parsed.state.dies;
-          } else if (parsed.clients && parsed.dies) {
+        } else if (parsed.clients && parsed.dies) {
             clients = parsed.clients;
             dies = parsed.dies;
-          }
-
-          if (clients && dies) {
-            // Sanitització de dades importades d'Android o versions antigues
-            const sanitizedDies = dies.map((dia: any) => ({
-              ...dia,
-              conceptes: (dia.conceptes || []).map((concepte: any) => ({
-                ...concepte,
-                estat: concepte.estat || "PENDENT",
-                despeses: concepte.despeses || 0,
-                rangsHoraris: concepte.rangsHoraris || []
-              }))
-            }));
-
-            set({
-              clients: clients,
-              dies: sanitizedDies,
-              // CORRECCIÓ: Sempre posem activeClockIn a null en importar.
-              // No volem que el Desktop intenti tancar una sessió que es va obrir a l'Android
-              activeClockIn: null,
-            });
-          }
-        } catch (e) {
-          console.error("Failed to restore backup", e);
-          alert("El format del fitxer no és vàlid.");
+        } else {
+            throw new Error("Format de JSON no reconegut. Esperava: {clients: [], dies: []}");
         }
-      }
+
+        if (!clients || !dies) {
+            throw new Error("Dades incompletes");
+        }
+
+        // ✅ SANITITZACIÓ DEFENSIVA COMPLETA
+        const sanitizedClients = clients.map((client: any) => {
+            if (!client.id || typeof client.id !== 'string') {
+                throw new Error("Client sense ID vàlid");
+            }
+            return {
+                id: client.id,
+                nom: typeof client.nom === 'string' 
+                    ? client.nom.trim() || "Client sense nom" 
+                    : "Client sense nom",
+                preuHoraDefecte: typeof client.preuHoraDefecte === 'number' 
+                    ? Math.max(0, client.preuHoraDefecte) 
+                    : 0,
+            };
+        });
+
+        const sanitizedDies = dies.map((dia: any) => {
+            if (!dia.id || typeof dia.id !== 'string') {
+                throw new Error("Dia sense ID vàlid");
+            }
+            
+            // Validar data
+            if (!isValidDate(dia.data)) {
+                throw new Error(`Data inválida: ${dia.data}. Format esperat: YYYY-MM-DD`);
+            }
+
+            const clientIds = sanitizedClients.map(c => c.id);
+
+            const sanitizedConceptes = (dia.conceptes || []).map((concepte: any) => {
+                if (!concepte.id || typeof concepte.id !== 'string') {
+                    throw new Error(`Concepte sense ID en dia ${dia.data}`);
+                }
+
+                // Validar que clientId existeix (si no és null)
+                if (concepte.clientId && !clientIds.includes(concepte.clientId)) {
+                    throw new Error(`Concepte '${concepte.nom}' referencia un client que no existeix: ${concepte.clientId}`);
+                }
+
+                // Validar i sanitizar rangsHoraris
+                const sanitizedRangs = (concepte.rangsHoraris || [])
+                    .filter((r: any) => {
+                        if (!isValidTime(r.horaInici) || !isValidTime(r.horaFi)) {
+                            console.warn(`RangHorari amb hores inválides en '${concepte.nom}': ${r.horaInici}-${r.horaFi}`);
+                            return false;
+                        }
+                        return true;
+                    });
+
+                return {
+                    id: concepte.id,
+                    diaId: concepte.diaId || dia.id,
+                    nom: typeof concepte.nom === 'string' 
+                        ? concepte.nom.trim() || "Bolo sense títol" 
+                        : "Bolo sense títol",
+                    preuHora: typeof concepte.preuHora === 'number' 
+                        ? Math.max(0, concepte.preuHora) 
+                        : 0,
+                    clientId: concepte.clientId ?? null,
+                    clientNom: concepte.clientNom ?? null,
+                    rangsHoraris: sanitizedRangs,
+                    estat: (['PENDENT', 'FACTURAT', 'COBRAT'].includes(concepte.estat) 
+                        ? concepte.estat 
+                        : 'PENDENT') as any,
+                    despeses: typeof concepte.despeses === 'number' 
+                        ? Math.max(0, concepte.despeses) 
+                        : 0,
+                    despesesNotes: typeof concepte.despesesNotes === 'string' 
+                        ? concepte.despesesNotes.trim() 
+                        : "",
+                    preuFix: typeof concepte.preuFix === 'boolean' 
+                        ? concepte.preuFix 
+                        : false,
+                    importFix: typeof concepte.importFix === 'number' 
+                        ? Math.max(0, concepte.importFix) 
+                        : 0,
+                };
+            });
+
+            return {
+                id: dia.id,
+                data: dia.data,
+                notes: typeof dia.notes === 'string' ? dia.notes.trim() : "",
+                conceptes: sanitizedConceptes,
+            };
+        });
+
+        set({
+            clients: sanitizedClients,
+            dies: sanitizedDies,
+            activeClockIn: null,  // ✅ Sempre null en importar (no comparteix sessions amb Android)
+        });
+    } catch (e) {
+        console.error("Error en loadBackup:", e);
+        alert(`Error en importar: ${(e as Error).message}`);
+    }
+}
+
     }),
     {
       name: "hores-freelance-storage",

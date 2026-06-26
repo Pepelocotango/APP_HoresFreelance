@@ -1,9 +1,0 @@
-problemes detectats en la ultimes versions:
-llibreries i dependències amb vulnerabilitats -> actualitzar / arreglar
-
-la app android peta en la pestanya calendari
-
-la app desktop no te scroll vertical a resums i no es pot navegar per tots els bolos , tampoc es poden editar des de allà
-
-sembla que si que els arxius json ara son universals per les 2 apps encara que la app android s'ha de reinicialitzar per importar dades
-

@@ -12,7 +12,12 @@ class GestioDadesViewModel @Inject constructor(
     private val backupService: BackupService
 ) : ViewModel() {
 
-    suspend fun importarBaseDeDades(jsonString: String): Boolean {
+    /**
+     * Importa base de dades. Retorna Pair<Boolean, String>
+     * - Boolean: èxit o fracàs
+     * - String: missatge descriptiu (error o confirmació)
+     */
+    suspend fun importarBaseDeDades(jsonString: String): Pair<Boolean, String> {
         return backupService.importFromJson(jsonString)
     }
 

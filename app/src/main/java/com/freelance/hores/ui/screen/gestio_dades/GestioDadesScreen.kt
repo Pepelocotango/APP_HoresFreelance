@@ -42,19 +42,18 @@ fun GestioDadesScreen(
                 try {
                     val jsonString = context.contentResolver.openInputStream(it)?.bufferedReader()?.readText()
                     jsonString?.let { json ->
-                        val success = viewModel.importarBaseDeDades(json)
+                        // ✅ MODIFICA: Ara retorna Pair<Boolean, String>
+                        val (success, message) = viewModel.importarBaseDeDades(json)
+                        
+                        android.widget.Toast.makeText(
+                            context,
+                            message,  // Mensatge descriptiu
+                            if (success) android.widget.Toast.LENGTH_SHORT else android.widget.Toast.LENGTH_LONG
+                        ).show()
+                        
                         if (success) {
-                            android.widget.Toast.makeText(
-                                context,
-                                "Dades importades correctament!",
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            android.widget.Toast.makeText(
-                                context,
-                                "Error en importar: El format del JSON no és vàlid",
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
+                            // Opcional: navegar a pantalla principal o refrescar
+                            // navController.navigate("...")
                         }
                     }
                 } catch (e: Exception) {
